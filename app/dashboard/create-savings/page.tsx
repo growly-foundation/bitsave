@@ -25,28 +25,28 @@ const spaceGrotesk = Space_Grotesk({
 
 export default function CreateSavingsPage() {
   const router = useRouter()
- // Wizard state
- const [step, setStep] = useState(1)
- const [mounted, setMounted] = useState(false)
- const [submitting, setSubmitting] = useState(false)
- const [success, setSuccess] = useState(false)
- const [showTransactionModal, setShowTransactionModal] = useState(false)
- // Form state
- const [name, setName] = useState('')
- const [amount, setAmount] = useState('')
- const [currency, setCurrency] = useState('USDC')
- const [chain, setChain] = useState('base') // Default to base chain
- // eslint-disable-next-line @typescript-eslint/no-unused-vars
- const [startDate, _setStartDate] = useState<Date | null>(new Date())
- const [endDate, setEndDate] = useState<Date | null>(null)
- const [penalty, setPenalty] = useState('1%')
- 
- // Transaction state
+  // Wizard state
+  const [step, setStep] = useState(1)
+  const [mounted, setMounted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [showTransactionModal, setShowTransactionModal] = useState(false)
+  // Form state
+  const [name, setName] = useState('')
+  const [amount, setAmount] = useState('')
+  const [currency, setCurrency] = useState('USDC')
+  const [chain, setChain] = useState('base') // Default to base chain
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [startDate, _setStartDate] = useState<Date | null>(new Date())
+  const [endDate, setEndDate] = useState<Date | null>(null)
+  const [penalty, setPenalty] = useState('1%')
+  
   // Transaction state
   const [isLoading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [txHash, setTxHash] = useState<string | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+  const [termsAgreed, setTermsAgreed] = useState(false)
   
   // Define a proper type for the day range
   interface DayRange {
@@ -71,37 +71,37 @@ export default function CreateSavingsPage() {
   // Add state for savings name (for compatibility with existing functions)
   const [savingsName, setSavingsName] = useState('')
  
- // Add state for selected penalty (for compatibility with existing functions)
- const [selectedPenalty, setSelectedPenalty] = useState(1)
+  // Add state for selected penalty (for compatibility with existing functions)
+  const [selectedPenalty, setSelectedPenalty] = useState(1)
  
- // Update selectedDayRange when endDate changes
- useEffect(() => {
-   if (endDate) {
-     setSelectedDayRange({
-       from: {
-         year: startDate?.getFullYear(),
-         month: startDate ? startDate.getMonth() + 1 : 0,
-         day: startDate?.getDate()
-       },
-       to: {
-         year: endDate.getFullYear(),
-         month: endDate.getMonth() + 1,
-         day: endDate.getDate()
-       }
-     })
-   }
- }, [startDate, endDate])
+  // Update selectedDayRange when endDate changes
+  useEffect(() => {
+    if (endDate) {
+      setSelectedDayRange({
+        from: {
+          year: startDate?.getFullYear(),
+          month: startDate ? startDate.getMonth() + 1 : 0,
+          day: startDate?.getDate()
+        },
+        to: {
+          year: endDate.getFullYear(),
+          month: endDate.getMonth() + 1,
+          day: endDate.getDate()
+        }
+      })
+    }
+  }, [startDate, endDate])
  
- // Update savingsName when name changes
- useEffect(() => {
-   setSavingsName(name)
- }, [name])
+  // Update savingsName when name changes
+  useEffect(() => {
+    setSavingsName(name)
+  }, [name])
  
- // Update selectedPenalty when penalty changes
- useEffect(() => {
-   setSelectedPenalty(parseInt(penalty))
- }, [penalty])
- 
+  // Update selectedPenalty when penalty changes
+  useEffect(() => {
+    setSelectedPenalty(parseInt(penalty))
+  }, [penalty])
+  
   // Validation state
   const [errors, setErrors] = useState({
     name: '',
@@ -203,7 +203,6 @@ export default function CreateSavingsPage() {
     
     getWalletAddress();
   }, []);
-
 
   const approveERC20 = async (
     tokenAddress: string, 
@@ -371,6 +370,8 @@ export default function CreateSavingsPage() {
     } catch (error) {
       console.error("Error creating ETH savings plan:", error)
       setError("Failed to create ETH savings plan: " + (error instanceof Error ? error.message : String(error)))
+      setSuccess(false) // Explicitly set success to false on error
+      throw error // Re-throw to handle in the calling function
     } finally {
       setLoading(false)
     }
@@ -502,6 +503,7 @@ export default function CreateSavingsPage() {
       console.log("Savings plan created successfully!")
     } catch (error) {
       console.error("Error creating savings plan:", error)
+      setSuccess(false) // Explicitly set success to false on error
 
       if (error instanceof Error) {
         // Handle standard Error objects
@@ -520,14 +522,16 @@ export default function CreateSavingsPage() {
         // Fallback for unknown error types
         setError("An unknown error occurred while creating the savings plan.")
       }
+      throw error // Re-throw to handle in the calling function
     } finally {
       setLoading(false)
     }
   }
   
-  // Update the handleSubmit function to use the hook
   const handleSubmit = async () => {
     setSubmitting(true)
+    setError(null)
+    setSuccess(false) // Explicitly set success to false at the beginning
     
     try {
       // Check if currency is ETH or USDC and call the appropriate function
@@ -537,12 +541,24 @@ export default function CreateSavingsPage() {
         await handleBaseSavingsCreate()
       }
       
+      // If we reach here without an error, the transaction was successful
       setSuccess(true)
-      // Don't automatically redirect - let user close the modal
-      // The redirect will happen in the close handler of the success modal
     } catch (err) {
       console.error('Error creating savings plan:', err)
-      setError(err instanceof Error ? err.message : 'An unknown error occurred')
+      
+      // Check if this is a user rejection error
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes('user rejected') || 
+          errorMessage.includes('User denied') || 
+          errorMessage.includes('user cancelled') ||
+          errorMessage.includes('ACTION_REJECTED')) {
+        setError('Transaction was rejected by user')
+      } else {
+        setError(errorMessage)
+      }
+      
+      setSuccess(false) // Ensure success is set to false on error
+    } finally {
       setSubmitting(false)
     }
   }
@@ -555,10 +571,10 @@ export default function CreateSavingsPage() {
   }
 
   useEffect(() => {
-    if (success || error) {
+    if (error || (success && txHash)) {
       setShowTransactionModal(true)
     }
-  }, [success, error])
+  }, [success, error, txHash])
 
   useEffect(() => {
     setMounted(true)
@@ -632,32 +648,34 @@ export default function CreateSavingsPage() {
               </p>
               
               {/* Transaction ID Button */}
-              <button 
-                className="w-full py-2.5 sm:py-3 border border-gray-300 rounded-full text-gray-700 text-sm sm:text-base font-medium mb-3 sm:mb-4 hover:bg-gray-50 transition-colors"
-                onClick={() => txHash && window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
-                disabled={!txHash}
-              >
-                View Transaction ID
-              </button>
+              {txHash && (
+                <button 
+                  className="w-full py-2.5 sm:py-3 border border-gray-300 rounded-full text-gray-700 text-sm sm:text-base font-medium mb-3 sm:mb-4 hover:bg-gray-50 transition-colors"
+                  onClick={() => window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
+                >
+                  View Transaction ID
+                </button>
+              )}
               
               {/* Action Buttons */}
               <div className="flex w-full gap-3 sm:gap-4 flex-col sm:flex-row">
+                {txHash && (
+                  <button 
+                    className="w-full py-2.5 sm:py-3 bg-gray-100 rounded-full text-gray-700 text-sm sm:text-base font-medium flex items-center justify-center hover:bg-gray-200 transition-colors"
+                    onClick={() => window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
+                  >
+                    Go To Explorer
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1.5 sm:ml-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                    </svg>
+                  </button>
+                )}
                 <button 
-                  className="w-full py-2.5 sm:py-3 bg-gray-100 rounded-full text-gray-700 text-sm sm:text-base font-medium flex items-center justify-center hover:bg-gray-200 transition-colors"
-                  onClick={() => txHash && window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
-                  disabled={!txHash}
-                >
-                  Go To Explorer
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1.5 sm:ml-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                  </svg>
-                </button>
-                <button 
-                  className="w-full py-2.5 sm:py-3 bg-gray-700 rounded-full text-white text-sm sm:text-base font-medium hover:bg-gray-800 transition-colors"
+                  className={`w-full py-2.5 sm:py-3 ${success ? 'bg-[#81D7B4] hover:bg-[#6bc4a1]' : 'bg-gray-700 hover:bg-gray-800'} rounded-full text-white text-sm sm:text-base font-medium transition-colors`}
                   onClick={handleCloseTransactionModal}
                 >
-                  Close
+                  {success ? 'Go to Dashboard' : 'Close'}
                 </button>
               </div>
             </div>
@@ -1193,6 +1211,9 @@ export default function CreateSavingsPage() {
                             type="checkbox"
                             id="terms"
                             className="h-4 w-4 text-[#81D7B4] focus:ring-[#81D7B4]/50 border-gray-300 rounded"
+                            required
+                            checked={termsAgreed}
+                            onChange={(e) => setTermsAgreed(e.target.checked)}
                           />
                         </div>
                         <label htmlFor="terms" className="text-sm text-gray-600">
@@ -1220,7 +1241,7 @@ export default function CreateSavingsPage() {
                       <button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={submitting || isLoading}
+                        disabled={submitting || isLoading || !termsAgreed}
                         className="inline-flex items-center justify-center px-5 sm:px-6 py-3 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 text-white font-medium rounded-xl shadow-[0_4px_10px_rgba(129,215,180,0.3)] hover:shadow-[0_6px_15px_rgba(129,215,180,0.4)] transition-all duration-300 transform hover:translate-y-[-2px] disabled:opacity-70 disabled:cursor-not-allowed order-1 sm:order-2"
                       >
                         {(submitting || isLoading) ? (

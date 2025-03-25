@@ -90,7 +90,7 @@ export default function CustomDatePicker({
         const isCurrentMonth = isSameMonth(day, monthStart)
         const isPastDate = day < today
         const isTooSoon = day >= today && day < minSelectableDate
-        const isSelectable = !isPastDate && !isTooSoon
+        const isSelectable = day >= minSelectableDate
         
         days.push(
           <div
@@ -104,13 +104,15 @@ export default function CustomDatePicker({
                 transition-all duration-300 ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed'}
                 ${!isCurrentMonth 
                   ? 'text-gray-300 hover:bg-gray-50/50' 
-                  : isPastDate || isTooSoon
+                  : isToday
+                    ? 'bg-[#81D7B4]/20 text-[#81D7B4] font-bold shadow-[0_2px_8px_rgba(129,215,180,0.15)]'
+                  : isPastDate
                     ? 'text-gray-300 bg-gray-100/30'
+                  : isTooSoon
+                    ? 'text-gray-400 bg-gray-100/50'
                   : isSelected
                     ? 'bg-gradient-to-br from-[#81D7B4] to-[#81D7B4]/80 text-white shadow-[0_4px_10px_rgba(129,215,180,0.4)]'
-                    : isToday
-                      ? 'bg-white/60 text-[#81D7B4] font-bold border border-[#81D7B4]/30 shadow-[0_2px_8px_rgba(129,215,180,0.15)]'
-                      : 'text-gray-700 bg-white/40 hover:bg-white/80 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-medium'
+                    : 'text-gray-700 bg-white/40 hover:bg-white/80 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] font-medium'
                 }
               `}
             >
@@ -123,6 +125,11 @@ export default function CustomDatePicker({
                 <div className="absolute inset-0 rounded-lg sm:rounded-xl opacity-0 group-hover:opacity-100 bg-white/60 border border-[#81D7B4]/20 shadow-[0_2px_8px_rgba(129,215,180,0.15)] transition-all duration-300"></div>
               )}
             </div>
+            
+            {/* Add indicator for minimum selectable date */}
+            {isCurrentMonth && isSameDay(day, minSelectableDate) && (
+              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#81D7B4] rounded-full"></div>
+            )}
           </div>
         )
         day = addDays(day, 1)
