@@ -128,28 +128,28 @@ export default function FAQ() {
 
   const faqItems = [
     {
-      question: "How does BitSave secure my crypto investments?",
-      answer: "BitSave employs military-grade encryption and blockchain verification to secure your assets. Our multi-layered security approach includes smart contract audits, cold storage solutions, and real-time monitoring. Your investments are protected by institutional-grade security protocols while remaining fully accessible to you at all times."
+      question: "How does BitSave secure my crypto savings?",
+      answer: "BitSave employs military-grade encryption and blockchain verification to secure your assets. Our multi-layered security approach includes smart contract audits, cold storage solutions, and real-time monitoring. Your savings are protected by institutional-grade security protocols while remaining fully accessible to you at all times."
     },
     {
       question: "What makes BitSave different from traditional crypto platforms?",
-      answer: "Unlike traditional platforms, BitSave focuses on simplified long-term investing rather than trading. We offer professionally managed portfolios with optimal diversification, automated rebalancing, and a user-friendly interface designed for both beginners and experienced investors. Our approach eliminates the complexity while maximizing growth potential."
+      answer: "Unlike traditional platforms, BitSave focuses on simplified long-term savings rather than trading. We offer professionally managed portfolios with optimal diversification, automated rebalancing, and a user-friendly interface designed for both beginners and experienced investors. Our approach eliminates the complexity while maximizing growth potential."
     },
     {
-      question: "How are BitSave's investment portfolios structured?",
+      question: "How are BitSave's savings portfolios structured?",
       answer: "Our portfolios are carefully constructed using a data-driven approach that balances risk and reward. We utilize modern portfolio theory, historical performance analysis, and market correlation data to create optimized allocations across various digital assets. Each portfolio is regularly rebalanced to maintain optimal asset distribution as market conditions change."
     },
     {
-      question: "What are the fees for using BitSave's investment platform?",
+      question: "What are the fees for using BitSave's savings platform?",
       answer: "BitSave operates on a transparent fee structure with no hidden charges. We charge a minimal management fee of 1% annually, calculated and deducted monthly. There are no deposit fees, withdrawal fees, or performance fees. This straightforward approach ensures you always know exactly what you're paying."
     },
     {
-      question: "How can I track the performance of my BitSave investments?",
+      question: "How can I track the performance of my BitSave savings?",
       answer: "Our intuitive dashboard provides real-time performance metrics, including total returns, asset allocation, and historical growth charts. You can access detailed analytics on each portfolio component, set up customized alerts, and generate comprehensive reports. All data is presented in a clear, visually appealing format designed for easy understanding."
     },
     {
       question: "What risk management strategies does BitSave implement?",
-      answer: "BitSave employs sophisticated risk management techniques including diversification across multiple asset classes, correlation analysis, volatility controls, and regular portfolio rebalancing. We continuously monitor market conditions and adjust strategies accordingly to protect your investments during market downturns while capturing upside potential during favorable conditions."
+      answer: "BitSave employs sophisticated risk management techniques including diversification across multiple asset classes, correlation analysis, volatility controls, and regular portfolio rebalancing. We continuously monitor market conditions and adjust strategies accordingly to protect your savings during market downturns while capturing upside potential during favorable conditions."
     },
   ];
 
@@ -203,7 +203,7 @@ export default function FAQ() {
           </h2>
           
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Everything you need to know about investing with BitSave&apos;s innovative crypto platform
+            Everything you need to know about savings with BitSave&apos;s innovative crypto platform
           </p>
         </motion.div>
         
@@ -299,7 +299,7 @@ export default function FAQ() {
                 </div>
               </div>
                 
-              <p className="text-lg text-gray-600 mb-8">Our team is here to help you navigate the world of crypto investing</p>
+              <p className="text-lg text-gray-600 mb-8">Our team is here to help you navigate the world of crypto savings</p>
               
               <a 
                 href="#contact" 

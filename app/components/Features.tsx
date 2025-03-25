@@ -16,7 +16,7 @@ export default function Features() {
     },
     {
       title: "Designed for Ease",
-      description: "Provides a clean and intuitive interface, making crypto investing straightforward and accessible.",
+      description: "Provides a clean and intuitive interface, making crypto savings straightforward and accessible.",
       detail: "No complex trading interfaces or confusing terminology.",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8 text-secondary">
@@ -75,7 +75,7 @@ export default function Features() {
           </h2>
           
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Designed for growth, ease, and peace of mind - everything you need for successful crypto investing
+            Designed for growth, ease, and peace of mind - everything you need for successful crypto savings
           </p>
         </motion.div>
         

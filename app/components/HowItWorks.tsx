@@ -128,7 +128,7 @@ export default function HowItWorks() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
-            Start your crypto investment journey in three simple steps
+            Start your crypto savings journey in three simple steps
           </motion.p>
         </motion.div>
         
@@ -209,25 +209,6 @@ export default function HowItWorks() {
           </div>
         </div>
         
-        {/* Enhanced CTA Section with stunning button */}
-        <motion.div 
-          className="mt-20 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          <a 
-            href="#signup" 
-            className="inline-flex items-center gap-3 px-8 py-4 text-lg font-medium rounded-xl overflow-hidden group relative"
-          >
-            <div className="absolute inset-0 bg-[#81D7B4] rounded-xl shadow-[0px_8px_20px_rgba(129,215,180,0.3),inset_1px_1px_2px_rgba(255,255,255,0.4)] group-hover:shadow-[0px_10px_25px_rgba(129,215,180,0.5),inset_1px_1px_3px_rgba(255,255,255,0.5)] transition-all duration-300"></div>
-            <span className="relative z-10 text-white font-medium">Get Started Today</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform text-white">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </a>
-        </motion.div>
       </div>
       
       {/* Enhanced keyframe animations */}
