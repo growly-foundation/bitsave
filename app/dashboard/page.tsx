@@ -1,0 +1,964 @@
+'use client'
+
+import { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Space_Grotesk } from 'next/font/google';
+import TopUpModal from '../../components/TopUpModal';
+import WithdrawModal from '../../components/WithdrawModal';
+import { motion } from 'framer-motion';
+import { ethers } from 'ethers';
+import contractABI from '../abi/contractABI.js';
+import childContractABI from '../abi/childContractABI.js';
+import axios from 'axios'; 
+
+// Initialize the Space Grotesk font
+const spaceGrotesk = Space_Grotesk({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-space-grotesk'
+});
+
+// Contract addresses
+const MAIN_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
+
+export default function Dashboard() {
+  const [mounted, setMounted] = useState(false);
+  const { address, isConnected } = useAccount();
+  const router = useRouter();
+  const [selectedToken, setSelectedToken] = useState('Base');
+  const [activeTab, setActiveTab] = useState('current');
+  const [ethPrice, setEthPrice] = useState(3500); // Set a default value to ensure it's never 0
+  // Add state for the top up modal
+  const [topUpModal, setTopUpModal] = useState({ isOpen: false, planName: '', planId: '', isEth: false });
+
+  
+  const [savingsData, setSavingsData] = useState({
+    totalLocked: "0.00",
+    deposits: 0,
+    rewards: "0.00",
+    currentPlans: [] as Array<{
+      id: string;
+      address: string;
+      name: string;
+      currentAmount: string;
+      targetAmount: string;
+      progress: number;
+      isEth: boolean;
+      maturityTime?: number; 
+      penaltyPercentage: number;
+    }>,
+    completedPlans: [] as Array<{
+      id: string;
+      address: string;
+      name: string;
+      currentAmount: string;
+      targetAmount: string;
+      progress: number;
+      isEth: boolean;
+      maturityTime?: number; 
+      penaltyPercentage: number;
+    }>
+  });
+  
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Function to get signer
+  const getSigner = async () => {
+    if (typeof window === 'undefined' || !window.ethereum) {
+      throw new Error('No wallet detected');
+    }
+    
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    
+    // Check if on Base network
+    const network = await provider.getNetwork();
+    const BASE_CHAIN_ID = 8453; // Base network chain ID
+    
+    if (Number(network.chainId) !== BASE_CHAIN_ID) {
+      setIsCorrectNetwork(false);
+      return null;
+    }
+    
+    setIsCorrectNetwork(true);
+    return provider.getSigner();
+  };
+  // Function to switch to Base network
+  // Remove the unused getSigner function
+  const switchToNetwork = async (networkName: string) => {
+    if (!window.ethereum) return;
+    
+    setSwitchingNetwork(true);
+    try {
+      if (networkName === 'Base') {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x2105' }], // Base chainId in hex (8453)
+        });
+        
+        // Refresh data after switching
+        setIsCorrectNetwork(true);
+        fetchSavingsData();
+      }
+    } catch (error: unknown) { // Replace 'any' with 'unknown' for better type safety
+      // Type guard to check if error is an object with a code property
+      if (error && typeof error === 'object' && 'code' in error && error.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: '0x2105', // Base chainId in hex
+                chainName: 'Base',
+                nativeCurrency: {
+                  name: 'ETH',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+                rpcUrls: ['https://mainnet.base.org'],
+                blockExplorerUrls: ['https://basescan.org'],
+              },
+            ],
+          });
+          
+          // Try switching again after adding
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x2105' }],
+          });
+          
+          setIsCorrectNetwork(true);
+          fetchSavingsData();
+        } catch (addError) {
+          console.error('Error adding Base network:', addError);
+        }
+      } else {
+        console.error('Error switching to Base network:', error);
+      }
+    } finally {
+      setSwitchingNetwork(false);
+    }
+  };
+
+
+  const fetchEthPrice = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
+      );
+      return response.data.ethereum.usd; // ETH price in USD
+    } catch (error) {
+      console.error("Error fetching ETH price:", error);
+      return 3500; // Fallback price if API fails
+    }
+  };
+
+  // Function to fetch user's savings data
+  // In the fetchSavingsData function, change 'let' to 'const' for variables that aren't reassigned
+  // and remove the unused totalLockedValue variable
+  const fetchSavingsData = async () => {
+    if (!isConnected || !address) return;
+  
+    try {
+      setIsLoading(true);
+      
+      const currentEthPrice = await fetchEthPrice();
+      console.log(`Current ETH price: ${currentEthPrice}`);
+      setEthPrice(currentEthPrice || 3500);
+
+      if (!window.ethereum) {
+        throw new Error("No Ethereum wallet detected. Please install MetaMask.");
+      }
+      
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      
+      // Check if on Base network
+      const network = await provider.getNetwork();
+      const BASE_CHAIN_ID = BigInt(8453); // Base network chainId
+      
+      if (network.chainId !== BASE_CHAIN_ID) {
+        setIsCorrectNetwork(false);
+        setIsLoading(false);
+        return;
+      }
+      
+      setIsCorrectNetwork(true);
+      
+      const contract = new ethers.Contract(MAIN_CONTRACT_ADDRESS, contractABI, signer);
+      
+      // Get user's child contract address
+      const userChildContractAddress = await contract.getUserChildContractAddress();
+      
+      if (userChildContractAddress === ethers.ZeroAddress) {
+        // User hasn't joined BitSave yet
+        setSavingsData({
+          totalLocked: "0.00",
+          deposits: 0,
+          rewards: "0.00",
+          currentPlans: [],
+          completedPlans: []
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Create a contract instance for the user's child contract
+      const childContract = new ethers.Contract(
+        userChildContractAddress,
+        childContractABI,
+        signer
+      );
+      
+      // Get savings names from the child contract
+      const savingsNamesObj = await childContract.getSavingsNames();
+      const savingsNamesArray = savingsNamesObj[0];
+      
+      let currentPlans = [];
+      let completedPlans = [];
+      let totalLockedValue = ethers.parseEther("0");
+      let totalDeposits = 0;
+      let totalUsdValue = 0;
+      
+      // Track processed plan names to avoid duplicates
+      const processedPlanNames = new Set();
+      
+      // Process each savings plan
+      if (Array.isArray(savingsNamesArray)) {
+        for (const savingName of savingsNamesArray) {
+          try {
+            // Skip if we've already processed this plan name
+            if (processedPlanNames.has(savingName)) continue;
+            
+            // Add to processed set
+            processedPlanNames.add(savingName);
+            
+            // Get saving details
+            const savingData = await childContract.getSaving(savingName);
+            if (!savingData.isValid) continue;
+            
+            // Check if it's ETH or token based
+            const tokenId = savingData.tokenId;
+            const isEth = tokenId === "0x0000000000000000000000000000000000000000";
+            
+            // Get decimals based on token type
+            const decimals = isEth ? 18 : 6;
+            
+            // Extract penalty percentage from saving data
+            const penaltyPercentage = Number(savingData.penaltyPercentage);
+            
+            // Format amounts
+            const targetFormatted = ethers.formatUnits(savingData.amount, decimals);
+            const currentFormatted = ethers.formatUnits(savingData.amount, decimals);
+            
+            // Calculate progress based on time
+            const currentDate = new Date();
+            const startTimestamp = Number(savingData.startTime);
+            const maturityTimestamp = Number(savingData.maturityTime);
+            const startDate = new Date(startTimestamp * 1000);
+            const maturityDate = new Date(maturityTimestamp * 1000);
+            
+            const totalDuration = maturityDate.getTime() - startDate.getTime();
+            const elapsedTime = currentDate.getTime() - startDate.getTime();
+            const progress = Math.min(Math.floor((elapsedTime / totalDuration) * 100), 100);
+            
+            // Add to total USD value
+            if (isEth) {
+              const ethAmount = parseFloat(currentFormatted);
+              const usdValue = ethAmount * currentEthPrice;
+              console.log(`ETH plan: ${savingName}, amount: ${ethAmount} ETH, USD value: ${usdValue}, ethPrice: ${currentEthPrice}`);
+              totalUsdValue += usdValue;
+            } else {
+              console.log(`USDC plan: ${savingName}, amount: ${parseFloat(currentFormatted)} USD`);
+              totalUsdValue += parseFloat(currentFormatted);
+            }
+            
+            totalDeposits++;
+            
+            const planData = {
+              id: savingName,
+              address: userChildContractAddress,
+              name: savingName,
+              currentAmount: currentFormatted,
+              targetAmount: targetFormatted,
+              progress: progress,
+              isEth,
+              startTime: startTimestamp, // Add startTime for sorting
+              maturityTime: maturityTimestamp,
+              penaltyPercentage: penaltyPercentage, // Use the extracted penalty percentage
+            };
+            
+            // Add to appropriate list based on completion status
+            if (progress >= 100 || currentDate >= maturityDate) {
+              completedPlans.push(planData);
+            } else {
+              currentPlans.push(planData);
+            }
+          } catch (error) {
+            console.error(`Error processing savings plan ${savingName}:`, error);
+          }
+        }
+      }
+      
+      // Sort plans from newest to oldest based on start time (most recent first)
+      currentPlans.sort((a, b) => b.startTime - a.startTime);
+      completedPlans.sort((a, b) => b.startTime - a.startTime);
+      
+      console.log(`Total USD value before setting state: ${totalUsdValue}`);
+      setSavingsData({
+        totalLocked: totalUsdValue.toFixed(2),
+        deposits: totalDeposits,
+        rewards: "0.00", // Placeholder for rewards calculation
+        currentPlans,
+        completedPlans
+      });
+    } catch (error) {
+      console.error("Error fetching savings data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to open the top up modal
+  const openTopUpModal = (planName: string, planId: string, isEth: boolean) => {
+    setTopUpModal({ isOpen: true, planName, planId, isEth });
+  };
+
+  // Function to close the top up modal
+  const closeTopUpModal = () => {
+    setTopUpModal({ isOpen: false, planName: '', planId: '', isEth: false });
+  };
+  
+// Add state for the withdraw modal
+// Update the withdrawModal state to include penaltyPercentage
+const [withdrawModal, setWithdrawModal] = useState({
+  isOpen: false,
+  planName: '',
+  planId: '',
+  isEth: false,
+  penaltyPercentage: 0
+});
+
+// Update the openWithdrawModal function to accept and set the penalty percentage
+const openWithdrawModal = (planId: string, planName: string, isEth: boolean, penaltyPercentage: number = 5) => {
+  setWithdrawModal({
+    isOpen: true,
+    planName,
+    planId,
+    isEth,
+    penaltyPercentage
+  });
+};
+
+// Function to close the withdraw modal
+const closeWithdrawModal = () => {
+  setWithdrawModal({ isOpen: false, planId: '', planName: '', isEth: false, penaltyPercentage: 0 });
+};
+
+  // Add state for leaderboard data
+    const [leaderboardData, setLeaderboardData] = useState<Array<{
+      rank: number;
+      useraddress: string;
+      totalamount: number;
+      chain: string;
+      datetime?: string;
+    }>>([]);
+    const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(true);
+  
+    // Add function to fetch leaderboard data
+    // Fix the any types in the leaderboard data fetching
+    const fetchLeaderboardData = async () => {
+      setIsLeaderboardLoading(true);
+      try {
+        const response = await fetch('http://localhost:8000/leaderboard/', {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json',
+            'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch leaderboard data');
+        }
+        
+        const data = await response.json();
+        
+        // Sort by total amount and add rank
+        const rankedData = data
+          .sort((a: {totalamount: number}, b: {totalamount: number}) => b.totalamount - a.totalamount)
+          .slice(0, 4) // Get top 4 for dashboard display
+          .map((user: {totalamount: number, useraddress: string, chain: string}, index: number) => ({
+            ...user,
+            rank: index + 1,
+            // Format datetime if needed
+            datetime: new Date().toISOString().split('T')[0]
+          }));
+        
+        setLeaderboardData(rankedData);
+      } catch (error) {
+        console.error('Error fetching leaderboard data:', error);
+        // Set empty array if there's an error
+        setLeaderboardData([]);
+      } finally {
+        setIsLeaderboardLoading(false);
+      }
+    };
+  
+    // Fetch leaderboard data when component mounts
+    useEffect(() => {
+      if (mounted) {
+        fetchLeaderboardData();
+      }
+    }, [mounted]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Add state for network switching
+  // Remove the unused isLoadingSavings state
+  const [isCorrectNetwork, setIsCorrectNetwork] = useState(true);
+  const [switchingNetwork, setSwitchingNetwork] = useState(false);
+  // Remove the unused isLoadingSavings state and its setter
+  
+  // Fetch savings data when component mounts and address changes
+  useEffect(() => {
+    if (mounted && address) {
+      fetchSavingsData();
+    }
+  }, [mounted, address]);
+
+  // Redirect if not connected
+  useEffect(() => {
+    if (mounted && !isConnected) {
+      router.push('/');
+    }
+  }, [isConnected, mounted, router]);
+
+  if (!mounted) {
+    return (
+      <div className={`${spaceGrotesk.variable} min-h-screen flex items-center justify-center bg-[#f2f2f2]`}>
+        <div className="animate-spin h-12 w-12 border-t-2 border-b-2 border-[#81D7B4] rounded-full"></div>
+      </div>
+    );
+  }
+
+  // Empty state components
+  const EmptyCurrentSavings = () => (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm p-8 text-center"
+    >
+      <div className="mx-auto w-24 h-24 bg-[#81D7B4]/10 rounded-full flex items-center justify-center mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-12 h-12 text-[#81D7B4]">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v12m-8-6h16" />
+        </svg>
+      </div>
+      <h3 className="text-xl font-bold text-gray-800 mb-2">No Savings Plans Yet</h3>
+      <p className="text-gray-600 mb-6 max-w-md mx-auto">Start your savings journey by creating your first savings plan.</p>
+      <Link href="/dashboard/create-savings" className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 text-white font-medium rounded-xl shadow-[0_4px_10px_rgba(129,215,180,0.3)] hover:shadow-[0_6px_15px_rgba(129,215,180,0.4)] transition-all duration-300 transform hover:translate-y-[-2px]">
+        Create Your First Plan
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+        </svg>
+      </Link>
+    </motion.div>
+  );
+
+  const EmptyCompletedSavings = () => (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm p-8 text-center"
+    >
+      <div className="mx-auto w-24 h-24 bg-green-100/50 rounded-full flex items-center justify-center mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-12 h-12 text-green-500/70">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </div>
+      <h3 className="text-xl font-bold text-gray-800 mb-2">No Completed Plans Yet</h3>
+      <p className="text-gray-600 mb-6 max-w-md mx-auto">Your completed savings plans will appear here. Keep saving to reach your goals!</p>
+      <div className="inline-flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl border border-gray-200/50 transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        </svg>
+        Keep Saving
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <div className={`${spaceGrotesk.variable} font-sans p-4 sm:p-6 md:p-8 bg-[#f2f2f2] text-gray-800 relative min-h-screen pb-8 overflow-x-hidden`}>
+      {/* Network Warning Banner */}
+      {!isCorrectNetwork && address && (
+        <div className="fixed top-0 left-0 right-0 bg-yellow-100 border-b border-yellow-200 z-50 p-3 flex items-center justify-center">
+          <div className="flex items-center max-w-4xl mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <span className="text-yellow-800 text-sm">Please switch to Base network to use BitSave</span>
+            <button 
+              onClick={() => switchToNetwork('Base')}
+              disabled={switchingNetwork}
+              className="ml-4 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-medium py-1 px-3 rounded-full transition-colors disabled:opacity-70"
+            >
+              {switchingNetwork ? 'Switching...' : 'Switch to Base'}
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Top Up Modal */}
+      <TopUpModal 
+        isOpen={topUpModal.isOpen} 
+        onClose={closeTopUpModal} 
+        planName={topUpModal.planName} 
+        planId={topUpModal.planId} 
+        isEth={topUpModal.isEth}
+      />
+
+       {/* Withdraw Modal */}
+       <WithdrawModal 
+  isOpen={withdrawModal.isOpen} 
+  onClose={closeWithdrawModal} 
+  planName={withdrawModal.planName} 
+  planId={withdrawModal.planId}
+  isEth={withdrawModal.isEth}
+  penaltyPercentage={withdrawModal.penaltyPercentage}
+/>
+      
+     
+      
+      {/* Grain overlay */}
+      <div className="fixed inset-0 z-0 opacity-30 pointer-events-none bg-[url('/noise.jpg')] mix-blend-overlay" ></div>
+      
+      {/* Decorative elements - adjusted for mobile */}
+      <div className="absolute top-20 right-10 md:right-20 w-40 md:w-64 h-40 md:h-64 bg-[#81D7B4]/20 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute bottom-20 left-10 md:left-20 w-40 md:w-80 h-40 md:h-80 bg-blue-500/10 rounded-full blur-3xl -z-10"></div>
+      
+      {/* Header - responsive adjustments */}
+      <div className="flex justify-between items-center mb-6 md:mb-8 overflow-x-hidden">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">Dashboard</h1>
+          <p className="text-sm md:text-base text-gray-500 flex items-center">
+            <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+            Welcome back, {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'User'}
+          </p>
+        </div>
+        <div className="flex items-center space-x-4 md:block hidden">
+          <div className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm border border-white/50 hover:shadow-md transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-gray-600">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        {/* Total Value Card - responsive padding */}
+        <div className="md:col-span-2 bg-white/80 backdrop-blur-md rounded-2xl p-5 md:p-8 border border-white/50 shadow-[0_10px_25px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_30px_-15px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#81D7B4]/10 rounded-full blur-2xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
+          
+          {/* Card header with token selector */}
+          <div className="flex items-center mb-6 md:mb-8">
+            <div className="relative">
+              <button 
+                onClick={() => document.getElementById('chain-dropdown')?.classList.toggle('hidden')}
+                className="flex items-center bg-gray-100/80 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-2.5 border border-gray-200/50 hover:bg-gray-100 transition-all duration-300"
+              >
+                <div className="bg-gray-100 rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center mr-2 shadow-sm overflow-hidden">
+                  <img 
+                    src={`/${selectedToken.toLowerCase()}${selectedToken === 'Arbitrum' || selectedToken === 'Celo' ? '.png' : '.svg'}`} 
+                    alt={selectedToken} 
+                    className="w-5 h-5 md:w-6 md:h-6 object-contain" 
+                  />
+                </div>
+                <span className="text-gray-700 font-medium text-sm md:text-base">{selectedToken}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 md:w-5 md:h-5 ml-2 text-gray-500">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {/* Dropdown menu */}
+              <div id="chain-dropdown" className="absolute left-0 mt-2 w-48 bg-white/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-200/50 z-10 hidden">
+                {['Base', 'Arbitrum', 'Celo'].map((chain) => (
+                  <button
+                    key={chain}
+                    onClick={() => {
+                      if (chain === 'Base') {
+                        setSelectedToken(chain);
+                        document.getElementById('chain-dropdown')?.classList.add('hidden');
+                      }
+                    }}
+                    className={`flex items-center w-full px-4 py-2 hover:bg-gray-100/80 text-left text-sm ${chain !== 'Base' ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    <div className="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center mr-2 overflow-hidden">
+                      <img 
+                        src={`/${chain.toLowerCase()}${chain === 'Arbitrum' || chain === 'Celo' ? '.png' : '.svg'}`} 
+                        alt={chain} 
+                        className="w-4 h-4 object-contain" 
+                      />
+                    </div>
+                    <div className="flex items-center">
+                      {chain}
+                      {chain !== 'Base' && (
+                        <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">Coming Soon</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Main value display - responsive text sizes */}
+          <div className="relative mb-6 md:mb-8">
+            <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-1 h-10 md:h-12 bg-gradient-to-b from-[#81D7B4] to-green-400 rounded-full"></div>
+            <div className="pl-4">
+              <span className="block text-gray-500 text-xs md:text-sm mb-1">Total Value Locked</span>
+              <h2 className="text-4xl md:text-6xl font-bold text-gray-800 tracking-tight flex items-baseline">
+                ${parseFloat(savingsData.totalLocked).toFixed(2)}
+                <span className="text-xs md:text-sm font-medium text-gray-500 ml-2">USD</span>
+              </h2>
+            </div>
+          </div>
+          
+          {/* Card footer with stats - updated to use real data */}
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="bg-gray-100/80 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-gray-200/50 flex flex-col">
+              <span className="text-xs text-gray-500 mb-1">Total Savings Plan</span>
+              <span className="text-base md:text-lg font-semibold text-gray-800">{savingsData.deposits}</span>
+            </div>
+            
+            <div className="bg-gray-100/80 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-gray-200/50 flex flex-col">
+              <span className="text-xs text-gray-500 mb-1">Rewards</span>
+              <span className="text-base md:text-lg font-semibold text-gray-800">${savingsData.rewards}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Leaderboard - responsive adjustments */}
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/50 shadow-[0_10px_25px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_30px_-15px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
+          <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
+          <div className="absolute -right-20 -top-20 w-60 h-60 bg-[#81D7B4]/5 rounded-full blur-3xl"></div>
+          
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-800">Leaderboard</h2>
+            <Link href="/dashboard/leaderboard" className="text-xs font-medium text-[#81D7B4] bg-[#81D7B4]/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-[#81D7B4]/20 hover:bg-[#81D7B4]/20 transition-all duration-300 flex items-center">
+              View All
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-3 h-3 ml-1">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          
+          <div className="space-y-4">
+            {isLeaderboardLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin h-6 w-6 border-t-2 border-b-2 border-[#81D7B4] rounded-full"></div>
+              </div>
+            ) : leaderboardData.length > 0 ? (
+              leaderboardData.map((item) => (
+                <div key={item.rank} className="flex items-center justify-between p-3 rounded-xl hover:bg-[#81D7B4]/5 transition-all duration-300 border border-transparent hover:border-[#81D7B4]/20">
+                  <div className="flex items-center">
+                    <div className="w-7 h-7 flex items-center justify-center font-bold text-sm bg-[#81D7B4]/10 rounded-full mr-3 text-[#81D7B4] border border-[#81D7B4]/30">
+                      {item.rank}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-gray-700 font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-[180px]">
+                        {item.useraddress.slice(0, 6)}...{item.useraddress.slice(-4)}
+                      </span>
+                      <span className="text-xs text-gray-500">{item.chain}</span>
+                    </div>
+                  </div>
+                  <span className="font-medium text-[#81D7B4] bg-[#81D7B4]/10 px-2.5 py-1 rounded-full text-sm shadow-sm">${item.totalamount.toFixed(2)}</span>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No leaderboard data available
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Add Savings Button - responsive padding */}
+      <div className="mt-4 md:mt-6 bg-white/70 backdrop-blur-xl rounded-2xl p-4 md:p-6 border border-white/60 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.15)] hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.2)] transition-all duration-500 relative overflow-hidden group">
+        <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.04] mix-blend-overlay pointer-events-none"></div>
+        <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-gradient-to-tl from-[#81D7B4]/20 to-blue-300/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/30 transition-all duration-700"></div>
+        <div className="absolute -left-20 -top-20 w-60 h-60 bg-gradient-to-br from-purple-300/10 to-transparent rounded-full blur-3xl opacity-70"></div>
+        
+        <Link href="/create-savings" className="flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all duration-300">
+          <div className="bg-gradient-to-br from-[#81D7B4] to-[#81D7B4]/90 rounded-full p-3.5 mr-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_10px_rgba(129,215,180,0.4),0_1px_2px_rgba(0,0,0,0.3)] group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_6px_15px_rgba(129,215,180,0.5),0_1px_2px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:scale-110">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" className="w-6 h-6 drop-shadow-sm">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <span className="text-xl font-medium bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent drop-shadow-sm group-hover:drop-shadow-md transition-all duration-300">Create Savings</span>
+        </Link>
+      </div>
+
+      {/* Savings Plans - responsive spacing */}
+      <div className="mt-6 md:mt-8 mb-8">
+        
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 mb-4 md:mb-6">
+            <button 
+              className={`px-3 md:px-4 py-2 font-medium text-xs md:text-sm ${activeTab === 'current' ? 'text-[#81D7B4] border-b-2 border-[#81D7B4]' : 'text-gray-500 hover:text-gray-700'}`}
+              onClick={() => setActiveTab('current')}
+            >
+              Current
+            </button>
+            <button 
+              className={`px-3 md:px-4 py-2 font-medium text-xs md:text-sm ${activeTab === 'completed' ? 'text-[#81D7B4] border-b-2 border-[#81D7B4]' : 'text-gray-500 hover:text-gray-700'}`}
+              onClick={() => setActiveTab('completed')}
+            >
+              Completed
+            </button>
+            
+            {/* Fixed View All Plans button - show only when there are more than 3 plans */}
+            <div className="ml-auto">
+              {((activeTab === 'current' && savingsData.currentPlans.length > 3) || 
+                (activeTab === 'completed' && savingsData.completedPlans.length > 3)) && (
+                <Link 
+                  href="/dashboard/plans" 
+                  className="text-xs font-medium text-[#81D7B4] bg-[#81D7B4]/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-[#81D7B4]/20 hover:bg-[#81D7B4]/20 transition-all duration-300 flex items-center"
+                >
+                  View All Plans
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-3 h-3 ml-1">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              )}
+            </div>
+          </div>
+          
+          {/* Savings plan cards with empty states */}
+          {activeTab === 'current' && (
+            <div className="flex flex-col gap-4 md:gap-6">
+              {isLoading ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin h-8 w-8 border-t-2 border-b-2 border-[#81D7B4] rounded-full"></div>
+                </div>
+              ) : savingsData.currentPlans.length > 0 ? (
+                <>
+                  {/* Show only first 3 plans on dashboard */}
+                  {savingsData.currentPlans.slice(0, 3).map((plan) => (
+                    <motion.div 
+                      key={plan.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(31,38,135,0.1)] p-6 hover:shadow-[0_8px_32px_rgba(129,215,180,0.2)] transition-all duration-300 relative overflow-hidden group"
+                    >
+                    {/* Enhanced glassmorphism effects */}
+                    <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
+                    <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
+                    <div className="absolute -left-10 -top-10 w-60 h-60 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80"></div>
+                    
+                    <div className="flex justify-between items-start mb-5">
+                      <div className="flex items-start">
+                        <div className="mr-3 mt-1 bg-[#81D7B4]/10 p-2 rounded-full">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#81D7B4]" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2 truncate max-w-[180px] sm:max-w-[220px] md:max-w-[300px]">{plan.name}</h3>
+                          <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/40 shadow-sm">
+                            <img 
+                              src={plan.isEth ? '/eth.png' : '/usdc.png'} 
+                              alt={plan.isEth ? 'ETH' : 'USDC'} 
+                              className="w-4 h-4 mr-2" 
+                            />
+                            <span className="text-xs font-medium text-gray-700">{plan.isEth ? 'ETH' : 'USDC'} on Base</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth)}
+                        className="bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/10 text-[#81D7B4] text-xs font-medium px-4 py-2 rounded-full border border-[#81D7B4]/30 hover:from-[#81D7B4]/30 hover:to-[#81D7B4]/20 transition-all duration-300 shadow-sm hover:shadow-md"
+                      >
+                        <span>Top Up</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 ml-1.5 inline-block" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div className="mb-5">
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-gray-600">Progress</span>
+                        <span className="font-medium text-gray-800">{Math.round(plan.progress)}%</span>
+                      </div>
+                      <div className="w-full h-3 bg-gray-100/80 rounded-full overflow-hidden backdrop-blur-sm shadow-inner">
+                        <div 
+                          className="h-full bg-gradient-to-r from-[#81D7B4] to-green-400 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]"
+                          style={{ width: `${plan.progress}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-end mt-1">
+                        <span className="text-xs text-gray-500">
+                          {(() => {
+                            // Calculate remaining time
+                            const currentDate = new Date();
+                            const maturityTimestamp = Number(plan.maturityTime || 0);
+                            const maturityDate = new Date(maturityTimestamp * 1000);
+                            
+                            if (isNaN(maturityDate.getTime())) return '';
+                            
+                            const remainingTime = maturityDate.getTime() - currentDate.getTime();
+                            const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
+                            
+                            if (remainingDays === 0) return 'Completed';
+                            if (remainingDays === 1) return '1 day remaining';
+                            if (remainingDays < 30) return `${remainingDays} days remaining`;
+                            
+                            const remainingMonths = Math.ceil(remainingDays / 30);
+                            return remainingMonths === 1 ? '1 month remaining' : `${remainingMonths} months remaining`;
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Enhanced amount display with stronger neomorphism */}
+                    <div className="mb-5 bg-gradient-to-br from-white to-gray-50/90 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_16px_rgba(129,215,180,0.1)] relative overflow-hidden group-hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_20px_rgba(129,215,180,0.2)] transition-all duration-300">
+                      <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
+                      <div className="absolute top-0 right-0 w-20 h-20 bg-[#81D7B4]/5 rounded-full blur-xl"></div>
+                      <div className="flex flex-col">
+                        <span className="text-3xl font-bold text-gray-800">
+                          ${plan.isEth 
+                            ? (parseFloat(plan.currentAmount) * ethPrice).toFixed(2) 
+                            : parseFloat(plan.currentAmount).toFixed(2)
+                          }
+                        </span>
+                        <span className="block text-xs text-gray-500 mt-1">Amount Saved</span>
+                      </div>
+                    </div>
+                    
+                    {/* Updated view details button with #81D7B4 color */}
+                    <button 
+                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage)}
+                      className="w-full py-3 text-center text-sm font-medium text-white bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.4)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.5)] transition-all duration-300 transform hover:translate-y-[-2px] relative overflow-hidden group"
+                    >
+                      <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.05] mix-blend-overlay pointer-events-none"></div>
+                      <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-white/10 rounded-full blur-md"></div>
+                      <span className="relative z-10 flex items-center justify-center">
+                        Withdraw
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                          <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                    </button>
+                  </motion.div>
+                ))}
+              </>
+            ) : (
+              <EmptyCurrentSavings />
+            )}
+          </div>
+        )}
+        
+        {activeTab === 'completed' && (
+          <div className="flex flex-col gap-4 md:gap-6">
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin h-8 w-8 border-t-2 border-b-2 border-[#81D7B4] rounded-full"></div>
+              </div>
+            ) : savingsData.completedPlans.length > 0 ? (
+              <>
+                {/* Show only first 3 completed plans on dashboard */}
+                {savingsData.completedPlans.slice(0, 3).map((plan) => (
+                  <motion.div 
+                    key={plan.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(31,38,135,0.1)] p-6 hover:shadow-[0_8px_32px_rgba(129,215,180,0.2)] transition-all duration-300 relative overflow-hidden group"
+                  >
+                    {/* Enhanced glassmorphism effects */}
+                    <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
+                    <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
+                    <div className="absolute -left-10 -top-10 w-60 h-60 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80"></div>
+                    
+                    <div className="flex justify-between items-start mb-5">
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">{plan.name}</h3>
+                        <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/40 shadow-sm">
+                          <img 
+                            src={plan.isEth ? '/eth.png' : '/usdc.png'} 
+                            alt={plan.isEth ? 'ETH' : 'USDC'} 
+                            className="w-4 h-4 mr-2" 
+                          />
+                          <span className="text-xs font-medium text-gray-700">{plan.isEth ? 'ETH' : 'USDC'} on Base</span>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth)}
+                        className="bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/10 text-[#81D7B4] text-xs font-medium px-4 py-2 rounded-full border border-[#81D7B4]/30 hover:from-[#81D7B4]/30 hover:to-[#81D7B4]/20 transition-all duration-300 shadow-sm hover:shadow-md"
+                      >
+                        <span>Top Up</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 ml-1.5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div className="mb-5">
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-gray-600">Progress</span>
+                        <span className="font-medium text-gray-800">100%</span>
+                      </div>
+                      <div className="w-full h-3 bg-gray-100/80 rounded-full overflow-hidden backdrop-blur-sm shadow-inner">
+                        <div 
+                          className="h-full bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]"
+                          style={{ width: '100%' }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    {/* Enhanced amount display with stronger neomorphism */}
+                    <div className="mb-5 bg-gradient-to-br from-white to-gray-50/90 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_16px_rgba(129,215,180,0.1)] relative overflow-hidden group-hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_20px_rgba(129,215,180,0.2)] transition-all duration-300">
+                      <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
+                      <div className="absolute top-0 right-0 w-20 h-20 bg-[#81D7B4]/5 rounded-full blur-xl"></div>
+                      <div className="flex flex-col">
+                        <span className="text-3xl font-bold text-gray-800">${parseFloat(plan.currentAmount).toFixed(2)}</span>
+                        <span className="block text-xs text-gray-500 mt-1">Amount Saved</span>
+                      </div>
+                    </div>
+                    
+                    {/* Updated view details button with #81D7B4 color */}
+                    <button 
+                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth)}
+                      className="w-full py-3 text-center text-sm font-medium text-white bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.4)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.5)] transition-all duration-300 transform hover:translate-y-[-2px] relative overflow-hidden group"
+                    >
+                     
+                    </button>
+                  </motion.div>
+                ))}
+              </>
+            ) : (
+              <EmptyCompletedSavings />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+

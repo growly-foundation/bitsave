@@ -1,0 +1,61 @@
+<svg width="300" height="200" viewBox="0 0 300 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with grain effect -->
+  <rect width="300" height="200" rx="12" fill="#163239" opacity="0.05"/>
+  <rect width="300" height="200" rx="12" fill="url(#grain)" opacity="0.1"/>
+  
+  <!-- Card content -->
+  <rect x="20" y="20" width="260" height="160" rx="8" fill="#FFFFFF" fill-opacity="0.1"/>
+  <rect x="20" y="20" width="260" height="160" rx="8" stroke="#81D7B4" stroke-opacity="0.2" stroke-width="1"/>
+  
+  <!-- Header -->
+  <rect x="30" y="30" width="120" height="24" rx="4" fill="#81D7B4" fill-opacity="0.2"/>
+  <text x="40" y="46" font-family="Arial" font-size="12" font-weight="bold" fill="#81D7B4">Earning Interest</text>
+  
+  <!-- Stats -->
+  <rect x="30" y="64" width="240" height="60" rx="4" fill="#FFFFFF" fill-opacity="0.05" stroke="#81D7B4" stroke-opacity="0.2" stroke-width="1"/>
+  
+  <!-- Balance -->
+  <text x="40" y="84" font-family="Arial" font-size="10" fill="#FFFFFF" fill-opacity="0.6">Current Balance:</text>
+  <text x="140" y="84" font-family="Arial" font-size="10" font-weight="bold" fill="#FFFFFF">2,500 USDT</text>
+  
+  <!-- Interest -->
+  <text x="40" y="104" font-family="Arial" font-size="10" fill="#FFFFFF" fill-opacity="0.6">Interest Earned:</text>
+  <text x="140" y="104" font-family="Arial" font-size="10" font-weight="bold" fill="#81D7B4">125 BSV</text>
+  
+  <!-- APY -->
+  <text x="40" y="124" font-family="Arial" font-size="10" fill="#FFFFFF" fill-opacity="0.6">Current APY:</text>
+  <text x="140" y="124" font-family="Arial" font-size="10" font-weight="bold" fill="#81D7B4">12.5%</text>
+  
+  <!-- Graph -->
+  <rect x="30" y="134" width="240" height="36" rx="4" fill="#FFFFFF" fill-opacity="0.05"/>
+  
+  <!-- Graph line -->
+  <path d="M40 160 L70 150 L100 155 L130 145 L160 140 L190 130 L220 125 L250 120" stroke="#81D7B4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Graph dots -->
+  <circle cx="40" cy="160" r="3" fill="#81D7B4"/>
+  <circle cx="70" cy="150" r="3" fill="#81D7B4"/>
+  <circle cx="100" cy="155" r="3" fill="#81D7B4"/>
+  <circle cx="130" cy="145" r="3" fill="#81D7B4"/>
+  <circle cx="160" cy="140" r="3" fill="#81D7B4"/>
+  <circle cx="190" cy="130" r="3" fill="#81D7B4"/>
+  <circle cx="220" cy="125" r="3" fill="#81D7B4"/>
+  <circle cx="250" cy="120" r="3" fill="#81D7B4"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="250" cy="40" r="10" fill="#81D7B4" fill-opacity="0.3"/>
+  <circle cx="230" cy="40" r="6" fill="#81D7B4" fill-opacity="0.2"/>
+  
+  <!-- Definitions -->
+  <defs>
+    <filter id="noise" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.05 0" in="noise" result="coloredNoise"/>
+    </filter>
+    
+    <pattern id="grain" width="100%" height="100%" patternUnits="userSpaceOnUse">
+      <rect width="300" height="200" fill="#FFFFFF"/>
+      <rect width="300" height="200" filter="url(#noise)"/>
+    </pattern>
+  </defs>
+</svg>

@@ -1,0 +1,46 @@
+<svg width="300" height="200" viewBox="0 0 300 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with grain effect -->
+  <rect width="300" height="200" rx="12" fill="#163239" opacity="0.05"/>
+  <rect width="300" height="200" rx="12" fill="url(#grain)" opacity="0.1"/>
+  
+  <!-- Card content -->
+  <rect x="20" y="20" width="260" height="160" rx="8" fill="#FFFFFF" fill-opacity="0.1"/>
+  <rect x="20" y="20" width="260" height="160" rx="8" stroke="#81D7B4" stroke-opacity="0.2" stroke-width="1"/>
+  
+  <!-- Header -->
+  <rect x="30" y="30" width="100" height="24" rx="4" fill="#81D7B4" fill-opacity="0.2"/>
+  <text x="40" y="46" font-family="Arial" font-size="12" font-weight="bold" fill="#81D7B4">Savings Plan</text>
+  
+  <!-- Form fields -->
+  <rect x="30" y="64" width="240" height="30" rx="4" fill="#FFFFFF" fill-opacity="0.05" stroke="#81D7B4" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="40" y="84" font-family="Arial" font-size="10" fill="#FFFFFF" fill-opacity="0.6">Plan Name: Vacation Fund</text>
+  
+  <rect x="30" y="104" width="240" height="30" rx="4" fill="#FFFFFF" fill-opacity="0.05" stroke="#81D7B4" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="40" y="124" font-family="Arial" font-size="10" fill="#FFFFFF" fill-opacity="0.6">Target Amount: 5,000 USDT</text>
+  
+  <!-- Button -->
+  <rect x="30" y="144" width="120" height="26" rx="13" fill="url(#buttonGradient)"/>
+  <text x="55" y="161" font-family="Arial" font-size="10" font-weight="bold" fill="#FFFFFF">Create Plan</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="250" cy="40" r="10" fill="#81D7B4" fill-opacity="0.3"/>
+  <circle cx="230" cy="40" r="6" fill="#81D7B4" fill-opacity="0.2"/>
+  
+  <!-- Definitions -->
+  <defs>
+    <linearGradient id="buttonGradient" x1="0" y1="0" x2="120" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#163239"/>
+      <stop offset="1" stop-color="#81D7B4"/>
+    </linearGradient>
+    
+    <filter id="noise" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.05 0" in="noise" result="coloredNoise"/>
+    </filter>
+    
+    <pattern id="grain" width="100%" height="100%" patternUnits="userSpaceOnUse">
+      <rect width="300" height="200" fill="#FFFFFF"/>
+      <rect width="300" height="200" filter="url(#noise)"/>
+    </pattern>
+  </defs>
+</svg>
