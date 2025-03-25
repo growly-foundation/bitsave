@@ -36,24 +36,40 @@ export default function CreateSavingsPage() {
  const [amount, setAmount] = useState('')
  const [currency, setCurrency] = useState('USDC')
  const [chain, setChain] = useState('base') // Default to base chain
- const [startDate, setStartDate] = useState<Date | null>(new Date())
+ // eslint-disable-next-line @typescript-eslint/no-unused-vars
+ const [startDate, _setStartDate] = useState<Date | null>(new Date())
  const [endDate, setEndDate] = useState<Date | null>(null)
  const [penalty, setPenalty] = useState('1%')
  
  // Transaction state
- const [isLoading, setLoading] = useState(false)
- const [error, setError] = useState<string | null>(null)
- const [txHash, setTxHash] = useState<string | null>(null)
- const [isConnected, setIsConnected] = useState(false)
- 
- // Add state for selected day range (for compatibility with existing functions)
- const [selectedDayRange, setSelectedDayRange] = useState<any>({
-   from: null,
-   to: null
- })
- 
- // Add state for savings name (for compatibility with existing functions)
- const [savingsName, setSavingsName] = useState('')
+  // Transaction state
+  const [isLoading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [txHash, setTxHash] = useState<string | null>(null)
+  const [isConnected, setIsConnected] = useState(false)
+  
+  // Define a proper type for the day range
+  interface DayRange {
+    from: {
+      year: number | undefined;
+      month: number | undefined;
+      day: number | undefined;
+    } | null;
+    to: {
+      year: number | undefined;
+      month: number | undefined;
+      day: number | undefined;
+    } | null;
+  }
+  
+  // Add state for selected day range (with proper typing)
+  const [selectedDayRange, setSelectedDayRange] = useState<DayRange>({
+    from: null,
+    to: null
+  })
+  
+  // Add state for savings name (for compatibility with existing functions)
+  const [savingsName, setSavingsName] = useState('')
  
  // Add state for selected penalty (for compatibility with existing functions)
  const [selectedPenalty, setSelectedPenalty] = useState(1)
@@ -273,14 +289,14 @@ export default function CreateSavingsPage() {
       console.log("User child contract address:", userChildContractAddress)
 
       const maturityTime = selectedDayRange.to
-        ? Math.floor(
-          new Date(
-            selectedDayRange.to.year,
-            selectedDayRange.to.month - 1,
-            selectedDayRange.to.day
-          ).getTime() / 1000
-        )
-        : 0
+      ? Math.floor(
+        new Date(
+          selectedDayRange.to.year ?? 0,
+          (selectedDayRange.to.month ?? 1) - 1,
+          selectedDayRange.to.day ?? 1
+        ).getTime() / 1000
+      )
+      : 0
       const safeMode = false
       const tokenToSave = ETH_TOKEN_ADDRESS // ETH Address (Native)
 
@@ -422,14 +438,14 @@ export default function CreateSavingsPage() {
 
       // Convert maturity time to UNIX timestamp
       const maturityTime = selectedDayRange.to
-        ? Math.floor(
-          new Date(
-            selectedDayRange.to.year,
-            selectedDayRange.to.month - 1,
-            selectedDayRange.to.day
-          ).getTime() / 1000
-        )
-        : 0
+      ? Math.floor(
+        new Date(
+          selectedDayRange.to.year ?? 0,
+          (selectedDayRange.to.month ?? 1) - 1,
+          selectedDayRange.to.day ?? 1
+        ).getTime() / 1000
+      )
+      : 0
 
       const safeMode = false
       const tokenToSave = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" // USDC on Base

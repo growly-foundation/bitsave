@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import {  useRef, useState } from 'react';
 
 export default function HowItWorks() {
   const sectionRef = useRef<HTMLElement>(null);

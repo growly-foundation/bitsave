@@ -252,9 +252,9 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
       setSuccess(true);
       setShowTransactionModal(true);
       
-    } catch (error: any) {
+    } catch (error: unknown) { // Change from any to unknown
       console.error("Error topping up ETH savings plan:", error);
-      setError(`Failed to top up ETH savings plan: ${error.message}`);
+      setError(`Failed to top up ETH savings plan: ${error instanceof Error ? error.message : String(error)}`);
       setShowTransactionModal(true);
     } finally {
       setLoading(false);

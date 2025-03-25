@@ -582,7 +582,7 @@ export default function PlansPage() {
               </div>
               <div>
               <h3 className="font-bold text-gray-800 text-lg mb-2">Build Your Financial Safety Net</h3>
-              <p className="text-gray-600">Every dollar saved today is peace of mind for tomorrow. Consistent saving creates a buffer against life's uncertainties while helping you achieve your most important goals.</p>
+              <p className="text-gray-600">Every dollar saved today is peace of mind for tomorrow. Consistent saving creates a buffer against life&apos;s uncertainties while helping you achieve your most important goals.</p>
               </div>
             </div>
             

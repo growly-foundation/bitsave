@@ -65,28 +65,28 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Function to get signer
-  const getSigner = async () => {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      throw new Error('No wallet detected');
-    }
+  // const getSigner = async () => {
+  //   if (typeof window === 'undefined' || !window.ethereum) {
+  //     throw new Error('No wallet detected');
+  //   }
     
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const provider = new ethers.BrowserProvider(window.ethereum);
+  //   await window.ethereum.request({ method: 'eth_requestAccounts' });
+  //   const provider = new ethers.BrowserProvider(window.ethereum);
     
-    // Check if on Base network
-    const network = await provider.getNetwork();
-    const BASE_CHAIN_ID = 8453; // Base network chain ID
+  //   // Check if on Base network
+  //   const network = await provider.getNetwork();
+  //   const BASE_CHAIN_ID = 8453; // Base network chain ID
     
-    if (Number(network.chainId) !== BASE_CHAIN_ID) {
-      setIsCorrectNetwork(false);
-      return null;
-    }
+  //   if (Number(network.chainId) !== BASE_CHAIN_ID) {
+  //     setIsCorrectNetwork(false);
+  //     return null;
+  //   }
     
-    setIsCorrectNetwork(true);
-    return provider.getSigner();
-  };
+  //   setIsCorrectNetwork(true);
+  //   return provider.getSigner();
+  // };
+  // Remove the unused getSigner function and replace with a comment
   // Function to switch to Base network
-  // Remove the unused getSigner function
   const switchToNetwork = async (networkName: string) => {
     if (!window.ethereum) return;
     
@@ -216,103 +216,106 @@ export default function Dashboard() {
       const savingsNamesObj = await childContract.getSavingsNames();
       const savingsNamesArray = savingsNamesObj[0];
       
-      let currentPlans = [];
-      let completedPlans = [];
-      let totalLockedValue = ethers.parseEther("0");
+      const currentPlans = [];
+      const completedPlans = [];
+      // Remove unused variable
       let totalDeposits = 0;
       let totalUsdValue = 0;
       
-      // Track processed plan names to avoid duplicates
-      const processedPlanNames = new Set();
-      
       // Process each savings plan
       if (Array.isArray(savingsNamesArray)) {
-        for (const savingName of savingsNamesArray) {
-          try {
-            // Skip if we've already processed this plan name
-            if (processedPlanNames.has(savingName)) continue;
-            
-            // Add to processed set
-            processedPlanNames.add(savingName);
-            
-            // Get saving details
-            const savingData = await childContract.getSaving(savingName);
-            if (!savingData.isValid) continue;
-            
-            // Check if it's ETH or token based
-            const tokenId = savingData.tokenId;
-            const isEth = tokenId === "0x0000000000000000000000000000000000000000";
-            
-            // Get decimals based on token type
-            const decimals = isEth ? 18 : 6;
-            
-            // Extract penalty percentage from saving data
-            const penaltyPercentage = Number(savingData.penaltyPercentage);
-            
-            // Format amounts
-            const targetFormatted = ethers.formatUnits(savingData.amount, decimals);
-            const currentFormatted = ethers.formatUnits(savingData.amount, decimals);
-            
-            // Calculate progress based on time
-            const currentDate = new Date();
-            const startTimestamp = Number(savingData.startTime);
-            const maturityTimestamp = Number(savingData.maturityTime);
-            const startDate = new Date(startTimestamp * 1000);
-            const maturityDate = new Date(maturityTimestamp * 1000);
-            
-            const totalDuration = maturityDate.getTime() - startDate.getTime();
-            const elapsedTime = currentDate.getTime() - startDate.getTime();
-            const progress = Math.min(Math.floor((elapsedTime / totalDuration) * 100), 100);
-            
-            // Add to total USD value
-            if (isEth) {
-              const ethAmount = parseFloat(currentFormatted);
-              const usdValue = ethAmount * currentEthPrice;
-              console.log(`ETH plan: ${savingName}, amount: ${ethAmount} ETH, USD value: ${usdValue}, ethPrice: ${currentEthPrice}`);
-              totalUsdValue += usdValue;
-            } else {
-              console.log(`USDC plan: ${savingName}, amount: ${parseFloat(currentFormatted)} USD`);
-              totalUsdValue += parseFloat(currentFormatted);
+        // Create a Set to track processed plan names and avoid duplicates
+        const processedPlanNames = new Set();
+      
+        // Process each savings plan
+        if (Array.isArray(savingsNamesArray)) {
+          for (const savingName of savingsNamesArray) {
+            try {
+              // Skip if we've already processed this plan name
+              if (processedPlanNames.has(savingName)) continue;
+              
+              // Add to processed set
+              processedPlanNames.add(savingName);
+              
+              // Get saving details
+              const savingData = await childContract.getSaving(savingName);
+              if (!savingData.isValid) continue;
+              
+              // Check if it's ETH or token based
+              const tokenId = savingData.tokenId;
+              const isEth = tokenId === "0x0000000000000000000000000000000000000000";
+              
+              // Get decimals based on token type
+              const decimals = isEth ? 18 : 6;
+              
+              // Extract penalty percentage from saving data
+              const penaltyPercentage = Number(savingData.penaltyPercentage);
+              
+              // Format amounts
+              const targetFormatted = ethers.formatUnits(savingData.amount, decimals);
+              const currentFormatted = ethers.formatUnits(savingData.amount, decimals);
+              
+              // Calculate progress based on time
+              const currentDate = new Date();
+              const startTimestamp = Number(savingData.startTime);
+              const maturityTimestamp = Number(savingData.maturityTime);
+              const startDate = new Date(startTimestamp * 1000);
+              const maturityDate = new Date(maturityTimestamp * 1000);
+              
+              const totalDuration = maturityDate.getTime() - startDate.getTime();
+              const elapsedTime = currentDate.getTime() - startDate.getTime();
+              const progress = Math.min(Math.floor((elapsedTime / totalDuration) * 100), 100);
+              
+              // Add to total USD value
+              if (isEth) {
+                const ethAmount = parseFloat(currentFormatted);
+                const usdValue = ethAmount * currentEthPrice;
+                console.log(`ETH plan: ${savingName}, amount: ${ethAmount} ETH, USD value: ${usdValue}, ethPrice: ${currentEthPrice}`);
+                totalUsdValue += usdValue;
+              } else {
+                console.log(`USDC plan: ${savingName}, amount: ${parseFloat(currentFormatted)} USD`);
+                totalUsdValue += parseFloat(currentFormatted);
+              }
+              
+              totalDeposits++;
+              
+              const planData = {
+                id: savingName,
+                address: userChildContractAddress,
+                name: savingName,
+                currentAmount: currentFormatted,
+                targetAmount: targetFormatted,
+                progress: progress,
+                isEth,
+                startTime: startTimestamp, // Add startTime for sorting
+                maturityTime: maturityTimestamp,
+                penaltyPercentage: penaltyPercentage, // Use the extracted penalty percentage
+              };
+              
+              // Add to appropriate list based on completion status
+              if (progress >= 100 || currentDate >= maturityDate) {
+                completedPlans.push(planData);
+              } else {
+                currentPlans.push(planData);
+              }
+            } catch (error) {
+              console.error(`Error processing savings plan ${savingName}:`, error);
             }
-            
-            totalDeposits++;
-            
-            const planData = {
-              id: savingName,
-              address: userChildContractAddress,
-              name: savingName,
-              currentAmount: currentFormatted,
-              targetAmount: targetFormatted,
-              progress: progress,
-              isEth,
-              startTime: startTimestamp, // Add startTime for sorting
-              maturityTime: maturityTimestamp,
-              penaltyPercentage: penaltyPercentage, // Use the extracted penalty percentage
-            };
-            
-            // Add to appropriate list based on completion status
-            if (progress >= 100 || currentDate >= maturityDate) {
-              completedPlans.push(planData);
-            } else {
-              currentPlans.push(planData);
-            }
-          } catch (error) {
-            console.error(`Error processing savings plan ${savingName}:`, error);
           }
         }
       }
       
       // Sort plans from newest to oldest based on start time (most recent first)
-      currentPlans.sort((a, b) => b.startTime - a.startTime);
-      completedPlans.sort((a, b) => b.startTime - a.startTime);
+      const sortedCurrentPlans = currentPlans.sort((a, b) => b.startTime - a.startTime);
+      const sortedCompletedPlans = completedPlans.sort((a, b) => b.startTime - a.startTime);
       
       console.log(`Total USD value before setting state: ${totalUsdValue}`);
       setSavingsData({
         totalLocked: totalUsdValue.toFixed(2),
         deposits: totalDeposits,
         rewards: "0.00", // Placeholder for rewards calculation
-        currentPlans,
-        completedPlans
+        currentPlans: sortedCurrentPlans,
+        completedPlans: sortedCompletedPlans
       });
     } catch (error) {
       console.error("Error fetching savings data:", error);

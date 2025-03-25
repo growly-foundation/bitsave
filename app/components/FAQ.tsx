@@ -203,7 +203,7 @@ export default function FAQ() {
           </h2>
           
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Everything you need to know about investing with BitSave's innovative crypto platform
+            Everything you need to know about investing with BitSave&apos;s innovative crypto platform
           </p>
         </motion.div>
         
