@@ -11,7 +11,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 const { connectors } = getDefaultWallets({
   appName: 'BitSave',
-  projectId: 'dfffb9bb51c39516580c01f134de2345', // Get one at https://cloud.walletconnect.com
+  projectId: 'dfffb9bb51c39516580c01f134de2345', 
 });
 
 const config = createConfig({
