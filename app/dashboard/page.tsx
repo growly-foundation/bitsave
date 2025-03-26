@@ -1,5 +1,4 @@
 'use client'
-
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
@@ -20,6 +19,7 @@ const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk'
 });
 
+
 // Contract addresses
 const MAIN_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
 
@@ -29,11 +29,136 @@ export default function Dashboard() {
   const router = useRouter();
   const [selectedToken, setSelectedToken] = useState('Base');
   const [activeTab, setActiveTab] = useState('current');
-  const [ethPrice, setEthPrice] = useState(3500); // Set a default value to ensure it's never 0
-  // Add state for the top up modal
+  const [ethPrice, setEthPrice] = useState(3500); 
   const [topUpModal, setTopUpModal] = useState({ isOpen: false, planName: '', planId: '', isEth: false });
+  const [displayName, setDisplayName] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedUpdate, setSelectedUpdate] = useState<{title: string, content: string, date: string} | null>(null);
 
+
+  const [updates, setUpdates] = useState<Array<{
+    id: string;
+    title: string;
+    content: string;
+    date: string;
+    isNew: boolean;
+  }>>([]);
+
+  useEffect(() => {
+    if (mounted && address) {
+      const savedName = localStorage.getItem(`bitsave_displayname_${address}`);
+      if (savedName) {
+        setDisplayName(savedName);
+      }
+    }
+  }, [mounted, address]);
+
+  interface LeaderboardEntry {
+    useraddress: string;
+    totalamount: number;
+    chain: string;
+    datetime?: string;
+    rank?: number;
+  }
+
+  interface Update {
+    id: string;
+    title: string;
+    content: string;
+    date: string;
+    isNew: boolean;
+  }
+
+  interface ReadUpdate {
+    id: string;
+    isNew: boolean;
+  }
+
+  // Function to fetch all updates
+  const fetchAllUpdates = async () => {
+    try {
+      const response = await fetch('https://bitsaveapi.vercel.app/updates/', {
+        method: 'GET',
+        headers: {
+          'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch updates');
+      }
+      
+      const allUpdates = await response.json();
+      
+      // If user is connected, fetch read status
+      if (address) {
+        const userResponse = await fetch(`https://bitsaveapi.vercel.app/updates/user/${address}`, {
+          method: 'GET',
+          headers: {
+            'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
+          }
+        });
+        
+        if (userResponse.ok) {
+          const userReadUpdates = await userResponse.json() as ReadUpdate[];
+          
+          // Mark updates as read or unread based on user data
+          const processedUpdates = allUpdates.map((update: Update) => {
+            const isRead = userReadUpdates.some((readUpdate: ReadUpdate) => 
+              readUpdate.id === update.id && !readUpdate.isNew
+            );
+            return {
+              ...update,
+              isNew: !isRead
+            };
+          });
+          
+          setUpdates(processedUpdates);
+        } else {
+          // If user endpoint fails, assume all updates are new
+          setUpdates(allUpdates.map((update: Update) => ({ ...update, isNew: true })));
+        }
+      } else {
+        // If no user connected, assume all updates are new
+        setUpdates(allUpdates.map((update: Update) => ({ ...update, isNew: true })));
+      }
+    } catch (error) {
+      console.error('Error fetching updates:', error);
+      setUpdates([]);
+    }
+  };
+
+// Function to mark an update as read
+const markUpdateAsRead = async (updateId: string) => {
+  if (!address) return;
   
+  try {
+    const response = await fetch(`https://bitsaveapi.vercel.app/updates/${updateId}/read`, {
+      method: 'PUT',
+      headers: {
+        'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || '',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        useraddress: address
+      })
+    });
+    
+    if (response.ok) {
+      // Update local state to reflect the change
+      setUpdates(prevUpdates => 
+        prevUpdates.map(update => 
+          update.id === updateId ? { ...update, isNew: false } : update
+        )
+      );
+    }
+  } catch (error) {
+    console.error('Error marking update as read:', error);
+  }
+};
+  
+
   const [savingsData, setSavingsData] = useState({
     totalLocked: "0.00",
     deposits: 0,
@@ -63,6 +188,56 @@ export default function Dashboard() {
   });
   
   const [isLoading, setIsLoading] = useState(true);
+
+
+  const openUpdateModal = (update: Update) => {
+    setSelectedUpdate(update);
+    setShowUpdateModal(true);
+    
+    // Mark as read if it's new
+    if (update.isNew) {
+      markUpdateAsRead(update.id);
+    }
+  };
+
+
+  useEffect(() => {
+    if (mounted) {
+      fetchAllUpdates();
+    }
+  }, [mounted, address]);
+
+  // Function to close update modal
+  const closeUpdateModal = () => {
+    setShowUpdateModal(false);
+  };
+
+    // Add useEffect to handle clicking outside the notifications dropdown
+    useEffect(() => {
+      function handleClickOutside(event: MouseEvent) {
+        const notificationButton = document.getElementById('notification-button');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        
+        if (
+          showNotifications && 
+          notificationButton && 
+          notificationDropdown && 
+          !notificationButton.contains(event.target as Node) && 
+          !notificationDropdown.contains(event.target as Node)
+        ) {
+          setShowNotifications(false);
+        }
+      }
+      
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [showNotifications]);
+  
+    useEffect(() => {
+      setMounted(true);
+    }, []);
 
   // Function to get signer
   // const getSigner = async () => {
@@ -360,55 +535,46 @@ const closeWithdrawModal = () => {
   setWithdrawModal({ isOpen: false, planId: '', planName: '', isEth: false, penaltyPercentage: 0 });
 };
 
-  // Add state for leaderboard data
-    const [leaderboardData, setLeaderboardData] = useState<Array<{
-      rank: number;
-      useraddress: string;
-      totalamount: number;
-      chain: string;
-      datetime?: string;
-    }>>([]);
-    const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(true);
-  
-    // Add function to fetch leaderboard data
-    // Fix the any types in the leaderboard data fetching
-    const fetchLeaderboardData = async () => {
-      setIsLeaderboardLoading(true);
-      try {
-        const response = await fetch('http://localhost:8000/leaderboard/', {
-          method: 'GET',
-          headers: {
-            'accept': 'application/json',
-            'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch leaderboard data');
-        }
-        
-        const data = await response.json();
-        
-        // Sort by total amount and add rank
-        const rankedData = data
-          .sort((a: {totalamount: number}, b: {totalamount: number}) => b.totalamount - a.totalamount)
-          .slice(0, 4) // Get top 4 for dashboard display
-          .map((user: {totalamount: number, useraddress: string, chain: string}, index: number) => ({
-            ...user,
-            rank: index + 1,
-            // Format datetime if needed
-            datetime: new Date().toISOString().split('T')[0]
-          }));
-        
-        setLeaderboardData(rankedData);
-      } catch (error) {
-        console.error('Error fetching leaderboard data:', error);
-        // Set empty array if there's an error
-        setLeaderboardData([]);
-      } finally {
-        setIsLeaderboardLoading(false);
+const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(true);
+
+const fetchLeaderboardData = async () => {
+  setIsLeaderboardLoading(true);
+  try {
+    const response = await fetch('https://bitsaveapi.vercel.app/leaderboard', {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
       }
-    };
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch leaderboard data');
+    }
+    
+    const data = await response.json() as LeaderboardEntry[];
+    
+    // Sort by total amount and add rank
+    const rankedData = data
+      .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.totalamount - a.totalamount)
+      .slice(0, 4) // Get top 4 for dashboard display
+      .map((user: LeaderboardEntry, index: number) => ({
+        ...user,
+        rank: index + 1,
+        // Format datetime if needed
+        datetime: new Date().toISOString().split('T')[0]
+      }));
+    
+    setLeaderboardData(rankedData);
+  } catch (error) {
+    console.error('Error fetching leaderboard data:', error);
+    // Set empty array if there's an error
+    setLeaderboardData([]);
+  } finally {
+    setIsLeaderboardLoading(false);
+  }
+};
   
     // Fetch leaderboard data when component mounts
     useEffect(() => {
@@ -536,7 +702,45 @@ const closeWithdrawModal = () => {
   penaltyPercentage={withdrawModal.penaltyPercentage}
 />
       
-     
+     {/* Update Modal */}
+     {showUpdateModal && selectedUpdate && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-0">
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl w-full max-w-md mx-auto overflow-hidden border border-white/60">
+            <div className="p-5 sm:p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">{selectedUpdate.title}</h3>
+                <button 
+                  onClick={closeUpdateModal}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="text-sm text-gray-500 mb-4">
+                {new Date(selectedUpdate.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </div>
+              
+              <div className="text-gray-700 mb-6">
+                {selectedUpdate.content}
+              </div>
+              
+              <button
+                onClick={closeUpdateModal}
+                className="w-full py-3 text-center text-sm font-medium text-white bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.4)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.5)] transition-all duration-300"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Grain overlay */}
       <div className="fixed inset-0 z-0 opacity-30 pointer-events-none bg-[url('/noise.jpg')] mix-blend-overlay" ></div>
@@ -545,21 +749,78 @@ const closeWithdrawModal = () => {
       <div className="absolute top-20 right-10 md:right-20 w-40 md:w-64 h-40 md:h-64 bg-[#81D7B4]/20 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-20 left-10 md:left-20 w-40 md:w-80 h-40 md:h-80 bg-blue-500/10 rounded-full blur-3xl -z-10"></div>
       
-      {/* Header - responsive adjustments */}
-      <div className="flex justify-between items-center mb-6 md:mb-8 overflow-x-hidden">
+      
+       {/* Header - responsive adjustments */}
+       <div className="flex justify-between items-center mb-6 md:mb-8 overflow-x-hidden">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">Dashboard</h1>
           <p className="text-sm md:text-base text-gray-500 flex items-center">
             <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-            Welcome back, {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'User'}
+            Welcome back, {displayName || (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'User')}
           </p>
         </div>
-        <div className="flex items-center space-x-4 md:block hidden">
-          <div className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm border border-white/50 hover:shadow-md transition-all duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-gray-600">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </div>
+        {/* Notification bell with responsive positioning - aligned with menu bar */}
+        <div className="flex items-center space-x-3 relative mr-12 md:mr-0 mb-10 px-3 py-3">
+        <button 
+  id="notification-button"
+  onClick={() => setShowNotifications(!showNotifications)}
+  className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm border border-white/50 hover:shadow-md transition-all duration-300 relative"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 text-gray-600">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+  </svg>
+  {updates.some(update => update.isNew) && (
+    <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#81D7B4] rounded-full border-2 border-white"></span>
+  )}
+</button>
+
+          
+          {/* Notifications dropdown - improved positioning for mobile */}
+          {showNotifications && (
+  <div className="fixed right-4 md:right-4 top-20 w-[calc(100vw-2rem)] md:w-80 max-w-sm bg-white/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/60 z-[9999] overflow-hidden">
+    <div className="p-4 border-b border-gray-100">
+      <h3 className="font-semibold text-gray-800">Updates</h3>
+    </div>
+    
+    <div className="max-h-80 overflow-y-auto">
+      {updates.length > 0 ? (
+        updates.map(update => (
+          <button
+            key={update.id}
+            onClick={() => openUpdateModal(update)}
+            className="w-full text-left p-4 hover:bg-[#81D7B4]/5 border-b border-gray-100 last:border-b-0 transition-colors relative"
+          >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium text-gray-800 text-sm">{update.title}</h4>
+                          <p className="text-gray-500 text-xs mt-1 line-clamp-2">{update.content}</p>
+                          <span className="text-gray-400 text-xs mt-2 block">
+                            {new Date(update.date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {update.isNew && (
+                          <span className="bg-[#81D7B4] text-white text-xs px-2 py-0.5 rounded-full">New</span>
+                        )}
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    No new updates
+                  </div>
+                )}
+              </div>
+              
+              <div className="p-3 bg-gray-50/80 border-t border-gray-100">
+                <button 
+                  onClick={() => setShowNotifications(false)}
+                  className="w-full py-2 text-xs font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -700,7 +961,7 @@ const closeWithdrawModal = () => {
         <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-gradient-to-tl from-[#81D7B4]/20 to-blue-300/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/30 transition-all duration-700"></div>
         <div className="absolute -left-20 -top-20 w-60 h-60 bg-gradient-to-br from-purple-300/10 to-transparent rounded-full blur-3xl opacity-70"></div>
         
-        <Link href="dashboard/create-savings" className="flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all duration-300">
+        <Link href="/dashboard/create-savings" className="flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all duration-300">
           <div className="bg-gradient-to-br from-[#81D7B4] to-[#81D7B4]/90 rounded-full p-3.5 mr-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_10px_rgba(129,215,180,0.4),0_1px_2px_rgba(0,0,0,0.3)] group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_6px_15px_rgba(129,215,180,0.5),0_1px_2px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:scale-110">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" className="w-6 h-6 drop-shadow-sm">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

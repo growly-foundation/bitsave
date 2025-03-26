@@ -10,7 +10,6 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   
-  // Rainbow Kit hooks - remove address from destructuring since it's not used
   const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { openConnectModal } = useConnectModal();
@@ -33,7 +32,8 @@ export default function Header() {
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: baseChainId }],
       });
-    } catch (error: unknown) { // Replace 'any' with 'unknown' for better type safety
+    } catch (error: unknown) { 
+      
       // Type guard to check if error is an object with a code property
       if (error && typeof error === 'object' && 'code' in error && error.code === 4902) {
         try {

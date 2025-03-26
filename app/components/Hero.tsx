@@ -1,10 +1,16 @@
 'use client'
 import Image from 'next/image';
 import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAccount } from 'wagmi';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 export default function Hero() {
   const heroRef = useRef<HTMLElement>(null);
   const shimmerElementsRef = useRef<Array<{width: number, top: number, rotation: number, duration: number, delay: number}>>([]);
+  const router = useRouter();
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
 
   // Initialize shimmer elements data with fixed values to avoid hydration mismatch
   useEffect(() => {
@@ -32,6 +38,24 @@ export default function Hero() {
       });
     }
   }, []);
+
+  // Handle wallet connection and redirect
+  const handleOpenApp = () => {
+    if (isConnected) {
+      // If already connected, redirect to dashboard
+      router.push('/dashboard');
+    } else {
+      // If not connected, open wallet connect modal
+      openConnectModal?.();
+    }
+  };
+
+  // Effect to redirect to dashboard when connected
+  useEffect(() => {
+    if (isConnected) {
+      router.push('/dashboard');
+    }
+  }, [isConnected, router]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -106,15 +130,15 @@ export default function Hero() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <a 
-              href="#app" 
+            <button 
+              onClick={handleOpenApp}
               className="bg-[#81D7B4] hover:bg-[#6bc4a3] text-white font-medium px-8 py-3 rounded-lg flex items-center justify-center gap-2 group shadow-md hover:shadow-lg transition-all"
             >
               <span>Open App</span>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 group-hover:translate-x-1 transition-transform">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
-            </a>
+            </button>
             <a 
               href="#video" 
               className="bg-white border border-gray-200 text-gray-700 font-medium px-8 py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm hover:shadow-md transition-all"

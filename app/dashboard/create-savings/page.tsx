@@ -67,14 +67,20 @@ export default function CreateSavingsPage() {
     from: null,
     to: null
   })
+
   
   // Add state for savings name (for compatibility with existing functions)
   const [savingsName, setSavingsName] = useState('')
  
   // Add state for selected penalty (for compatibility with existing functions)
   const [selectedPenalty, setSelectedPenalty] = useState(1)
- 
-  // Update selectedDayRange when endDate changes
+  // Validation state
+  const [errors, setErrors] = useState({
+    name: '',
+    amount: '',
+    endDate: ''
+  })
+    // Update selectedDayRange when endDate changes
   useEffect(() => {
     if (endDate) {
       setSelectedDayRange({
@@ -88,26 +94,26 @@ export default function CreateSavingsPage() {
           month: endDate.getMonth() + 1,
           day: endDate.getDate()
         }
-      })
+      });
+      
+      // Clear the endDate error when a valid date is selected
+      if (errors.endDate) {
+        setErrors(prev => ({...prev, endDate: ''}));
+      }
     }
-  }, [startDate, endDate])
- 
+  }, [startDate, endDate, errors.endDate]);
+  
   // Update savingsName when name changes
   useEffect(() => {
-    setSavingsName(name)
-  }, [name])
+    setSavingsName(name);
+  }, [name]);
  
   // Update selectedPenalty when penalty changes
   useEffect(() => {
     setSelectedPenalty(parseInt(penalty))
   }, [penalty])
   
-  // Validation state
-  const [errors, setErrors] = useState({
-    name: '',
-    amount: '',
-    endDate: ''
-  })
+ 
   
   // Available options
   const currencies = ['USDC', 'ETH']

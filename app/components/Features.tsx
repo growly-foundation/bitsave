@@ -4,34 +4,36 @@ import { motion } from 'framer-motion';
 export default function Features() {
   const featureItems = [
     {
-      title: "Designed for Growth",
-      description: "Offers supervised portfolios and sustainable strategies to maximize long-term growth potential.",
-      detail: "Optimized asset allocation for sustainable long-term returns.",
+      title: "Designed for Secure Savings",
+      description: "Bitsave provides goal-based savings plans with non-custodial smart contracts; you own your funds, withdraw your savings at any time.",
+      detail: "Stable & Secure SavingsEnables recurring stablecoin savings, no risks of market volatility on your stable coin savings.",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8 text-primary">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v8m-5-4h10" />
         </svg>
       ),
       color: "primary"
     },
     {
-      title: "Designed for Ease",
-      description: "Provides a clean and intuitive interface, making crypto savings straightforward and accessible.",
-      detail: "No complex trading interfaces or confusing terminology.",
+      title: "Designed for Simplicity",
+      description: "Experience a clean and intuitive savings experience, on-chain savings easier than saving in a traditional account.",
+      detail: "No DeFi Jargon, Just Simple Savings,No complex staking, yield farming, or trading—just secure, goal-based savings with a user-friendly interface",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8 text-secondary">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
         </svg>
       ),
       color: "secondary"
     },
     {
-      title: "Designed for Peace",
-      description: "Ensures peace of mind with optimal diversification, professional management, and safe custody.",
-      detail: "Institutional-grade security and regulated custody solutions.",
+      title: "Designed for Security & Control",
+      description: "Peace of mind with a non-custodial savings model, users have full control of their savings.",
+      detail: "Parent-child Smart Contracts structure for Security Each savings plan is stored in a user-owned smart contract (child contract), reducing risks of hacks or centralized failures. No pooled funds. Just secure, private savings.",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8 text-accent">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
         </svg>
       ),
       color: "accent"
@@ -124,7 +126,7 @@ export default function Features() {
         </div>
       </div>
       
-      {/* Add any missing animation keyframes */}
+      {/* animation keyframes */}
       <style jsx>{`
         @keyframes float-particle {
           0%, 100% {

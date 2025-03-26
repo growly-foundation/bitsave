@@ -276,21 +276,17 @@ export default function Security() {
                   Smart Contract Security
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Our smart contracts undergo rigorous security audits by leading blockchain security firms. 
-                  The code is open-source and verified on-chain, ensuring complete transparency and protection against vulnerabilities.
+                Our smart contracts are professionally audited and verified on-chain, with open-source code for full transparency. We prioritize robust security measures to ensure user protection and system integrity.
                 </p>
                 <div className="h-px w-full bg-gradient-to-r from-transparent via-[#81D7B4]/20 to-transparent my-4"></div>
                 
                 {/* Security metrics with tech styling */}
-                <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="grid grid-cols-2 gap-2 text-center">
                   <div className="backdrop-blur-md bg-white/90 p-2 rounded-lg border border-[#81D7B4]/10 shadow-sm">
                     <div className="text-lg font-bold text-[#81D7B4]">100%</div>
                     <div className="text-xs text-gray-500 mt-1">Code Coverage</div>
                   </div>
-                  <div className="backdrop-blur-md bg-white/90 p-2 rounded-lg border border-[#81D7B4]/10 shadow-sm">
-                    <div className="text-lg font-bold text-[#81D7B4]">3</div>
-                    <div className="text-xs text-gray-500 mt-1">Audit Firms</div>
-                  </div>
+                 
                   <div className="backdrop-blur-md bg-white/90 p-2 rounded-lg border border-[#81D7B4]/10 shadow-sm">
                     <div className="text-lg font-bold text-[#81D7B4]">0</div>
                     <div className="text-xs text-gray-500 mt-1">Vulnerabilities</div>

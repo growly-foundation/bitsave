@@ -14,7 +14,6 @@ function FAQItem({ question, answer, index, isActive, onToggle }: FAQItemProps) 
   const itemRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   
-  // Animation variants for the FAQ item
   const variants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number) => ({
@@ -138,10 +137,6 @@ export default function FAQ() {
     {
       question: "What is the penalty for breaking a savings plan?",
       answer: "You set the penalty (1%–5% of your savings) when creating the plan. If you break it early, this penalty is deducted and sent to the CryptoSmart wallet."
-    },
-    {
-      question: "How is interest calculated in BitSave?",
-      answer: "Interest is calculated using the Simple Interest formula: SI = (P × RBS × T) / 100, where P is the principal, T is the time locked (in years), and RBS is the BitSave Rate determined by the protocol’s algorithm."
     }
 ];
 
@@ -319,7 +314,7 @@ export default function FAQ() {
       <div className="absolute bottom-10 right-10 w-24 h-24 border border-primary/20 rounded-lg rotate-12 opacity-30 hidden lg:block"></div>
       <div className="absolute top-10 left-10 w-16 h-16 border border-secondary/20 rounded-lg -rotate-12 opacity-30 hidden lg:block"></div>
       
-      {/* Add styles for the security-card class */}
+      {/* styles for the security-card class */}
       <style jsx global>{`
         .security-card {
           backdrop-filter: blur(12px);
