@@ -35,6 +35,13 @@ export default function DashboardLayout({
     }
   }, [isConnected, mounted, router]);
 
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768; 
+    if (isMobile) {
+      setSidebarCollapsed(true);
+    }
+  }, [pathname]); 
+
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };

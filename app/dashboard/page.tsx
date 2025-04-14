@@ -10,10 +10,10 @@ import { motion } from 'framer-motion';
 import { ethers } from 'ethers';
 import contractABI from '../abi/contractABI.js';
 import childContractABI from '../abi/childContractABI.js';
-import axios from 'axios'; 
+import axios from 'axios';
 
 // Initialize the Space Grotesk font
-const spaceGrotesk = Space_Grotesk({ 
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-space-grotesk'
@@ -21,20 +21,25 @@ const spaceGrotesk = Space_Grotesk({
 
 
 // Contract addresses
-const MAIN_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
+// const MAIN_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
+const BASE_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
+const CELO_CONTRACT_ADDRESS = "0x7d839923Eb2DAc3A0d1cABb270102E481A208F33";
+const BitSaveABI = contractABI;
+
 
 export default function Dashboard() {
+  const [, setCurrentNetwork] = useState<{ chainId: bigint, name: string } | null>(null);
+  const [isBaseNetwork, setIsBaseNetwork] = useState(true);
   const [mounted, setMounted] = useState(false);
   const { address, isConnected } = useAccount();
   const router = useRouter();
-  const [selectedToken, setSelectedToken] = useState('Base');
   const [activeTab, setActiveTab] = useState('current');
-  const [ethPrice, setEthPrice] = useState(3500); 
+  const [, setEthPrice] = useState<number | null>(null);
   const [topUpModal, setTopUpModal] = useState({ isOpen: false, planName: '', planId: '', isEth: false });
   const [displayName, setDisplayName] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [selectedUpdate, setSelectedUpdate] = useState<{title: string, content: string, date: string} | null>(null);
+  const [selectedUpdate, setSelectedUpdate] = useState<{ title: string, content: string, date: string } | null>(null);
 
 
   const [updates, setUpdates] = useState<Array<{
@@ -84,13 +89,13 @@ export default function Dashboard() {
           'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
         }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch updates');
       }
-      
+
       const allUpdates = await response.json();
-      
+
       // If user is connected, fetch read status
       if (address) {
         const userResponse = await fetch(`https://bitsaveapi.vercel.app/updates/user/${address}`, {
@@ -99,13 +104,13 @@ export default function Dashboard() {
             'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
           }
         });
-        
+
         if (userResponse.ok) {
           const userReadUpdates = await userResponse.json() as ReadUpdate[];
-          
+
           // Mark updates as read or unread based on user data
           const processedUpdates = allUpdates.map((update: Update) => {
-            const isRead = userReadUpdates.some((readUpdate: ReadUpdate) => 
+            const isRead = userReadUpdates.some((readUpdate: ReadUpdate) =>
               readUpdate.id === update.id && !readUpdate.isNew
             );
             return {
@@ -113,7 +118,7 @@ export default function Dashboard() {
               isNew: !isRead
             };
           });
-          
+
           setUpdates(processedUpdates);
         } else {
           // If user endpoint fails, assume all updates are new
@@ -129,35 +134,35 @@ export default function Dashboard() {
     }
   };
 
-// Function to mark an update as read
-const markUpdateAsRead = async (updateId: string) => {
-  if (!address) return;
-  
-  try {
-    const response = await fetch(`https://bitsaveapi.vercel.app/updates/${updateId}/read`, {
-      method: 'PUT',
-      headers: {
-        'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || '',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        useraddress: address
-      })
-    });
-    
-    if (response.ok) {
-      // Update local state to reflect the change
-      setUpdates(prevUpdates => 
-        prevUpdates.map(update => 
-          update.id === updateId ? { ...update, isNew: false } : update
-        )
-      );
+  // Function to mark an update as read
+  const markUpdateAsRead = async (updateId: string) => {
+    if (!address) return;
+
+    try {
+      const response = await fetch(`https://bitsaveapi.vercel.app/updates/${updateId}/read`, {
+        method: 'PUT',
+        headers: {
+          'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          useraddress: address
+        })
+      });
+
+      if (response.ok) {
+        // Update local state to reflect the change
+        setUpdates(prevUpdates =>
+          prevUpdates.map(update =>
+            update.id === updateId ? { ...update, isNew: false } : update
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error marking update as read:', error);
     }
-  } catch (error) {
-    console.error('Error marking update as read:', error);
-  }
-};
-  
+  };
+
 
   const [savingsData, setSavingsData] = useState({
     totalLocked: "0.00",
@@ -171,8 +176,9 @@ const markUpdateAsRead = async (updateId: string) => {
       targetAmount: string;
       progress: number;
       isEth: boolean;
-      maturityTime?: number; 
+      maturityTime?: number;
       penaltyPercentage: number;
+      tokenName: string; // Add this property
     }>,
     completedPlans: [] as Array<{
       id: string;
@@ -182,18 +188,19 @@ const markUpdateAsRead = async (updateId: string) => {
       targetAmount: string;
       progress: number;
       isEth: boolean;
-      maturityTime?: number; 
+      maturityTime?: number;
       penaltyPercentage: number;
+      tokenName: string; // Add this property
     }>
   });
-  
+
   const [isLoading, setIsLoading] = useState(true);
 
 
   const openUpdateModal = (update: Update) => {
     setSelectedUpdate(update);
     setShowUpdateModal(true);
-    
+
     // Mark as read if it's new
     if (update.isNew) {
       markUpdateAsRead(update.id);
@@ -212,59 +219,60 @@ const markUpdateAsRead = async (updateId: string) => {
     setShowUpdateModal(false);
   };
 
-    // Add useEffect to handle clicking outside the notifications dropdown
-    useEffect(() => {
-      function handleClickOutside(event: MouseEvent) {
-        const notificationButton = document.getElementById('notification-button');
-        const notificationDropdown = document.getElementById('notification-dropdown');
-        
-        if (
-          showNotifications && 
-          notificationButton && 
-          notificationDropdown && 
-          !notificationButton.contains(event.target as Node) && 
-          !notificationDropdown.contains(event.target as Node)
-        ) {
-          setShowNotifications(false);
-        }
+  // Add useEffect to handle clicking outside the notifications dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const notificationButton = document.getElementById('notification-button');
+      const notificationDropdown = document.getElementById('notification-dropdown');
+
+      if (
+        showNotifications &&
+        notificationButton &&
+        notificationDropdown &&
+        !notificationButton.contains(event.target as Node) &&
+        !notificationDropdown.contains(event.target as Node)
+      ) {
+        setShowNotifications(false);
       }
-      
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }, [showNotifications]);
-  
-    useEffect(() => {
-      setMounted(true);
-    }, []);
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Function to get signer
   // const getSigner = async () => {
   //   if (typeof window === 'undefined' || !window.ethereum) {
   //     throw new Error('No wallet detected');
   //   }
-    
+
   //   await window.ethereum.request({ method: 'eth_requestAccounts' });
   //   const provider = new ethers.BrowserProvider(window.ethereum);
-    
+
   //   // Check if on Base network
   //   const network = await provider.getNetwork();
   //   const BASE_CHAIN_ID = 8453; // Base network chain ID
-    
+
   //   if (Number(network.chainId) !== BASE_CHAIN_ID) {
   //     setIsCorrectNetwork(false);
   //     return null;
   //   }
-    
+
   //   setIsCorrectNetwork(true);
   //   return provider.getSigner();
   // };
-  // Remove the unused getSigner function and replace with a comment
+
+
   // Function to switch to Base network
   const switchToNetwork = async (networkName: string) => {
     if (!window.ethereum) return;
-    
+
     setSwitchingNetwork(true);
     try {
       if (networkName === 'Base') {
@@ -272,45 +280,73 @@ const markUpdateAsRead = async (updateId: string) => {
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: '0x2105' }], // Base chainId in hex (8453)
         });
-        
+
+        // Refresh data after switching
+        setIsCorrectNetwork(true);
+        fetchSavingsData();
+      } else if (networkName === 'Celo') {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0xA4EC' }], // Celo chainId in hex (42220)
+        });
+
         // Refresh data after switching
         setIsCorrectNetwork(true);
         fetchSavingsData();
       }
-    } catch (error: unknown) { // Replace 'any' with 'unknown' for better type safety
+    } catch (error: unknown) {
       // Type guard to check if error is an object with a code property
       if (error && typeof error === 'object' && 'code' in error && error.code === 4902) {
         try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId: '0x2105', // Base chainId in hex
-                chainName: 'Base',
-                nativeCurrency: {
-                  name: 'ETH',
-                  symbol: 'ETH',
-                  decimals: 18,
+          if (networkName === 'Base') {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: '0x2105', // Base chainId in hex
+                  chainName: 'Base',
+                  nativeCurrency: {
+                    name: 'ETH',
+                    symbol: 'ETH',
+                    decimals: 18,
+                  },
+                  rpcUrls: ['https://mainnet.base.org'],
+                  blockExplorerUrls: ['https://basescan.org'],
                 },
-                rpcUrls: ['https://mainnet.base.org'],
-                blockExplorerUrls: ['https://basescan.org'],
-              },
-            ],
-          });
-          
+              ],
+            });
+          } else if (networkName === 'Celo') {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: '0xA4EC', // Celo chainId in hex
+                  chainName: 'Celo',
+                  nativeCurrency: {
+                    name: 'CELO',
+                    symbol: 'CELO',
+                    decimals: 18,
+                  },
+                  rpcUrls: ['https://forno.celo.org'],
+                  blockExplorerUrls: ['https://explorer.celo.org'],
+                },
+              ],
+            });
+          }
+
           // Try switching again after adding
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x2105' }],
+            params: [{ chainId: networkName === 'Base' ? '0x2105' : '0xA4EC' }],
           });
-          
+
           setIsCorrectNetwork(true);
           fetchSavingsData();
         } catch (addError) {
-          console.error('Error adding Base network:', addError);
+          console.error(`Error adding ${networkName} network:`, addError);
         }
       } else {
-        console.error('Error switching to Base network:', error);
+        console.error(`Error switching to ${networkName} network:`, error);
       }
     } finally {
       setSwitchingNetwork(false);
@@ -330,15 +366,12 @@ const markUpdateAsRead = async (updateId: string) => {
     }
   };
 
-  // Function to fetch user's savings data
-  // In the fetchSavingsData function, change 'let' to 'const' for variables that aren't reassigned
-  // and remove the unused totalLockedValue variable
   const fetchSavingsData = async () => {
     if (!isConnected || !address) return;
-  
+
     try {
       setIsLoading(true);
-      
+
       const currentEthPrice = await fetchEthPrice();
       console.log(`Current ETH price: ${currentEthPrice}`);
       setEthPrice(currentEthPrice || 3500);
@@ -346,29 +379,57 @@ const markUpdateAsRead = async (updateId: string) => {
       if (!window.ethereum) {
         throw new Error("No Ethereum wallet detected. Please install MetaMask.");
       }
-      
+
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      
-      // Check if on Base network
+
       const network = await provider.getNetwork();
-      const BASE_CHAIN_ID = BigInt(8453); // Base network chainId
-      
-      if (network.chainId !== BASE_CHAIN_ID) {
+      const BASE_CHAIN_ID = BigInt(8453);
+      const CELO_CHAIN_ID = BigInt(42220);
+
+      setCurrentNetwork(network);
+      setIsBaseNetwork(network.chainId === BASE_CHAIN_ID);
+
+      if (network.chainId !== BASE_CHAIN_ID && network.chainId !== CELO_CHAIN_ID) {
         setIsCorrectNetwork(false);
         setIsLoading(false);
         return;
       }
-      
+
       setIsCorrectNetwork(true);
-      
-      const contract = new ethers.Contract(MAIN_CONTRACT_ADDRESS, contractABI, signer);
-      
-      // Get user's child contract address
-      const userChildContractAddress = await contract.getUserChildContractAddress();
-      
-      if (userChildContractAddress === ethers.ZeroAddress) {
-        // User hasn't joined BitSave yet
+
+      let contractAddress;
+      if (network.chainId === BASE_CHAIN_ID) {
+        contractAddress = BASE_CONTRACT_ADDRESS;
+      } else {
+        contractAddress = CELO_CONTRACT_ADDRESS;
+      }
+
+      const contract = new ethers.Contract(contractAddress, BitSaveABI, signer);
+
+
+      let userChildContractAddress;
+      try {
+        userChildContractAddress = await contract.getUserChildContractAddress();
+        console.log("User child contract address:", userChildContractAddress);
+
+        // Check if the address is empty or invalid
+        if (!userChildContractAddress || userChildContractAddress === "0x0000000000000000000000000000000000000000") {
+          console.log("User doesn't have a child contract yet");
+          // Set empty data and return early
+          setSavingsData({
+            totalLocked: "0.00",
+            deposits: 0,
+            rewards: "0.00",
+            currentPlans: [],
+            completedPlans: []
+          });
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.log("Error getting child contract or user doesn't have one yet:", error);
+        // Set empty data and return early
         setSavingsData({
           totalLocked: "0.00",
           deposits: 0,
@@ -379,68 +440,76 @@ const markUpdateAsRead = async (updateId: string) => {
         setIsLoading(false);
         return;
       }
-      
-      // Create a contract instance for the user's child contract
+
       const childContract = new ethers.Contract(
         userChildContractAddress,
         childContractABI,
         signer
       );
-      
-      // Get savings names from the child contract
+
       const savingsNamesObj = await childContract.getSavingsNames();
       const savingsNamesArray = savingsNamesObj[0];
-      
+
       const currentPlans = [];
       const completedPlans = [];
-      // Remove unused variable
       let totalDeposits = 0;
       let totalUsdValue = 0;
-      
-      // Process each savings plan
+
       if (Array.isArray(savingsNamesArray)) {
-        // Create a Set to track processed plan names and avoid duplicates
         const processedPlanNames = new Set();
-      
-        // Process each savings plan
+
         if (Array.isArray(savingsNamesArray)) {
           for (const savingName of savingsNamesArray) {
             try {
-              // Skip if we've already processed this plan name
               if (processedPlanNames.has(savingName)) continue;
-              
-              // Add to processed set
+
               processedPlanNames.add(savingName);
-              
-              // Get saving details
+
               const savingData = await childContract.getSaving(savingName);
               if (!savingData.isValid) continue;
-              
-              // Check if it's ETH or token based
+
               const tokenId = savingData.tokenId;
               const isEth = tokenId === "0x0000000000000000000000000000000000000000";
-              
-              // Get decimals based on token type
+
+              let tokenName = "USDC"; // Default for Base
+              if (isEth) {
+                tokenName = "ETH";
+              } else if (network.chainId === CELO_CHAIN_ID) {
+                // For Celo network, set USDGLO as default stablecoin
+                tokenName = "USDGLO"; 
+                
+                // Override with specific token if we can identify it
+                if (tokenId === "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3") {
+                  tokenName = "USDGLO";
+                } else if (tokenId === "0x765DE816845861e75A25fCA122bb6898B8B1282a") {
+                  tokenName = "$G";
+                }
+              } else if (network.chainId === BASE_CHAIN_ID) {
+                tokenName = "USDC"; // Default for Base
+                
+                // Override with specific token if we can identify it
+                if (tokenId === "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913") {
+                  tokenName = "USDC";
+                }
+              }
+
               const decimals = isEth ? 18 : 6;
-              
-              // Extract penalty percentage from saving data
+
               const penaltyPercentage = Number(savingData.penaltyPercentage);
-              
-              // Format amounts
+
               const targetFormatted = ethers.formatUnits(savingData.amount, decimals);
               const currentFormatted = ethers.formatUnits(savingData.amount, decimals);
-              
-              // Calculate progress based on time
+
               const currentDate = new Date();
               const startTimestamp = Number(savingData.startTime);
               const maturityTimestamp = Number(savingData.maturityTime);
               const startDate = new Date(startTimestamp * 1000);
               const maturityDate = new Date(maturityTimestamp * 1000);
-              
+
               const totalDuration = maturityDate.getTime() - startDate.getTime();
               const elapsedTime = currentDate.getTime() - startDate.getTime();
               const progress = Math.min(Math.floor((elapsedTime / totalDuration) * 100), 100);
-              
+
               // Add to total USD value
               if (isEth) {
                 const ethAmount = parseFloat(currentFormatted);
@@ -451,9 +520,9 @@ const markUpdateAsRead = async (updateId: string) => {
                 console.log(`USDC plan: ${savingName}, amount: ${parseFloat(currentFormatted)} USD`);
                 totalUsdValue += parseFloat(currentFormatted);
               }
-              
+
               totalDeposits++;
-              
+
               const planData = {
                 id: savingName,
                 address: userChildContractAddress,
@@ -462,12 +531,12 @@ const markUpdateAsRead = async (updateId: string) => {
                 targetAmount: targetFormatted,
                 progress: progress,
                 isEth,
-                startTime: startTimestamp, // Add startTime for sorting
+                startTime: startTimestamp,
                 maturityTime: maturityTimestamp,
-                penaltyPercentage: penaltyPercentage, // Use the extracted penalty percentage
+                penaltyPercentage: penaltyPercentage,
+                tokenName: tokenName, 
               };
-              
-              // Add to appropriate list based on completion status
+
               if (progress >= 100 || currentDate >= maturityDate) {
                 completedPlans.push(planData);
               } else {
@@ -479,16 +548,16 @@ const markUpdateAsRead = async (updateId: string) => {
           }
         }
       }
-      
+
       // Sort plans from newest to oldest based on start time (most recent first)
       const sortedCurrentPlans = currentPlans.sort((a, b) => b.startTime - a.startTime);
       const sortedCompletedPlans = completedPlans.sort((a, b) => b.startTime - a.startTime);
-      
+
       console.log(`Total USD value before setting state: ${totalUsdValue}`);
       setSavingsData({
         totalLocked: totalUsdValue.toFixed(2),
         deposits: totalDeposits,
-        rewards: "0.00", // Placeholder for rewards calculation
+        rewards: "0.00",
         currentPlans: sortedCurrentPlans,
         completedPlans: sortedCompletedPlans
       });
@@ -499,108 +568,94 @@ const markUpdateAsRead = async (updateId: string) => {
     }
   };
 
-  // Function to open the top up modal
   const openTopUpModal = (planName: string, planId: string, isEth: boolean) => {
     setTopUpModal({ isOpen: true, planName, planId, isEth });
   };
 
-  // Function to close the top up modal
   const closeTopUpModal = () => {
     setTopUpModal({ isOpen: false, planName: '', planId: '', isEth: false });
   };
-  
-// Add state for the withdraw modal
-// Update the withdrawModal state to include penaltyPercentage
-const [withdrawModal, setWithdrawModal] = useState({
-  isOpen: false,
-  planName: '',
-  planId: '',
-  isEth: false,
-  penaltyPercentage: 0
-});
 
-// Update the openWithdrawModal function to accept and set the penalty percentage
-const openWithdrawModal = (planId: string, planName: string, isEth: boolean, penaltyPercentage: number = 5) => {
-  setWithdrawModal({
-    isOpen: true,
-    planName,
-    planId,
-    isEth,
-    penaltyPercentage
+  const [withdrawModal, setWithdrawModal] = useState({
+    isOpen: false,
+    planName: '',
+    planId: '',
+    isEth: false,
+    penaltyPercentage: 0
   });
-};
 
-// Function to close the withdraw modal
-const closeWithdrawModal = () => {
-  setWithdrawModal({ isOpen: false, planId: '', planName: '', isEth: false, penaltyPercentage: 0 });
-};
-
-const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
-const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(true);
-
-const fetchLeaderboardData = async () => {
-  setIsLeaderboardLoading(true);
-  try {
-    const response = await fetch('https://bitsaveapi.vercel.app/leaderboard', {
-      method: 'GET',
-      headers: {
-        'accept': 'application/json',
-        'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
-      }
+  const openWithdrawModal = (planId: string, planName: string, isEth: boolean, penaltyPercentage: number = 5) => {
+    setWithdrawModal({
+      isOpen: true,
+      planName,
+      planId,
+      isEth,
+      penaltyPercentage
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch leaderboard data');
-    }
-    
-    const data = await response.json() as LeaderboardEntry[];
-    
-    // Sort by total amount and add rank
-    const rankedData = data
-      .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.totalamount - a.totalamount)
-      .slice(0, 4) // Get top 4 for dashboard display
-      .map((user: LeaderboardEntry, index: number) => ({
-        ...user,
-        rank: index + 1,
-        // Format datetime if needed
-        datetime: new Date().toISOString().split('T')[0]
-      }));
-    
-    setLeaderboardData(rankedData);
-  } catch (error) {
-    console.error('Error fetching leaderboard data:', error);
-    // Set empty array if there's an error
-    setLeaderboardData([]);
-  } finally {
-    setIsLeaderboardLoading(false);
-  }
-};
-  
-    // Fetch leaderboard data when component mounts
-    useEffect(() => {
-      if (mounted) {
-        fetchLeaderboardData();
+  };
+
+  const closeWithdrawModal = () => {
+    setWithdrawModal({ isOpen: false, planId: '', planName: '', isEth: false, penaltyPercentage: 0 });
+  };
+
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(true);
+
+  const fetchLeaderboardData = async () => {
+    setIsLeaderboardLoading(true);
+    try {
+      const response = await fetch('https://bitsaveapi.vercel.app/leaderboard', {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+          'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch leaderboard data');
       }
-    }, [mounted]);
+
+      const data = await response.json() as LeaderboardEntry[];
+
+      const rankedData = data
+        .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.totalamount - a.totalamount)
+        .slice(0, 4)
+        .map((user: LeaderboardEntry, index: number) => ({
+          ...user,
+          rank: index + 1,
+          datetime: new Date().toISOString().split('T')[0]
+        }));
+
+      setLeaderboardData(rankedData);
+    } catch (error) {
+      console.error('Error fetching leaderboard data:', error);
+      setLeaderboardData([]);
+    } finally {
+      setIsLeaderboardLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (mounted) {
+      fetchLeaderboardData();
+    }
+  }, [mounted]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Add state for network switching
-  // Remove the unused isLoadingSavings state
+
   const [isCorrectNetwork, setIsCorrectNetwork] = useState(true);
   const [switchingNetwork, setSwitchingNetwork] = useState(false);
-  // Remove the unused isLoadingSavings state and its setter
-  
-  // Fetch savings data when component mounts and address changes
+
   useEffect(() => {
     if (mounted && address) {
       fetchSavingsData();
     }
   }, [mounted, address]);
 
-  // Redirect if not connected
   useEffect(() => {
     if (mounted && !isConnected) {
       router.push('/');
@@ -615,9 +670,8 @@ const fetchLeaderboardData = async () => {
     );
   }
 
-  // Empty state components
   const EmptyCurrentSavings = () => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -640,7 +694,7 @@ const fetchLeaderboardData = async () => {
   );
 
   const EmptyCompletedSavings = () => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -664,52 +718,61 @@ const fetchLeaderboardData = async () => {
 
   return (
     <div className={`${spaceGrotesk.variable} font-sans p-4 sm:p-6 md:p-8 bg-[#f2f2f2] text-gray-800 relative min-h-screen pb-8 overflow-x-hidden`}>
-      {/* Network Warning Banner */}
+      {/* Network Warning Banner - Only show if not on Base or Celo */}
       {!isCorrectNetwork && address && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-100 border-b border-yellow-200 z-50 p-3 flex items-center justify-center">
           <div className="flex items-center max-w-4xl mx-auto">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
-            <span className="text-yellow-800 text-sm">Please switch to Base network to use BitSave</span>
-            <button 
-              onClick={() => switchToNetwork('Base')}
-              disabled={switchingNetwork}
-              className="ml-4 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-medium py-1 px-3 rounded-full transition-colors disabled:opacity-70"
-            >
-              {switchingNetwork ? 'Switching...' : 'Switch to Base'}
-            </button>
+            <span className="text-yellow-800 text-sm">Please switch to Base or Celo network to use BitSave</span>
+            <div className="ml-4 flex space-x-2">
+              <button
+                onClick={() => switchToNetwork('Base')}
+                disabled={switchingNetwork}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-medium py-1 px-3 rounded-full transition-colors disabled:opacity-70"
+              >
+                {switchingNetwork ? 'Switching...' : 'Switch to Base'}
+              </button>
+              <button
+                onClick={() => switchToNetwork('Celo')}
+                disabled={switchingNetwork}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-medium py-1 px-3 rounded-full transition-colors disabled:opacity-70"
+              >
+                {switchingNetwork ? 'Switching...' : 'Switch to Celo'}
+              </button>
+            </div>
           </div>
         </div>
       )}
-      
+
       {/* Top Up Modal */}
-      <TopUpModal 
-        isOpen={topUpModal.isOpen} 
-        onClose={closeTopUpModal} 
-        planName={topUpModal.planName} 
-        planId={topUpModal.planId} 
+      <TopUpModal
+        isOpen={topUpModal.isOpen}
+        onClose={closeTopUpModal}
+        planName={topUpModal.planName}
+        planId={topUpModal.planId}
         isEth={topUpModal.isEth}
       />
 
-       {/* Withdraw Modal */}
-       <WithdrawModal 
-  isOpen={withdrawModal.isOpen} 
-  onClose={closeWithdrawModal} 
-  planName={withdrawModal.planName} 
-  planId={withdrawModal.planId}
-  isEth={withdrawModal.isEth}
-  penaltyPercentage={withdrawModal.penaltyPercentage}
-/>
-      
-     {/* Update Modal */}
-     {showUpdateModal && selectedUpdate && (
+      {/* Withdraw Modal */}
+      <WithdrawModal
+        isOpen={withdrawModal.isOpen}
+        onClose={closeWithdrawModal}
+        planName={withdrawModal.planName}
+        planId={withdrawModal.planId}
+        isEth={withdrawModal.isEth}
+        penaltyPercentage={withdrawModal.penaltyPercentage}
+      />
+
+      {/* Update Modal */}
+      {showUpdateModal && selectedUpdate && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-0">
           <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl w-full max-w-md mx-auto overflow-hidden border border-white/60">
             <div className="p-5 sm:p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-gray-800">{selectedUpdate.title}</h3>
-                <button 
+                <button
                   onClick={closeUpdateModal}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
@@ -718,7 +781,7 @@ const fetchLeaderboardData = async () => {
                   </svg>
                 </button>
               </div>
-              
+
               <div className="text-sm text-gray-500 mb-4">
                 {new Date(selectedUpdate.date).toLocaleDateString('en-US', {
                   year: 'numeric',
@@ -726,11 +789,11 @@ const fetchLeaderboardData = async () => {
                   day: 'numeric'
                 })}
               </div>
-              
+
               <div className="text-gray-700 mb-6">
                 {selectedUpdate.content}
               </div>
-              
+
               <button
                 onClick={closeUpdateModal}
                 className="w-full py-3 text-center text-sm font-medium text-white bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.4)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.5)] transition-all duration-300"
@@ -741,17 +804,17 @@ const fetchLeaderboardData = async () => {
           </div>
         </div>
       )}
-      
+
       {/* Grain overlay */}
       <div className="fixed inset-0 z-0 opacity-30 pointer-events-none bg-[url('/noise.jpg')] mix-blend-overlay" ></div>
-      
+
       {/* Decorative elements - adjusted for mobile */}
       <div className="absolute top-20 right-10 md:right-20 w-40 md:w-64 h-40 md:h-64 bg-[#81D7B4]/20 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-20 left-10 md:left-20 w-40 md:w-80 h-40 md:h-80 bg-blue-500/10 rounded-full blur-3xl -z-10"></div>
-      
-      
-       {/* Header - responsive adjustments */}
-       <div className="flex justify-between items-center mb-6 md:mb-8 overflow-x-hidden">
+
+
+      {/* Header - responsive adjustments */}
+      <div className="flex justify-between items-center mb-6 md:mb-8 overflow-x-hidden">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">Dashboard</h1>
           <p className="text-sm md:text-base text-gray-500 flex items-center">
@@ -761,35 +824,35 @@ const fetchLeaderboardData = async () => {
         </div>
         {/* Notification bell with responsive positioning - aligned with menu bar */}
         <div className="flex items-center space-x-3 relative mr-12 md:mr-0 mb-10 px-3 py-3">
-        <button 
-  id="notification-button"
-  onClick={() => setShowNotifications(!showNotifications)}
-  className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm border border-white/50 hover:shadow-md transition-all duration-300 relative"
->
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 text-gray-600">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-  </svg>
-  {updates.some(update => update.isNew) && (
-    <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#81D7B4] rounded-full border-2 border-white"></span>
-  )}
-</button>
+          <button
+            id="notification-button"
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm border border-white/50 hover:shadow-md transition-all duration-300 relative"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 text-gray-600">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            {updates.some(update => update.isNew) && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#81D7B4] rounded-full border-2 border-white"></span>
+            )}
+          </button>
 
-          
+
           {/* Notifications dropdown - improved positioning for mobile */}
           {showNotifications && (
-  <div className="fixed right-4 md:right-4 top-20 w-[calc(100vw-2rem)] md:w-80 max-w-sm bg-white/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/60 z-[9999] overflow-hidden">
-    <div className="p-4 border-b border-gray-100">
-      <h3 className="font-semibold text-gray-800">Updates</h3>
-    </div>
-    
-    <div className="max-h-80 overflow-y-auto">
-      {updates.length > 0 ? (
-        updates.map(update => (
-          <button
-            key={update.id}
-            onClick={() => openUpdateModal(update)}
-            className="w-full text-left p-4 hover:bg-[#81D7B4]/5 border-b border-gray-100 last:border-b-0 transition-colors relative"
-          >
+            <div className="fixed right-4 md:right-4 top-20 w-[calc(100vw-2rem)] md:w-80 max-w-sm bg-white/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/60 z-[9999] overflow-hidden">
+              <div className="p-4 border-b border-gray-100">
+                <h3 className="font-semibold text-gray-800">Updates</h3>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+                {updates.length > 0 ? (
+                  updates.map(update => (
+                    <button
+                      key={update.id}
+                      onClick={() => openUpdateModal(update)}
+                      className="w-full text-left p-4 hover:bg-[#81D7B4]/5 border-b border-gray-100 last:border-b-0 transition-colors relative"
+                    >
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-medium text-gray-800 text-sm">{update.title}</h4>
@@ -810,9 +873,9 @@ const fetchLeaderboardData = async () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="p-3 bg-gray-50/80 border-t border-gray-100">
-                <button 
+                <button
                   onClick={() => setShowNotifications(false)}
                   className="w-full py-2 text-xs font-medium text-gray-600 hover:text-gray-800 transition-colors"
                 >
@@ -829,50 +892,51 @@ const fetchLeaderboardData = async () => {
         <div className="md:col-span-2 bg-white/80 backdrop-blur-md rounded-2xl p-5 md:p-8 border border-white/50 shadow-[0_10px_25px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_30px_-15px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden group">
           <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#81D7B4]/10 rounded-full blur-2xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
-          
-          {/* Card header with token selector */}
-          <div className="flex items-center mb-6 md:mb-8">
+
+                   {/* Card header with token selector */}
+                   <div className="flex items-center mb-6 md:mb-8">
             <div className="relative">
-              <button 
+              <button
                 onClick={() => document.getElementById('chain-dropdown')?.classList.toggle('hidden')}
                 className="flex items-center bg-gray-100/80 backdrop-blur-sm rounded-lg px-3 py-2 md:px-4 md:py-2.5 border border-gray-200/50 hover:bg-gray-100 transition-all duration-300"
               >
                 <div className="bg-gray-100 rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center mr-2 shadow-sm overflow-hidden">
-                  <img 
-                    src={`/${selectedToken.toLowerCase()}${selectedToken === 'Arbitrum' || selectedToken === 'Celo' ? '.png' : '.svg'}`} 
-                    alt={selectedToken} 
-                    className="w-5 h-5 md:w-6 md:h-6 object-contain" 
+                  <img
+                    src={`/${isBaseNetwork ? 'base.svg' : 'celo.png'}`}
+                    alt={isBaseNetwork ? 'Base' : 'Celo'}
+                    className="w-5 h-5 md:w-6 md:h-6 object-contain"
                   />
                 </div>
-                <span className="text-gray-700 font-medium text-sm md:text-base">{selectedToken}</span>
+                <span className="text-gray-700 font-medium text-sm md:text-base">{isBaseNetwork ? 'Base' : 'Celo'}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 md:w-5 md:h-5 ml-2 text-gray-500">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               {/* Dropdown menu */}
               <div id="chain-dropdown" className="absolute left-0 mt-2 w-48 bg-white/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-200/50 z-10 hidden">
                 {['Base', 'Arbitrum', 'Celo'].map((chain) => (
                   <button
                     key={chain}
                     onClick={() => {
-                      if (chain === 'Base') {
-                        setSelectedToken(chain);
+                      if (chain === 'Base' || chain === 'Celo') {
                         document.getElementById('chain-dropdown')?.classList.add('hidden');
+                        // Switch network when chain is selected
+                        switchToNetwork(chain);
                       }
                     }}
-                    className={`flex items-center w-full px-4 py-2 hover:bg-gray-100/80 text-left text-sm ${chain !== 'Base' ? 'opacity-50 pointer-events-none' : ''}`}
+                    className={`flex items-center w-full px-4 py-2 hover:bg-gray-100/80 text-left text-sm ${chain === 'Arbitrum' ? 'opacity-50 pointer-events-none' : ''} ${(chain === 'Base' && isBaseNetwork) || (chain === 'Celo' && !isBaseNetwork) ? 'bg-gray-100/80' : ''}`}
                   >
                     <div className="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center mr-2 overflow-hidden">
-                      <img 
-                        src={`/${chain.toLowerCase()}${chain === 'Arbitrum' || chain === 'Celo' ? '.png' : '.svg'}`} 
-                        alt={chain} 
-                        className="w-4 h-4 object-contain" 
+                      <img
+                        src={`/${chain.toLowerCase()}${chain === 'Arbitrum' || chain === 'Celo' ? '.png' : '.svg'}`}
+                        alt={chain}
+                        className="w-4 h-4 object-contain"
                       />
                     </div>
                     <div className="flex items-center">
                       {chain}
-                      {chain !== 'Base' && (
+                      {chain === 'Arbitrum' && (
                         <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">Coming Soon</span>
                       )}
                     </div>
@@ -881,7 +945,7 @@ const fetchLeaderboardData = async () => {
               </div>
             </div>
           </div>
-          
+
           {/* Main value display - responsive text sizes */}
           <div className="relative mb-6 md:mb-8">
             <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-1 h-10 md:h-12 bg-gradient-to-b from-[#81D7B4] to-green-400 rounded-full"></div>
@@ -893,14 +957,14 @@ const fetchLeaderboardData = async () => {
               </h2>
             </div>
           </div>
-          
+
           {/* Card footer with stats - updated to use real data */}
           <div className="grid grid-cols-2 gap-3 md:gap-4">
             <div className="bg-gray-100/80 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-gray-200/50 flex flex-col">
               <span className="text-xs text-gray-500 mb-1">Total Savings Plan</span>
               <span className="text-base md:text-lg font-semibold text-gray-800">{savingsData.deposits}</span>
             </div>
-            
+
             <div className="bg-gray-100/80 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-gray-200/50 flex flex-col">
               <span className="text-xs text-gray-500 mb-1">Rewards</span>
               <span className="text-base md:text-lg font-semibold text-gray-800">${savingsData.rewards}</span>
@@ -913,7 +977,7 @@ const fetchLeaderboardData = async () => {
           <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
           <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
           <div className="absolute -right-20 -top-20 w-60 h-60 bg-[#81D7B4]/5 rounded-full blur-3xl"></div>
-          
+
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800">Leaderboard</h2>
             <Link href="/dashboard/leaderboard" className="text-xs font-medium text-[#81D7B4] bg-[#81D7B4]/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-[#81D7B4]/20 hover:bg-[#81D7B4]/20 transition-all duration-300 flex items-center">
@@ -923,7 +987,7 @@ const fetchLeaderboardData = async () => {
               </svg>
             </Link>
           </div>
-          
+
           <div className="space-y-4">
             {isLeaderboardLoading ? (
               <div className="flex justify-center items-center py-8">
@@ -960,7 +1024,7 @@ const fetchLeaderboardData = async () => {
         <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.04] mix-blend-overlay pointer-events-none"></div>
         <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-gradient-to-tl from-[#81D7B4]/20 to-blue-300/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/30 transition-all duration-700"></div>
         <div className="absolute -left-20 -top-20 w-60 h-60 bg-gradient-to-br from-purple-300/10 to-transparent rounded-full blur-3xl opacity-70"></div>
-        
+
         <Link href="/dashboard/create-savings" className="flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all duration-300">
           <div className="bg-gradient-to-br from-[#81D7B4] to-[#81D7B4]/90 rounded-full p-3.5 mr-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_10px_rgba(129,215,180,0.4),0_1px_2px_rgba(0,0,0,0.3)] group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_6px_15px_rgba(129,215,180,0.5),0_1px_2px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:scale-110">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" className="w-6 h-6 drop-shadow-sm">
@@ -973,28 +1037,28 @@ const fetchLeaderboardData = async () => {
 
       {/* Savings Plans - responsive spacing */}
       <div className="mt-6 md:mt-8 mb-8">
-        
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200 mb-4 md:mb-6">
-            <button 
-              className={`px-3 md:px-4 py-2 font-medium text-xs md:text-sm ${activeTab === 'current' ? 'text-[#81D7B4] border-b-2 border-[#81D7B4]' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setActiveTab('current')}
-            >
-              Current
-            </button>
-            <button 
-              className={`px-3 md:px-4 py-2 font-medium text-xs md:text-sm ${activeTab === 'completed' ? 'text-[#81D7B4] border-b-2 border-[#81D7B4]' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setActiveTab('completed')}
-            >
-              Completed
-            </button>
-            
-            {/* Fixed View All Plans button - show only when there are more than 3 plans */}
-            <div className="ml-auto">
-              {((activeTab === 'current' && savingsData.currentPlans.length > 3) || 
-                (activeTab === 'completed' && savingsData.completedPlans.length > 3)) && (
-                <Link 
-                  href="/dashboard/plans" 
+
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 mb-4 md:mb-6">
+          <button
+            className={`px-3 md:px-4 py-2 font-medium text-xs md:text-sm ${activeTab === 'current' ? 'text-[#81D7B4] border-b-2 border-[#81D7B4]' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setActiveTab('current')}
+          >
+            Current
+          </button>
+          <button
+            className={`px-3 md:px-4 py-2 font-medium text-xs md:text-sm ${activeTab === 'completed' ? 'text-[#81D7B4] border-b-2 border-[#81D7B4]' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setActiveTab('completed')}
+          >
+            Completed
+          </button>
+
+          {/* Fixed View All Plans button - show only when there are more than 3 plans */}
+          <div className="ml-auto">
+            {((activeTab === 'current' && savingsData.currentPlans.length > 3) ||
+              (activeTab === 'completed' && savingsData.completedPlans.length > 3)) && (
+                <Link
+                  href="/dashboard/plans"
                   className="text-xs font-medium text-[#81D7B4] bg-[#81D7B4]/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-[#81D7B4]/20 hover:bg-[#81D7B4]/20 transition-all duration-300 flex items-center"
                 >
                   View All Plans
@@ -1003,33 +1067,33 @@ const fetchLeaderboardData = async () => {
                   </svg>
                 </Link>
               )}
-            </div>
           </div>
-          
-          {/* Savings plan cards with empty states */}
-          {activeTab === 'current' && (
-            <div className="flex flex-col gap-4 md:gap-6">
-              {isLoading ? (
-                <div className="flex justify-center items-center py-12">
-                  <div className="animate-spin h-8 w-8 border-t-2 border-b-2 border-[#81D7B4] rounded-full"></div>
-                </div>
-              ) : savingsData.currentPlans.length > 0 ? (
-                <>
-                  {/* Show only first 3 plans on dashboard */}
-                  {savingsData.currentPlans.slice(0, 3).map((plan) => (
-                    <motion.div 
-                      key={plan.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(31,38,135,0.1)] p-6 hover:shadow-[0_8px_32px_rgba(129,215,180,0.2)] transition-all duration-300 relative overflow-hidden group"
-                    >
+        </div>
+
+        {/* Savings plan cards with empty states */}
+        {activeTab === 'current' && (
+          <div className="flex flex-col gap-4 md:gap-6">
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin h-8 w-8 border-t-2 border-b-2 border-[#81D7B4] rounded-full"></div>
+              </div>
+            ) : savingsData.currentPlans.length > 0 ? (
+              <>
+                {/* Show only first 3 plans on dashboard */}
+                {savingsData.currentPlans.slice(0, 3).map((plan) => (
+                  <motion.div
+                    key={plan.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(31,38,135,0.1)] p-6 hover:shadow-[0_8px_32px_rgba(129,215,180,0.2)] transition-all duration-300 relative overflow-hidden group"
+                  >
                     {/* Enhanced glassmorphism effects */}
                     <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
                     <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
                     <div className="absolute -left-10 -top-10 w-60 h-60 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80"></div>
-                    
+
                     <div className="flex justify-between items-start mb-5">
                       <div className="flex items-start">
                         <div className="mr-3 mt-1 bg-[#81D7B4]/10 p-2 rounded-full">
@@ -1041,16 +1105,18 @@ const fetchLeaderboardData = async () => {
                         <div>
                           <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2 truncate max-w-[180px] sm:max-w-[220px] md:max-w-[300px]">{plan.name}</h3>
                           <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/40 shadow-sm">
-                            <img 
-                              src={plan.isEth ? '/eth.png' : '/usdc.png'} 
-                              alt={plan.isEth ? 'ETH' : 'USDC'} 
-                              className="w-4 h-4 mr-2" 
+                            <img
+                              src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`}
+                              alt={plan.isEth ? 'ETH' : plan.tokenName}
+                              className="w-4 h-4 mr-2"
                             />
-                            <span className="text-xs font-medium text-gray-700">{plan.isEth ? 'ETH' : 'USDC'} on Base</span>
+                            <span className="text-xs font-medium text-gray-700">
+                              {plan.isEth ? 'ETH' : plan.tokenName} on {isBaseNetwork ? 'Base' : 'Celo'}
+                            </span>
                           </div>
                         </div>
                       </div>
-                      <button 
+                      <button
                         onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth)}
                         className="bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/10 text-[#81D7B4] text-xs font-medium px-4 py-2 rounded-full border border-[#81D7B4]/30 hover:from-[#81D7B4]/30 hover:to-[#81D7B4]/20 transition-all duration-300 shadow-sm hover:shadow-md"
                       >
@@ -1060,14 +1126,14 @@ const fetchLeaderboardData = async () => {
                         </svg>
                       </button>
                     </div>
-                    
+
                     <div className="mb-5">
                       <div className="flex justify-between text-sm mb-2">
                         <span className="text-gray-600">Progress</span>
                         <span className="font-medium text-gray-800">{Math.round(plan.progress)}%</span>
                       </div>
                       <div className="w-full h-3 bg-gray-100/80 rounded-full overflow-hidden backdrop-blur-sm shadow-inner">
-                        <div 
+                        <div
                           className="h-full bg-gradient-to-r from-[#81D7B4] to-green-400 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]"
                           style={{ width: `${plan.progress}%` }}
                         ></div>
@@ -1079,40 +1145,47 @@ const fetchLeaderboardData = async () => {
                             const currentDate = new Date();
                             const maturityTimestamp = Number(plan.maturityTime || 0);
                             const maturityDate = new Date(maturityTimestamp * 1000);
-                            
+
                             if (isNaN(maturityDate.getTime())) return '';
-                            
+
                             const remainingTime = maturityDate.getTime() - currentDate.getTime();
                             const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
-                            
+
                             if (remainingDays === 0) return 'Completed';
                             if (remainingDays === 1) return '1 day remaining';
                             if (remainingDays < 30) return `${remainingDays} days remaining`;
-                            
+
                             const remainingMonths = Math.ceil(remainingDays / 30);
                             return remainingMonths === 1 ? '1 month remaining' : `${remainingMonths} months remaining`;
                           })()}
                         </span>
                       </div>
                     </div>
-                    
+
                     {/* Enhanced amount display with stronger neomorphism */}
                     <div className="mb-5 bg-gradient-to-br from-white to-gray-50/90 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_16px_rgba(129,215,180,0.1)] relative overflow-hidden group-hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_20px_rgba(129,215,180,0.2)] transition-all duration-300">
                       <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
                       <div className="absolute top-0 right-0 w-20 h-20 bg-[#81D7B4]/5 rounded-full blur-xl"></div>
                       <div className="flex flex-col">
-                        <span className="text-3xl font-bold text-gray-800">
-                          ${plan.isEth 
-                            ? (parseFloat(plan.currentAmount) * ethPrice).toFixed(2) 
-                            : parseFloat(plan.currentAmount).toFixed(2)
-                          }
+                        <span className="text-xs text-gray-500">Current Amount</span>
+                        <span className="text-lg font-semibold text-gray-800 flex items-baseline">
+                          {plan.isEth ? (
+                            <>
+                              {parseFloat(plan.currentAmount).toFixed(4)}
+                              <span className="text-xs font-medium text-gray-500 ml-1">ETH</span>
+                            </>
+                          ) : (
+                            <>
+                              {parseFloat(plan.currentAmount).toFixed(2)}
+                              <span className="text-xs font-medium text-gray-500 ml-1">{plan.tokenName}</span>
+                            </>
+                          )}
                         </span>
-                        <span className="block text-xs text-gray-500 mt-1">Amount Saved</span>
                       </div>
                     </div>
-                    
+
                     {/* Updated view details button with #81D7B4 color */}
-                    <button 
+                    <button
                       onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage)}
                       className="w-full py-3 text-center text-sm font-medium text-white bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.4)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.5)] transition-all duration-300 transform hover:translate-y-[-2px] relative overflow-hidden group"
                     >
@@ -1134,7 +1207,7 @@ const fetchLeaderboardData = async () => {
             )}
           </div>
         )}
-        
+
         {activeTab === 'completed' && (
           <div className="flex flex-col gap-4 md:gap-6">
             {isLoading ? (
@@ -1145,7 +1218,7 @@ const fetchLeaderboardData = async () => {
               <>
                 {/* Show only first 3 completed plans on dashboard */}
                 {savingsData.completedPlans.slice(0, 3).map((plan) => (
-                  <motion.div 
+                  <motion.div
                     key={plan.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1157,20 +1230,22 @@ const fetchLeaderboardData = async () => {
                     <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
                     <div className="absolute -left-10 -top-10 w-60 h-60 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80"></div>
-                    
+
                     <div className="flex justify-between items-start mb-5">
                       <div>
                         <h3 className="text-xl font-bold text-gray-800 mb-2">{plan.name}</h3>
                         <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/40 shadow-sm">
-                          <img 
-                            src={plan.isEth ? '/eth.png' : '/usdc.png'} 
-                            alt={plan.isEth ? 'ETH' : 'USDC'} 
-                            className="w-4 h-4 mr-2" 
+                          <img
+                            src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`}
+                            alt={plan.isEth ? 'ETH' : plan.tokenName}
+                            className="w-4 h-4 mr-2"
                           />
-                          <span className="text-xs font-medium text-gray-700">{plan.isEth ? 'ETH' : 'USDC'} on Base</span>
+                          <span className="text-xs font-medium text-gray-700">
+                            {plan.isEth ? 'ETH' : plan.tokenName} on {isBaseNetwork ? 'Base' : 'Celo'}
+                          </span>
                         </div>
                       </div>
-                      <button 
+                      <button
                         onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth)}
                         className="bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/10 text-[#81D7B4] text-xs font-medium px-4 py-2 rounded-full border border-[#81D7B4]/30 hover:from-[#81D7B4]/30 hover:to-[#81D7B4]/20 transition-all duration-300 shadow-sm hover:shadow-md"
                       >
@@ -1180,20 +1255,20 @@ const fetchLeaderboardData = async () => {
                         </svg>
                       </button>
                     </div>
-                    
+
                     <div className="mb-5">
                       <div className="flex justify-between text-sm mb-2">
                         <span className="text-gray-600">Progress</span>
                         <span className="font-medium text-gray-800">100%</span>
                       </div>
                       <div className="w-full h-3 bg-gray-100/80 rounded-full overflow-hidden backdrop-blur-sm shadow-inner">
-                        <div 
+                        <div
                           className="h-full bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]"
                           style={{ width: '100%' }}
                         ></div>
                       </div>
                     </div>
-                    
+
                     {/* Enhanced amount display with stronger neomorphism */}
                     <div className="mb-5 bg-gradient-to-br from-white to-gray-50/90 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_16px_rgba(129,215,180,0.1)] relative overflow-hidden group-hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_20px_rgba(129,215,180,0.2)] transition-all duration-300">
                       <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
@@ -1203,13 +1278,13 @@ const fetchLeaderboardData = async () => {
                         <span className="block text-xs text-gray-500 mt-1">Amount Saved</span>
                       </div>
                     </div>
-                    
+
                     {/* Updated view details button with #81D7B4 color */}
-                    <button 
+                    <button
                       onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth)}
                       className="w-full py-3 text-center text-sm font-medium text-white bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.4)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.5)] transition-all duration-300 transform hover:translate-y-[-2px] relative overflow-hidden group"
                     >
-                     
+
                     </button>
                   </motion.div>
                 ))}

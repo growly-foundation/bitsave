@@ -1,11 +1,12 @@
 'use client'
 
-import { useState} from 'react';
+import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import childContractABI from '../app/abi/childContractABI.js';
 import CONTRACT_ABI from '@/app/abi/contractABI.js';
 
-const CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
+const BASE_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
+const CELO_CONTRACT_ADDRESS = "0x7d839923Eb2DAc3A0d1cABb270102E481A208F33";
 
 interface WithdrawModalProps {
   isOpen: boolean;
@@ -13,10 +14,9 @@ interface WithdrawModalProps {
   planName: string;
   planId: string;
   isEth: boolean;
-  penaltyPercentage?: number; // Add this prop
+  penaltyPercentage?: number;
 }
 
-// Update the function signature to include the new prop with a default value
 export default function WithdrawModal({ 
   isOpen, 
   onClose, 
@@ -30,17 +30,53 @@ export default function WithdrawModal({
   const [success, setSuccess] = useState(false);
   const [txHash, setTxHash] = useState('');
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [isBaseNetwork, setIsBaseNetwork] = useState(true);
+  const [currentTokenName, setCurrentTokenName] = useState(isEth ? 'ETH' : 'USDC');
+
+  useEffect(() => {
+    const detectNetwork = async () => {
+      if (window.ethereum) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+        const BASE_CHAIN_ID = BigInt(8453);
+        const isBase = network.chainId === BASE_CHAIN_ID;
+        setIsBaseNetwork(isBase);
+        
+        if (isEth) {
+          setCurrentTokenName('ETH');
+        } else {
+          setCurrentTokenName(isBase ? 'USDC' : 'USDGLO');
+        }
+      }
+    };
+    
+    if (isOpen) {
+      detectNetwork();
+    }
+  }, [isOpen, isEth]);
+
+  const getContractAddress = () => {
+    return isBaseNetwork ? BASE_CONTRACT_ADDRESS : CELO_CONTRACT_ADDRESS;
+  };
+
+  const getExplorerUrl = () => {
+    return isBaseNetwork ? 'https://basescan.org/tx/' : 'https://explorer.celo.org/mainnet/tx/';
+  };
+
+  // Get the network name
+  const getNetworkName = () => {
+    return isBaseNetwork ? 'Base' : 'Celo';
+  };
 
   const handleWithdraw = async () => {
     try {
-      // Trim any whitespace and ensure proper encoding
       const sanitizedPlanName = planName.trim();
       console.log(`Attempting to withdraw from plan: "${sanitizedPlanName}" at address: ${planId}`);
       
       if (isEth) {
         await handleEthWithdraw(sanitizedPlanName);
       } else {
-        await handleBaseWithdraw(sanitizedPlanName);
+        await handleTokenWithdraw(sanitizedPlanName);
       }
     } catch (err) {
       console.error("Error in handleWithdraw:", err);
@@ -58,64 +94,54 @@ export default function WithdrawModal({
         throw new Error("Ethereum provider not found. Please install MetaMask.");
       }
 
-      // Create a new provider and signer
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
 
-      // Create a contract instance
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+      const contractAddress = getContractAddress();
+      const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, signer);
       
-      // Get the user's child contract address
       const userChildContractAddress = await contract.getUserChildContractAddress();
 
-      // Get the savings amount before withdrawal
       const childContract = new ethers.Contract(userChildContractAddress, childContractABI, signer);
       const savingData = await childContract.getSaving(nameOfSavings);
-      const amount = ethers.formatUnits(savingData.amount, 18); // ETH has 18 decimals
+      const amount = ethers.formatUnits(savingData.amount, 18); 
 
-      // Estimate gas for the transaction
       const gasEstimate = await contract.withdrawSaving.estimateGas(nameOfSavings);
       console.log(`Gas estimate for withdrawal: ${gasEstimate}`);
 
-      // Call the withdraw function with gas limit
       const tx = await contract.withdrawSaving(nameOfSavings, {
         gasLimit: gasEstimate,
       });
 
-      // Wait for the transaction to be mined
       const receipt = await tx.wait();
       setTxHash(receipt.hash);
 
-      // Post to API
       try {
-        // Create headers object with required headers
         const headers: Record<string, string> = {
           "Content-Type": "application/json"
         };
         
-        // Only add API key if it exists
         if (process.env.NEXT_PUBLIC_API_KEY) {
           headers["X-API-Key"] = process.env.NEXT_PUBLIC_API_KEY;
         }
         
-        const apiResponse = await fetch("http://localhost:8000/transactions/", {
+        const apiResponse = await fetch("https://bitsaveapi.vercel.app/transactions/", {
           method: "POST",
           headers,
           body: JSON.stringify({
-            amount: parseFloat(amount), // Pass the actual amount
+            amount: parseFloat(amount), 
             txnhash: receipt.hash,
-            chain: "base",
+            chain: getNetworkName().toLowerCase(),
             savingsname: nameOfSavings,
             useraddress: userAddress,
             transaction_type: "withdrawal",
-            currency: "ETH" // Add currency information
+            currency: "ETH"
           })
         });
         console.log("API response:", apiResponse);
       } catch (apiError) {
         console.error("Error sending transaction data to API:", apiError);
-        // Don't fail the whole transaction if API call fails
       }
 
       setSuccess(true);
@@ -129,7 +155,7 @@ export default function WithdrawModal({
     }
   };
 
-  const handleBaseWithdraw = async (nameOfSavings: string) => {
+  const handleTokenWithdraw = async (nameOfSavings: string) => {
     setIsLoading(true);
     setError('');
     
@@ -138,66 +164,58 @@ export default function WithdrawModal({
         throw new Error("Ethereum provider not found. Please install MetaMask.");
       }
 
-      // Create a new provider and signer
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
 
-      // Create a contract instance
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+      const contractAddress = getContractAddress();
+      const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, signer);
       
-      // Get the user's child contract address
       const userChildContractAddress = await contract.getUserChildContractAddress();
       
-      // Use the actual child contract address instead of planId which might be incorrect
+      
       const childContract = new ethers.Contract(userChildContractAddress, childContractABI, signer);
       const savingData = await childContract.getSaving(nameOfSavings);
       const amount = ethers.formatUnits(savingData.amount, 6); 
 
-      // Call the withdraw function
       const tx = await contract.withdrawSaving(nameOfSavings, {
         gasLimit: 800000,
       });
 
-      // Wait for the transaction to be mined
       const receipt = await tx.wait();
       setTxHash(receipt.hash);
 
-      // Post to API
       try {
-        // Create headers object with required headers
         const headers: Record<string, string> = {
           "Content-Type": "application/json"
         };
         
-        // Only add API key if it exists
         if (process.env.NEXT_PUBLIC_API_KEY) {
           headers["X-API-Key"] = process.env.NEXT_PUBLIC_API_KEY;
         }
         
-        const apiResponse = await fetch("http://localhost:8000/transactions/", {
+        const apiResponse = await fetch("https://bitsaveapi.vercel.app/transactions/", {
           method: "POST",
           headers,
           body: JSON.stringify({
-            amount: parseFloat(amount), // Pass the actual amount
+            amount: parseFloat(amount), 
             txnhash: receipt.hash,
-            chain: "base",
+            chain: getNetworkName().toLowerCase(),
             savingsname: nameOfSavings,
             useraddress: userAddress,
             transaction_type: "withdrawal",
-            currency: "USDC" 
+            currency: currentTokenName
           })
         });
         console.log("API response:", apiResponse);
       } catch (apiError) {
         console.error("Error sending transaction data to API:", apiError);
-        // Don't fail the whole transaction if API call fails
       }
 
       setSuccess(true);
       setShowTransactionModal(true);
     } catch (error: unknown) {
-      console.error("Error during USDC withdrawal:", error);
+      console.error(`Error during ${currentTokenName} withdrawal:`, error);
       setError(`Failed to withdraw: ${error instanceof Error ? error.message : String(error)}`);
       setShowTransactionModal(true);
     } finally {
@@ -209,10 +227,8 @@ export default function WithdrawModal({
     setShowTransactionModal(false);
     if (success) {
       onClose();
-      // Refresh the page after closing the modal
       window.location.reload();
     } else {
-      // Also refresh on failure
       onClose();
       window.location.reload();
     }
@@ -274,7 +290,7 @@ export default function WithdrawModal({
             {/* Transaction ID Button */}
             <button 
               className="w-full py-2.5 sm:py-3 border border-gray-300 rounded-full text-gray-700 text-sm sm:text-base font-medium mb-3 sm:mb-4 hover:bg-gray-50 transition-colors"
-              onClick={() => txHash && window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
+              onClick={() => txHash && window.open(`${getExplorerUrl()}${txHash}`, '_blank')}
               disabled={!txHash}
             >
               View Transaction ID
@@ -284,7 +300,7 @@ export default function WithdrawModal({
             <div className="flex w-full gap-3 sm:gap-4 flex-col sm:flex-row">
               <button 
                 className="w-full py-2.5 sm:py-3 bg-gray-100 rounded-full text-gray-700 text-sm sm:text-base font-medium flex items-center justify-center hover:bg-gray-200 transition-colors"
-                onClick={() => txHash && window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
+                onClick={() => txHash && window.open(`${getExplorerUrl()}${txHash}`, '_blank')}
                 disabled={!txHash}
               >
                 Go To Explorer
@@ -331,11 +347,11 @@ export default function WithdrawModal({
             </p>
             <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/40 shadow-sm mb-4">
               <img 
-                src={isEth ? '/eth.png' : '/usdc.png'} 
-                alt={isEth ? 'ETH' : 'USDC'} 
+                src={isEth ? '/eth.png' : `/${currentTokenName.toLowerCase()}.png`} 
+                alt={isEth ? 'ETH' : currentTokenName} 
                 className="w-4 h-4 mr-2" 
               />
-              <span className="text-xs font-medium text-gray-700">{isEth ? 'ETH' : 'USDC'} on Base</span>
+              <span className="text-xs font-medium text-gray-700">{isEth ? 'ETH' : currentTokenName} on {getNetworkName()}</span>
             </div>
           </div>
           

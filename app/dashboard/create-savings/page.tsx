@@ -9,46 +9,42 @@ import { Space_Grotesk } from 'next/font/google'
 import { ethers } from 'ethers'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
-// Import contract ABIs
 import CONTRACT_ABI from '@/app/abi/contractABI.js'
 import erc20ABI from '@/app/abi/erc20ABI.json'
 
 const CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
 const BASE_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
+const CELO_CONTRACT_ADDRESS = "0x7d839923Eb2DAc3A0d1cABb270102E481A208F33" 
 const ETH_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000"
+const USDGLO_TOKEN_ADDRESS = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
 
-// Initialize the Space Grotesk font
-const spaceGrotesk = Space_Grotesk({ 
+
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   display: 'swap',
 })
 
 export default function CreateSavingsPage() {
   const router = useRouter()
-  // Wizard state
   const [step, setStep] = useState(1)
   const [mounted, setMounted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [showTransactionModal, setShowTransactionModal] = useState(false)
-  // Form state
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState('USDC')
-  const [chain, setChain] = useState('base') // Default to base chain
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [startDate, _setStartDate] = useState<Date | null>(new Date())
+  const [chain, setChain] = useState('base')
+  const [startDate] = useState<Date | null>(new Date())
   const [endDate, setEndDate] = useState<Date | null>(null)
   const [penalty, setPenalty] = useState('1%')
-  
-  // Transaction state
+
   const [isLoading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [txHash, setTxHash] = useState<string | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [termsAgreed, setTermsAgreed] = useState(false)
-  
-  // Define a proper type for the day range
+
   interface DayRange {
     from: {
       year: number | undefined;
@@ -61,26 +57,21 @@ export default function CreateSavingsPage() {
       day: number | undefined;
     } | null;
   }
-  
-  // Add state for selected day range (with proper typing)
+
   const [selectedDayRange, setSelectedDayRange] = useState<DayRange>({
     from: null,
     to: null
   })
 
-  
-  // Add state for savings name (for compatibility with existing functions)
+
   const [savingsName, setSavingsName] = useState('')
- 
-  // Add state for selected penalty (for compatibility with existing functions)
+
   const [selectedPenalty, setSelectedPenalty] = useState(1)
-  // Validation state
   const [errors, setErrors] = useState({
     name: '',
     amount: '',
     endDate: ''
   })
-    // Update selectedDayRange when endDate changes
   useEffect(() => {
     if (endDate) {
       setSelectedDayRange({
@@ -95,52 +86,47 @@ export default function CreateSavingsPage() {
           day: endDate.getDate()
         }
       });
-      
-      // Clear the endDate error when a valid date is selected
+
       if (errors.endDate) {
-        setErrors(prev => ({...prev, endDate: ''}));
+        setErrors(prev => ({ ...prev, endDate: '' }));
       }
     }
   }, [startDate, endDate, errors.endDate]);
-  
-  // Update savingsName when name changes
+
   useEffect(() => {
     setSavingsName(name);
   }, [name]);
- 
-  // Update selectedPenalty when penalty changes
+
   useEffect(() => {
     setSelectedPenalty(parseInt(penalty))
   }, [penalty])
-  
- 
-  
-  // Available options
-  const currencies = ['USDC', 'ETH']
+
+
+
+  const currencies = ['USDC', 'ETH', 'USDGLO', '$G']
   const chains = [
     { id: 'arb', name: 'Arbitrum', logo: '/arbitrum.png', color: 'bg-blue-100', textColor: 'text-blue-600' },
     { id: 'base', name: 'Base', logo: '/base.svg', color: 'bg-blue-900/10', textColor: 'text-blue-800' },
-    { id: 'celo', name: 'Celo', logo: '/celo.png', color: 'bg-green-100', textColor: 'text-green-600' }
+    { id: 'celo', name: 'Celo', logo: '/celo.png', color: 'bg-green-100', textColor: 'text-green-600', active: true }
   ]
   const penalties = ['1%', '2%', '3%', '4%', '5%']
-  
-  // Validate current step
+
   const validateStep = () => {
     let valid = true
     const newErrors = { name: '', amount: '', endDate: '' }
-    
+
     if (step === 1) {
       if (!name.trim()) {
         newErrors.name = 'Please enter a name for your savings plan'
         valid = false
       }
-      
+
       if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
         newErrors.amount = 'Please enter a valid amount'
         valid = false
       }
     }
-    
+
     if (step === 2) {
       if (!endDate) {
         newErrors.endDate = 'Please select an end date'
@@ -150,25 +136,23 @@ export default function CreateSavingsPage() {
         valid = false
       }
     }
-    
+
     setErrors(newErrors)
     return valid
   }
-  
-  // Handle next step
+
   const handleNext = () => {
     if (validateStep()) {
       setStep(step + 1)
       window.scrollTo(0, 0)
     }
   }
-  
-  // Handle previous step
+
   const handlePrevious = () => {
     setStep(step - 1)
     window.scrollTo(0, 0)
   }
-  
+
   useEffect(() => {
     const checkConnection = async () => {
       if (typeof window !== 'undefined' && window.ethereum) {
@@ -183,20 +167,16 @@ export default function CreateSavingsPage() {
         }
       }
     }
-    
+
     checkConnection()
   }, [])
 
-  // Add state for wallet address
   const [walletAddress, setWalletAddress] = useState<string>('');
-  
-  // Get connected wallet address
+
   useEffect(() => {
     const getWalletAddress = async () => {
       try {
-        // Check if ethereum object exists (MetaMask or other wallet)
         if (typeof window !== 'undefined' && window.ethereum) {
-          // Request account access
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           if (accounts && accounts.length > 0) {
             setWalletAddress(accounts[0]);
@@ -206,25 +186,25 @@ export default function CreateSavingsPage() {
         console.error('Error getting wallet address:', error);
       }
     };
-    
+
     getWalletAddress();
   }, []);
 
   const approveERC20 = async (
-    tokenAddress: string, 
-    amount: ethers.BigNumberish, 
+    tokenAddress: string,
+    amount: ethers.BigNumberish,
     signer: ethers.Signer
   ) => {
     try {
-      // Fix: Use the ABI properly by extracting just the abi array from the imported JSON
+      const contractToApprove = chain === 'celo' ? CELO_CONTRACT_ADDRESS : CONTRACT_ADDRESS;
+
       const erc20Contract = new ethers.Contract(
-        tokenAddress, 
-        erc20ABI.abi, 
+        tokenAddress,
+        erc20ABI.abi,
         signer
       );
-  
-      // Approve token transfer
-      const tx = await erc20Contract.approve(CONTRACT_ADDRESS, amount);
+
+      const tx = await erc20Contract.approve(contractToApprove, amount);
       await tx.wait();
       console.log("Approval Transaction Hash:", tx.hash);
       return true;
@@ -233,20 +213,20 @@ export default function CreateSavingsPage() {
       throw error; // Re-throw to handle in the calling function
     }
   };
-  
+
 
   const fetchEthPrice = async () => {
     try {
       const response = await axios.get(
         "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
       );
-      return response.data.ethereum.usd; // ETH price in USD
+      return response.data.ethereum.usd;
     } catch (error) {
       console.error("Error fetching ETH price:", error);
       return null;
     }
   };
-  
+
   const handleEthCreateSavings = async () => {
     if (!isConnected) {
       setError("Please connect your wallet.")
@@ -258,15 +238,14 @@ export default function CreateSavingsPage() {
     setSuccess(false)
 
     try {
-      // Get ETH price in USD with retry mechanism
       let ethPriceInUsd
-      for (let i = 0; i < 3; i++) { // Try 3 times
+      for (let i = 0; i < 3; i++) {
         try {
           ethPriceInUsd = await fetchEthPrice()
           break
         } catch (error) {
-          if (i === 2) throw error // If all retries fail
-          await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1s before retry
+          if (i === 2) throw error
+          await new Promise(resolve => setTimeout(resolve, 1000))
         }
       }
 
@@ -274,7 +253,6 @@ export default function CreateSavingsPage() {
       await provider.send("eth_requestAccounts", [])
       const signer = await provider.getSigner()
 
-      // Step 1: Check if the contract exists at the specified address
       const code = await provider.getCode(CONTRACT_ADDRESS)
       if (code === "0x") {
         throw new Error("Contract not found on this network. Check the contract address and network.")
@@ -282,7 +260,6 @@ export default function CreateSavingsPage() {
 
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
 
-      // Check user's child contract address
       const userChildContractAddress = await contract.getUserChildContractAddress()
       if (userChildContractAddress === ethers.ZeroAddress) {
         const joinTx = await contract.joinBitsave({
@@ -294,23 +271,20 @@ export default function CreateSavingsPage() {
       console.log("User child contract address:", userChildContractAddress)
 
       const maturityTime = selectedDayRange.to
-      ? Math.floor(
-        new Date(
-          selectedDayRange.to.year ?? 0,
-          (selectedDayRange.to.month ?? 1) - 1,
-          selectedDayRange.to.day ?? 1
-        ).getTime() / 1000
-      )
-      : 0
+        ? Math.floor(
+          new Date(
+            selectedDayRange.to.year ?? 0,
+            (selectedDayRange.to.month ?? 1) - 1,
+            selectedDayRange.to.day ?? 1
+          ).getTime() / 1000
+        )
+        : 0
       const safeMode = false
-      const tokenToSave = ETH_TOKEN_ADDRESS // ETH Address (Native)
+      const tokenToSave = ETH_TOKEN_ADDRESS
 
-      // Step 2: Convert user-entered USD amount to ETH dynamically
       const userEnteredUsdAmount = parseFloat(amount)
-      const ethAmount = userEnteredUsdAmount / ethPriceInUsd // Convert USD to ETH
-      const ethAmountInWei = ethers.parseEther(ethAmount.toFixed(18)) // Convert ETH to Wei
-
-      // Add the initial join amount (0.0001 ETH) to the total ETH amount
+      const ethAmount = userEnteredUsdAmount / ethPriceInUsd
+      const ethAmountInWei = ethers.parseEther(ethAmount.toFixed(18))
       const totalAmount = ethAmountInWei + ethers.parseEther("0.0001")
 
       console.log("Parameters:", {
@@ -325,20 +299,18 @@ export default function CreateSavingsPage() {
         totalAmount,
       })
 
-      // Transaction options including gas limit and total ETH value
       const txOptions = {
         gasLimit: 1200000,
-        value: totalAmount, // Total ETH value for transaction
+        value: totalAmount,
       }
 
-      // Step 3: Attempt to create a savings plan
       const tx = await contract.createSaving(
         savingsName,
         maturityTime,
         selectedPenalty,
         safeMode,
         tokenToSave,
-        ethAmountInWei, 
+        ethAmountInWei,
         txOptions
       )
 
@@ -351,7 +323,7 @@ export default function CreateSavingsPage() {
           {
             amount: parseFloat(amount),
             txnhash: receipt.hash,
-            chain: "base", // Using the selected chain
+            chain: "base", 
             savingsname: savingsName,
             useraddress: walletAddress,
             transaction_type: "deposit",
@@ -367,17 +339,15 @@ export default function CreateSavingsPage() {
         console.log("API response:", apiResponse.data);
       } catch (apiError) {
         console.error("Error sending transaction data to API:", apiError);
-        // Don't fail the whole transaction if API call fails
       }
-  
-      // Only set success to true after everything is complete
+
       setSuccess(true)
       console.log("ETH savings plan created successfully!")
     } catch (error) {
       console.error("Error creating ETH savings plan:", error)
       setError("Failed to create ETH savings plan: " + (error instanceof Error ? error.message : String(error)))
-      setSuccess(false) // Explicitly set success to false on error
-      throw error // Re-throw to handle in the calling function
+      setSuccess(false) 
+      throw error 
     } finally {
       setLoading(false)
     }
@@ -397,20 +367,18 @@ export default function CreateSavingsPage() {
       if (!window.ethereum) {
         throw new Error("No Ethereum wallet detected. Please install MetaMask.")
       }
-      
+
 
       console.log("User Input - Amount:", amount)
       console.log("User Input - Savings Name:", savingsName)
       console.log("User Input - Selected Day Range:", selectedDayRange)
       console.log("User Input - Selected Penalty:", selectedPenalty)
 
-      // Validate the user-entered amount
       const userEnteredUsdcAmount = parseFloat(amount)
       if (isNaN(userEnteredUsdcAmount) || userEnteredUsdcAmount <= 0) {
         throw new Error("Invalid amount. Please enter an amount greater than zero.")
       }
 
-      // Ensure proper conversion to USDC (6 decimals)
       const usdcEquivalentAmount = ethers.parseUnits(userEnteredUsdcAmount.toFixed(6), 6)
       console.log("USDC Equivalent Amount:", usdcEquivalentAmount.toString())
 
@@ -418,7 +386,7 @@ export default function CreateSavingsPage() {
       await provider.send("eth_requestAccounts", [])
       const signer = await provider.getSigner()
 
-      const BASE_CHAIN_ID = 8453 // Base network chain ID
+      const BASE_CHAIN_ID = 8453 
 
       const network = await provider.getNetwork()
       console.log("User's Current Network:", network)
@@ -429,13 +397,12 @@ export default function CreateSavingsPage() {
 
       const contract = new ethers.Contract(BASE_CONTRACT_ADDRESS, CONTRACT_ABI, signer)
 
-      // Get user child contract address or join Bitsave if not already registered
       let userChildContractAddress = await contract.getUserChildContractAddress()
       console.log("User's Child Contract Address (Before Join):", userChildContractAddress)
 
       if (userChildContractAddress === ethers.ZeroAddress) {
         const joinTx = await contract.joinBitsave({
-          value: ethers.parseEther("0.0001"), // Ensure correct joining fee
+          value: ethers.parseEther("0.0001"), 
         })
         await joinTx.wait()
 
@@ -443,29 +410,26 @@ export default function CreateSavingsPage() {
         console.log("User's Child Contract Address (After Join):", userChildContractAddress)
       }
 
-      // Convert maturity time to UNIX timestamp
       const maturityTime = selectedDayRange.to
-      ? Math.floor(
-        new Date(
-          selectedDayRange.to.year ?? 0,
-          (selectedDayRange.to.month ?? 1) - 1,
-          selectedDayRange.to.day ?? 1
-        ).getTime() / 1000
-      )
-      : 0
+        ? Math.floor(
+          new Date(
+            selectedDayRange.to.year ?? 0,
+            (selectedDayRange.to.month ?? 1) - 1,
+            selectedDayRange.to.day ?? 1
+          ).getTime() / 1000
+        )
+        : 0
 
       const safeMode = false
-      const tokenToSave = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" // USDC on Base
+      const tokenToSave = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" 
 
-      // Approve the contract to spend the stablecoin
       await approveERC20(tokenToSave, usdcEquivalentAmount, signer)
-      
+
       const txOptions = {
         gasLimit: 1200000,
-        value: ethers.parseEther("0.0001"), // Join fee
+        value: ethers.parseEther("0.0001"), 
       }
 
-      // Create the saving plan on the Bitsave contract
       const tx = await contract.createSaving(
         savingsName,
         maturityTime,
@@ -485,7 +449,7 @@ export default function CreateSavingsPage() {
           {
             amount: parseFloat(amount),
             txnhash: receipt.hash,
-            chain: "base", // Using the selected chain
+            chain: "base", 
             savingsname: savingsName,
             useraddress: walletAddress,
             transaction_type: "deposit",
@@ -501,21 +465,17 @@ export default function CreateSavingsPage() {
         console.log("API response:", apiResponse.data);
       } catch (apiError) {
         console.error("Error sending transaction data to API:", apiError);
-        // Don't fail the whole transaction if API call fails
       }
-  
-      // Only set success to true after everything is complete
+
       setSuccess(true)
       console.log("Savings plan created successfully!")
     } catch (error) {
       console.error("Error creating savings plan:", error)
-      setSuccess(false) // Explicitly set success to false on error
+      setSuccess(false)
 
       if (error instanceof Error) {
-        // Handle standard Error objects
         setError(error.message || "Failed to create savings plan.")
       } else if (typeof error === 'object' && error !== null && 'code' in error) {
-        // Handle Ethereum provider errors which have a code property
         const ethError = error as { code: string; message?: string }
         if (ethError.code === "CALL_EXCEPTION") {
           setError("Transaction reverted. Please check the contract and inputs.")
@@ -525,50 +485,280 @@ export default function CreateSavingsPage() {
           setError(ethError.message || "Failed to create savings plan.")
         }
       } else {
-        // Fallback for unknown error types
         setError("An unknown error occurred while creating the savings plan.")
       }
-      throw error // Re-throw to handle in the calling function
+      throw error 
     } finally {
       setLoading(false)
     }
   }
-  
+
+
+  const handleCeloSavingsCreate = async () => {
+    if (!isConnected) {
+      setError("Please connect your wallet.")
+      return
+    }
+    setLoading(true)
+    setError(null)
+    setTxHash(null)
+    setSuccess(false)
+
+    try {
+      if (!window.ethereum) {
+        throw new Error("No Ethereum wallet detected. Please install MetaMask.")
+      }
+
+      console.log("User Input - Amount:", amount)
+      console.log("User Input - Savings Name:", savingsName)
+      console.log("User Input - Selected Day Range:", selectedDayRange)
+      console.log("User Input - Selected Penalty:", selectedPenalty)
+
+      const userEnteredAmount = parseFloat(amount)
+      if (isNaN(userEnteredAmount) || userEnteredAmount <= 0) {
+        throw new Error("Invalid amount. Please enter an amount greater than zero.")
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum)
+      await provider.send("eth_requestAccounts", [])
+      const signer = await provider.getSigner()
+
+      const CELO_CHAIN_ID = 42220 
+
+      const network = await provider.getNetwork()
+      console.log("User's Current Network:", network)
+
+      if (Number(network.chainId) !== CELO_CHAIN_ID) {
+        throw new Error("Please switch your wallet to the Celo network.")
+      }
+
+      const code = await provider.getCode(CELO_CONTRACT_ADDRESS)
+      if (code === "0x") {
+        throw new Error("Contract not found on Celo network. Please check the contract address.")
+      }
+
+      const contract = new ethers.Contract(CELO_CONTRACT_ADDRESS, CONTRACT_ABI, signer)
+      
+      let userChildContractAddress
+      try {
+        userChildContractAddress = await contract.getUserChildContractAddress()
+        console.log("User's Child Contract Address (Before Join):", userChildContractAddress)
+      } catch (error) {
+        console.error("Error getting user child contract:", error)
+        throw new Error("Failed to interact with the Bitsave contract. Please try again.")
+      }
+
+      if (userChildContractAddress === ethers.ZeroAddress) {
+        try {
+          console.log("Joining Bitsave...")
+          const joinTx = await contract.joinBitsave({
+            value: ethers.parseEther("0.0001"), // Join fee
+            gasLimit: 500000,
+          })
+          console.log("Join transaction sent:", joinTx.hash)
+          const joinReceipt = await joinTx.wait()
+          console.log("Join transaction confirmed:", joinReceipt)
+          
+          userChildContractAddress = await contract.getUserChildContractAddress()
+          console.log("User's Child Contract Address (After Join):", userChildContractAddress)
+        } catch (joinError) {
+          console.error("Error joining Bitsave:", joinError)
+          throw new Error("Failed to join Bitsave. Please check your wallet has enough CELO for gas fees.")
+        }
+      }
+
+      const maturityTime = selectedDayRange.to
+        ? Math.floor(
+          new Date(
+            selectedDayRange.to.year ?? 0,
+            (selectedDayRange.to.month ?? 1) - 1,
+            selectedDayRange.to.day ?? 1
+          ).getTime() / 1000
+        )
+        : 0
+      
+      if (maturityTime === 0) {
+        throw new Error("Please select a valid end date for your savings plan.")
+      }
+
+      const safeMode = false
+      
+      let tokenToSave
+      let tokenAmount
+      let txOptions
+      
+      if (currency === 'USDGLO') {
+        tokenToSave = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
+        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(6), 6)
+        
+        try {
+          console.log("Approving USDGLO token...")
+          await approveERC20(tokenToSave, tokenAmount, signer)
+          console.log("USDGLO approval successful")
+          
+          txOptions = {
+            gasLimit: 1500000, 
+            value: ethers.parseEther("0.0001"), 
+          }
+        } catch (approvalError) {
+          console.error("Error approving USDGLO tokens:", approvalError)
+          throw new Error("Failed to approve USDGLO tokens. Please check your token balance.")
+        }
+      } else if (currency === '$G') {
+        tokenToSave = "0x000000000000000000000000000000000000000" 
+        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(18), 18)
+        
+        try {
+          console.log("Approving $G token...")
+          await approveERC20(tokenToSave, tokenAmount, signer)
+          console.log("$G approval successful")
+          
+          txOptions = {
+            gasLimit: 1500000,
+            value: ethers.parseEther("0.0001"),
+          }
+        } catch (approvalError) {
+          console.error("Error approving $G tokens:", approvalError)
+          throw new Error("Failed to approve $G tokens. Please check your token balance.")
+        }
+      } else {
+        tokenToSave = USDGLO_TOKEN_ADDRESS
+        tokenAmount = ethers.parseEther(userEnteredAmount.toFixed(18))
+        
+        txOptions = {
+          gasLimit: 1500000,
+          value: tokenAmount + ethers.parseEther("0.0001"), 
+        }
+      }
+
+      console.log("Creating savings with parameters:", {
+        savingsName,
+        maturityTime,
+        selectedPenalty,
+        safeMode,
+        tokenToSave,
+        tokenAmount: tokenAmount.toString(),
+        txOptions
+      })
+
+      try {
+        const tx = await contract.createSaving(
+          savingsName,
+          maturityTime,
+          selectedPenalty,
+          safeMode,
+          tokenToSave,
+          tokenAmount,
+          txOptions
+        )
+        
+        console.log("Transaction sent:", tx.hash)
+        const receipt = await tx.wait()
+        console.log("Transaction confirmed:", receipt)
+        setTxHash(receipt.hash)
+        
+        try {
+          const apiResponse = await axios.post(
+            "https://bitsaveapi.vercel.app/transactions/",
+            {
+              amount: parseFloat(amount),
+              txnhash: receipt.hash,
+              chain: "celo",
+              savingsname: savingsName,
+              useraddress: walletAddress,
+              transaction_type: "deposit",
+              currency: currency
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "X-API-Key": process.env.NEXT_PUBLIC_API_KEY
+              }
+            }
+          );
+          console.log("API response:", apiResponse.data);
+        } catch (apiError) {
+          console.error("Error sending transaction data to API:", apiError);
+        }
+        
+        setSuccess(true)
+        console.log("Celo savings plan created successfully!")
+      } catch (txError: unknown) {
+        console.error("Transaction error:", txError)
+        
+        if (typeof txError === 'object' && txError !== null && 'code' in txError) {
+          const ethError = txError as { code: string; message?: string };
+          if (ethError.code === "CALL_EXCEPTION") {
+            throw new Error("Transaction reverted by the contract. Please check your inputs and try again.")
+          } else if (ethError.code === "INSUFFICIENT_FUNDS") {
+            throw new Error("Insufficient funds to complete the transaction. Please check your balance.")
+          } else {
+            throw new Error(`Transaction failed: ${ethError.message || "Unknown error"}`)
+          }
+        } else {
+          throw new Error(`Transaction failed: ${txError instanceof Error ? txError.message : "Unknown error"}`)
+        }
+      }
+    } catch (error) {
+      console.error("Error creating Celo savings plan:", error)
+      setSuccess(false)
+
+      if (error instanceof Error) {
+        setError(error.message || "Failed to create Celo savings plan.")
+      } else if (typeof error === 'object' && error !== null && 'code' in error) {
+        const ethError = error as { code: string; message?: string }
+        if (ethError.code === "CALL_EXCEPTION") {
+          setError("Transaction reverted. Please check the contract and inputs.")
+        } else if (ethError.code === "INSUFFICIENT_FUNDS") {
+          setError("Insufficient funds to cover the transaction.")
+        } else {
+          setError(ethError.message || "Failed to create Celo savings plan.")
+        }
+      } else {
+        setError("An unknown error occurred while creating the Celo savings plan.")
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleSubmit = async () => {
     setSubmitting(true)
     setError(null)
-    setSuccess(false) // Explicitly set success to false at the beginning
-    
+    setSuccess(false)
+
     try {
-      // Check if currency is ETH or USDC and call the appropriate function
-      if (currency === 'ETH') {
+      if (chain === 'celo') {
+        await handleCeloSavingsCreate()
+      } else if (currency === 'ETH') {
         await handleEthCreateSavings()
       } else {
         await handleBaseSavingsCreate()
       }
-      
+  
+
       // If we reach here without an error, the transaction was successful
       setSuccess(true)
     } catch (err) {
       console.error('Error creating savings plan:', err)
-      
+
       // Check if this is a user rejection error
       const errorMessage = err instanceof Error ? err.message : String(err);
-      if (errorMessage.includes('user rejected') || 
-          errorMessage.includes('User denied') || 
-          errorMessage.includes('user cancelled') ||
-          errorMessage.includes('ACTION_REJECTED')) {
+      if (errorMessage.includes('user rejected') ||
+        errorMessage.includes('User denied') ||
+        errorMessage.includes('user cancelled') ||
+        errorMessage.includes('ACTION_REJECTED')) {
         setError('Transaction was rejected by user')
       } else {
         setError(errorMessage)
       }
-      
+
       setSuccess(false) // Ensure success is set to false on error
     } finally {
       setSubmitting(false)
     }
   }
-  
+
   const handleCloseTransactionModal = () => {
     setShowTransactionModal(false)
     if (success) {
@@ -585,30 +775,30 @@ export default function CreateSavingsPage() {
   useEffect(() => {
     setMounted(true)
   }, [])
-  
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
-      transition: { 
+      transition: {
         staggerChildren: 0.1,
         delayChildren: 0.2
       }
     }
   }
-  
+
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
       transition: { type: 'spring', stiffness: 300, damping: 24 }
     }
   }
-  
+
   if (!mounted) return null
-  
+
   return (
     <div className={`${spaceGrotesk.className} min-h-screen bg-gradient-to-b from-white to-gray-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden`}>
       {/* Enhanced decorative elements */}
@@ -617,7 +807,7 @@ export default function CreateSavingsPage() {
       <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
       <div className="fixed bottom-1/3 right-0 w-72 h-72 bg-[#81D7B4]/8 rounded-full blur-3xl"></div>
       <div className="fixed inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
-      
+
       {/* Transaction Status Notifications */}
       {showTransactionModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-0">
@@ -639,34 +829,34 @@ export default function CreateSavingsPage() {
                   </div>
                 )}
               </div>
-              
+
               {/* Title */}
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2">
                 {success ? 'Successful' : 'Failed'}
               </h2>
-              
+
               {/* Message */}
               <p className="text-sm sm:text-base text-gray-500 text-center mb-5 sm:mb-8 max-w-xs sm:max-w-none mx-auto">
-                {success 
+                {success
                   ? 'Your Transaction to create your savings plan has been processed and is successful.'
                   : `Your Transaction to create your savings plan failed, please contact customer care for support.`}
                 {!success && error && <span className="block mt-2 text-xs text-red-500">{error}</span>}
               </p>
-              
+
               {/* Transaction ID Button */}
               {txHash && (
-                <button 
+                <button
                   className="w-full py-2.5 sm:py-3 border border-gray-300 rounded-full text-gray-700 text-sm sm:text-base font-medium mb-3 sm:mb-4 hover:bg-gray-50 transition-colors"
                   onClick={() => window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
                 >
                   View Transaction ID
                 </button>
               )}
-              
+
               {/* Action Buttons */}
               <div className="flex w-full gap-3 sm:gap-4 flex-col sm:flex-row">
                 {txHash && (
-                  <button 
+                  <button
                     className="w-full py-2.5 sm:py-3 bg-gray-100 rounded-full text-gray-700 text-sm sm:text-base font-medium flex items-center justify-center hover:bg-gray-200 transition-colors"
                     onClick={() => window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
                   >
@@ -677,7 +867,7 @@ export default function CreateSavingsPage() {
                     </svg>
                   </button>
                 )}
-                <button 
+                <button
                   className={`w-full py-2.5 sm:py-3 ${success ? 'bg-[#81D7B4] hover:bg-[#6bc4a1]' : 'bg-gray-700 hover:bg-gray-800'} rounded-full text-white text-sm sm:text-base font-medium transition-colors`}
                   onClick={handleCloseTransactionModal}
                 >
@@ -688,8 +878,8 @@ export default function CreateSavingsPage() {
           </div>
         </div>
       )}
-      
-      <motion.div 
+
+      <motion.div
         className="max-w-3xl mx-auto"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -706,19 +896,18 @@ export default function CreateSavingsPage() {
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700 mb-2">Create a Savings Plan</h1>
           <p className="text-gray-600 max-w-xl mx-auto text-sm sm:text-base">Set up a new savings plan to help you reach your financial goals with automated savings and rewards.</p>
         </div>
-        
+
         {/* Enhanced Progress bar */}
         <div className="mb-8 sm:mb-10 px-2 sm:px-0">
           <div className="flex justify-between items-center mb-2 relative">
             <div className="absolute left-0 right-0 h-1 bg-gray-200 top-1/2 transform -translate-y-1/2 z-0"></div>
-            
+
             {[1, 2, 3].map((i) => (
               <div key={i} className="z-10 flex flex-col items-center">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
-                  step >= i 
-                    ? 'bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 text-white shadow-[0_0_15px_rgba(129,215,180,0.5)]' 
-                    : 'bg-white text-gray-400 border border-gray-200 shadow-sm'
-                } transition-all duration-500`}>
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${step >= i
+                  ? 'bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 text-white shadow-[0_0_15px_rgba(129,215,180,0.5)]'
+                  : 'bg-white text-gray-400 border border-gray-200 shadow-sm'
+                  } transition-all duration-500`}>
                   {step > i ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -727,9 +916,8 @@ export default function CreateSavingsPage() {
                     i
                   )}
                 </div>
-                <span className={`mt-2 text-xs sm:text-sm font-medium transition-colors duration-300 ${
-                  step >= i ? 'text-[#81D7B4]' : 'text-gray-500'
-                } hidden sm:block`}>
+                <span className={`mt-2 text-xs sm:text-sm font-medium transition-colors duration-300 ${step >= i ? 'text-[#81D7B4]' : 'text-gray-500'
+                  } hidden sm:block`}>
                   {i === 1 ? 'Plan Details' : i === 2 ? 'Duration & Penalties' : 'Review & Create'}
                 </span>
               </div>
@@ -741,11 +929,11 @@ export default function CreateSavingsPage() {
             <span className={step >= 3 ? 'text-[#81D7B4] font-medium' : 'text-gray-500'}>Review</span>
           </div>
         </div>
-        
+
         {/* Enhanced Card container */}
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.15)] overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
-          
+
           <AnimatePresence mode="wait">
             {success ? (
               <motion.div
@@ -778,15 +966,15 @@ export default function CreateSavingsPage() {
                     transition={{ duration: 0.3 }}
                     className="p-4 sm:p-6 md:p-8"
                   >
-                    <motion.h2 
+                    <motion.h2
                       className="text-xl font-bold text-gray-800 mb-6 flex items-center"
                       variants={itemVariants}
                     >
                       <span className="bg-[#81D7B4]/10 w-8 h-8 rounded-full flex items-center justify-center text-[#81D7B4] mr-3 text-sm">1</span>
                       Plan Details
                     </motion.h2>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="space-y-5 sm:space-y-6"
                       variants={containerVariants}
                       initial="hidden"
@@ -810,7 +998,7 @@ export default function CreateSavingsPage() {
                         </div>
                         {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
                       </motion.div>
-                      
+
                       {/* Amount - enhanced */}
                       <motion.div variants={itemVariants}>
                         <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
@@ -832,7 +1020,7 @@ export default function CreateSavingsPage() {
                         </div>
                         {errors.amount && <p className="mt-1 text-sm text-red-500">{errors.amount}</p>}
                       </motion.div>
-                      
+
                       {/* Currency - enhanced */}
                       <motion.div variants={itemVariants}>
                         <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -844,19 +1032,22 @@ export default function CreateSavingsPage() {
                               key={curr}
                               type="button"
                               onClick={() => setCurrency(curr)}
-                              className={`flex items-center justify-center px-4 py-3 rounded-xl border transition-all duration-300 ${
-                                currency === curr 
-                                  ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_10px_rgba(129,215,180,0.15)]' 
-                                  : 'bg-white/70 border-gray-200/50 text-gray-700 hover:bg-gray-50'
-                              }`}
+                              className={`flex items-center justify-center px-4 py-3 rounded-xl border transition-all duration-300 ${currency === curr
+                                ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_10px_rgba(129,215,180,0.15)]'
+                                : 'bg-white/70 border-gray-200/50 text-gray-700 hover:bg-gray-50'
+                                }`}
                             >
-                              <img src={`/${curr.toLowerCase()}.png`} alt={curr} className="w-5 h-5 mr-2" />
+                              <img
+                                src={curr === '$G' ? '/$g.png' : `/${curr.toLowerCase().replace('$', '')}.png`}
+                                alt={curr}
+                                className="w-5 h-5 mr-2"
+                              />
                               <span className="font-medium">{curr}</span>
                             </button>
                           ))}
                         </div>
                       </motion.div>
-                      
+
                       {/* Chain - enhanced */}
                       <motion.div variants={itemVariants}>
                         <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -867,23 +1058,22 @@ export default function CreateSavingsPage() {
                             <button
                               key={c.id}
                               type="button"
-                              onClick={() => c.id === 'base' ? setChain(c.id) : null}
-                              disabled={c.id !== 'base'} // Only Base is enabled
-                              className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all duration-300 ${
-                                c.id === 'base' 
-                                  ? (chain === c.id 
-                                    ? `${c.color} border-${c.textColor}/30 ${c.textColor} shadow-[0_4px_10px_rgba(0,0,0,0.05)]` 
-                                    : 'bg-white/70 border-gray-200/50 text-gray-700 hover:bg-gray-50')
-                                  : 'bg-gray-100/70 border-gray-200/50 text-gray-400 cursor-not-allowed'
-                              }`}
+                              onClick={() => (c.id === 'base' || c.id === 'celo') ? setChain(c.id) : null}
+                              disabled={c.id !== 'base' && c.id !== 'celo'}
+                              className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all duration-300 ${(c.id === 'base' || c.id === 'celo')
+                                ? (chain === c.id
+                                  ? `${c.color} border-${c.textColor}/30 ${c.textColor} shadow-[0_4px_10px_rgba(0,0,0,0.05)]`
+                                  : 'bg-white/70 border-gray-200/50 text-gray-700 hover:bg-gray-50')
+                                : 'bg-gray-100/70 border-gray-200/50 text-gray-400 cursor-not-allowed'
+                                }`}
                             >
                               <div className="flex items-center">
-                                <div className={`rounded-full p-1.5 mr-3 shadow-sm ${c.id !== 'base' ? 'bg-gray-200' : 'bg-white'}`}>
-                                  <img src={c.logo} alt={c.name} className={`w-5 h-5 ${c.id !== 'base' ? 'opacity-50' : ''}`} />
+                                <div className={`rounded-full p-1.5 mr-3 shadow-sm ${(c.id !== 'base' && c.id !== 'celo') ? 'bg-gray-200' : 'bg-white'}`}>
+                                  <img src={c.logo} alt={c.name} className={`w-5 h-5 ${(c.id !== 'base' && c.id !== 'celo') ? 'opacity-50' : ''}`} />
                                 </div>
                                 <span className="font-medium">{c.name}</span>
                               </div>
-                              {c.id !== 'base' && (
+                              {c.id !== 'base' && c.id !== 'celo' && (
                                 <span className="text-xs font-medium bg-gray-200 text-gray-500 px-2 py-1 rounded-full">
                                   Coming Soon
                                 </span>
@@ -893,8 +1083,8 @@ export default function CreateSavingsPage() {
                         </div>
                       </motion.div>
                     </motion.div>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="mt-8 sm:mt-10 flex justify-end"
                       variants={itemVariants}
                     >
@@ -911,7 +1101,7 @@ export default function CreateSavingsPage() {
                     </motion.div>
                   </motion.div>
                 )}
-                
+
                 {/* Step 2: Duration & Penalties - Enhanced */}
                 {step === 2 && (
                   <motion.div
@@ -922,7 +1112,7 @@ export default function CreateSavingsPage() {
                     transition={{ duration: 0.3 }}
                     className="p-4 sm:p-6 md:p-8"
                   >
-                    <motion.h2 
+                    <motion.h2
                       className="text-xl font-bold text-gray-800 mb-6 flex items-center"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -931,8 +1121,8 @@ export default function CreateSavingsPage() {
                       <span className="bg-[#81D7B4]/10 w-8 h-8 rounded-full flex items-center justify-center text-[#81D7B4] mr-3 text-sm">2</span>
                       Duration & Penalties
                     </motion.h2>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="space-y-5 sm:space-y-6"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -950,23 +1140,23 @@ export default function CreateSavingsPage() {
                           </svg>
                           Savings Duration
                         </label>
-                        
+
                         <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm p-4 sm:p-5 relative z-10 overflow-hidden group">
                           <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#81D7B4]/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                          
+
                           <p className="text-sm text-gray-600 mb-4 relative z-10">
                             Your savings will start today and end on your selected date. Choose an end date at least 30 days from now.
                           </p>
-                          
+
                           <div className="relative z-10">
                             <CustomDatePicker
                               selectedDate={endDate}
                               onSelectDate={(date) => setEndDate(date)}
                             />
                           </div>
-                          
+
                           {startDate && endDate && (
-                            <motion.div 
+                            <motion.div
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               className="mt-4 bg-[#81D7B4]/10 rounded-xl p-3 sm:p-4 border border-[#81D7B4]/30 relative z-10"
@@ -995,7 +1185,7 @@ export default function CreateSavingsPage() {
                           {errors.endDate && <p className="mt-2 text-sm text-red-500 relative z-10">{errors.endDate}</p>}
                         </div>
                       </motion.div>
-                      
+
                       {/* Penalties - enhanced */}
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -1018,14 +1208,14 @@ export default function CreateSavingsPage() {
                             </span>
                           </div>
                         </div>
-                        
+
                         <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm p-4 sm:p-5 relative overflow-hidden group">
                           <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                          
+
                           <p className="text-sm text-gray-600 mb-4 relative z-10">
                             Setting a penalty helps you stay committed to your savings goal. If you withdraw funds before the end date, this percentage will be deducted.
                           </p>
-                          
+
                           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 relative z-10">
                             {penalties.map((p, index) => (
                               <motion.button
@@ -1035,17 +1225,16 @@ export default function CreateSavingsPage() {
                                 transition={{ delay: 0.5 + (index * 0.1) }}
                                 type="button"
                                 onClick={() => setPenalty(p)}
-                                className={`py-3 rounded-xl border ${
-                                  penalty === p 
-                                    ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_10px_rgba(129,215,180,0.15)]' 
-                                    : 'bg-white border-gray-200/50 text-gray-700 hover:bg-gray-50'
-                                } transition-all font-medium`}
+                                className={`py-3 rounded-xl border ${penalty === p
+                                  ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_10px_rgba(129,215,180,0.15)]'
+                                  : 'bg-white border-gray-200/50 text-gray-700 hover:bg-gray-50'
+                                  } transition-all font-medium`}
                               >
                                 {p}
                               </motion.button>
                             ))}
                           </div>
-                          
+
                           <div className="mt-4 flex items-center text-sm text-gray-600 bg-amber-50/50 p-3 rounded-lg border border-amber-100/50 relative z-10">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
@@ -1057,8 +1246,8 @@ export default function CreateSavingsPage() {
                         </div>
                       </motion.div>
                     </motion.div>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="mt-8 sm:mt-10 flex justify-between"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -1087,7 +1276,7 @@ export default function CreateSavingsPage() {
                     </motion.div>
                   </motion.div>
                 )}
-                
+
                 {/* Step 3: Review & Create - Enhanced */}
                 {step === 3 && (
                   <motion.div
@@ -1098,7 +1287,7 @@ export default function CreateSavingsPage() {
                     transition={{ duration: 0.3 }}
                     className="p-4 sm:p-6 md:p-8"
                   >
-                    <motion.h2 
+                    <motion.h2
                       className="text-xl font-bold text-gray-800 mb-6 flex items-center"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -1107,8 +1296,8 @@ export default function CreateSavingsPage() {
                       <span className="bg-[#81D7B4]/10 w-8 h-8 rounded-full flex items-center justify-center text-[#81D7B4] mr-3 text-sm">3</span>
                       Review & Create
                     </motion.h2>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="space-y-6"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -1123,7 +1312,7 @@ export default function CreateSavingsPage() {
                       >
                         <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#81D7B4]/10 rounded-full blur-3xl"></div>
                         <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl"></div>
-                        
+
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 relative z-10">
                           <div>
                             <h3 className="text-lg font-bold text-gray-800">{name || "Untitled Plan"}</h3>
@@ -1145,7 +1334,7 @@ export default function CreateSavingsPage() {
                             ))}
                           </div>
                         </div>
-                        
+
                         <div className="relative z-10">
                           <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-white/60 shadow-sm">
                             <div className="flex justify-between items-center mb-3">
@@ -1159,7 +1348,7 @@ export default function CreateSavingsPage() {
                           </div>
                         </div>
                       </motion.div>
-                      
+
                       {/* Details list */}
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -1174,23 +1363,23 @@ export default function CreateSavingsPage() {
                               {startDate ? format(startDate, 'MMMM d, yyyy') : 'Today'}
                             </span>
                           </div>
-                          
+
                           <div className="flex flex-col sm:flex-row sm:items-center py-3 px-4 sm:px-6">
                             <span className="text-sm font-medium text-gray-500 sm:w-1/3">End Date</span>
                             <span className="text-sm text-gray-800 font-medium mt-1 sm:mt-0">
                               {endDate ? format(endDate, 'MMMM d, yyyy') : 'Not selected'}
                             </span>
                           </div>
-                          
+
                           <div className="flex flex-col sm:flex-row sm:items-center py-3 px-4 sm:px-6">
                             <span className="text-sm font-medium text-gray-500 sm:w-1/3">Duration</span>
                             <span className="text-sm text-gray-800 font-medium mt-1 sm:mt-0">
-                              {startDate && endDate 
-                                ? `${Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} days` 
+                              {startDate && endDate
+                                ? `${Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} days`
                                 : 'Not calculated'}
                             </span>
                           </div>
-                          
+
                           <div className="flex flex-col sm:flex-row sm:items-center py-3 px-4 sm:px-6">
                             <span className="text-sm font-medium text-gray-500 sm:w-1/3">Early Withdrawal Penalty</span>
                             <span className="text-sm text-gray-800 font-medium mt-1 sm:mt-0 flex items-center">
@@ -1204,7 +1393,7 @@ export default function CreateSavingsPage() {
                           </div>
                         </div>
                       </motion.div>
-                      
+
                       {/* Terms and conditions */}
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -1227,8 +1416,8 @@ export default function CreateSavingsPage() {
                         </label>
                       </motion.div>
                     </motion.div>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}

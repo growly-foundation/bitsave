@@ -9,15 +9,15 @@ import { useAccount } from 'wagmi'
 import { toast } from 'react-hot-toast'
 
 // Contract addresses and ABIs
-const CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
 const BASE_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
+const CELO_CONTRACT_ADDRESS = "0x7d839923Eb2DAc3A0d1cABb270102E481A208F33"
 const ETH_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000"
+const USDC_BASE_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+const USDGLO_CELO_ADDRESS = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
 
-// Import ABIs
 import CONTRACT_ABI from '@/app/abi/contractABI.js'
 import erc20ABI from '@/app/abi/erc20ABI.json'
 
-// Initialize the Space Grotesk font
 const spaceGrotesk = Space_Grotesk({ 
   subsets: ['latin'],
   display: 'swap',
@@ -27,36 +27,49 @@ interface TopUpModalProps {
   isOpen: boolean
   onClose: () => void
   planName: string
-  planId: string // Keep this as it might be used in future updates
+  planId: string
   isEth?: boolean
 }
 
 export default function TopUpModal({ isOpen, onClose, planName, isEth = false }: TopUpModalProps) {
-  // Remove planId from destructuring since it's not used
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
   const [txHash, setTxHash] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showTransactionModal, setShowTransactionModal] = useState(false)
+  const [isBaseNetwork, setIsBaseNetwork] = useState(true)
   const modalRef = useRef<HTMLDivElement>(null)
   const { address, isConnected } = useAccount()
   
-  // Function to fetch ETH price
+  useEffect(() => {
+    const detectNetwork = async () => {
+      if (window.ethereum) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+        const BASE_CHAIN_ID = BigInt(8453);
+        setIsBaseNetwork(network.chainId === BASE_CHAIN_ID);
+      }
+    };
+    
+    if (isOpen) {
+      detectNetwork();
+    }
+  }, [isOpen]);
+
   const fetchEthPrice = async () => {
     try {
       const response = await axios.get(
         "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
       );
-      return response.data.ethereum.usd; // ETH price in USD
+      return response.data.ethereum.usd; 
     } catch (error) {
       console.error("Error fetching ETH price:", error);
       return null;
     }
   };
 
-  // Handle USDC top up
-  const handleBaseSavingsTopUp = async (amount: string, savingsPlanName: string) => {
+  const handleStablecoinTopUp = async (amount: string, savingsPlanName: string) => {
     if (!isConnected) {
       setError("Please connect your wallet.");
       return;
@@ -68,12 +81,10 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
     setSuccess(false);
 
     try {
-      // Ensure `amount` is sanitized
       console.log("Raw amount value:", amount);
       const sanitizedAmount = amount.trim();
       const userEnteredAmount = parseFloat(sanitizedAmount);
 
-      // Validate the sanitized amount
       if (!sanitizedAmount || isNaN(userEnteredAmount) || userEnteredAmount <= 0) {
         throw new Error("Invalid amount entered.");
       }
@@ -85,64 +96,68 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
       const provider = new ethers.BrowserProvider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = await provider.getSigner();
+      
+      const network = await provider.getNetwork();
+      const BASE_CHAIN_ID = BigInt(8453);
+      // const CELO_CHAIN_ID = BigInt(42220);
+      const isBase = network.chainId === BASE_CHAIN_ID;
+      
+      const contractAddress = isBase ? BASE_CONTRACT_ADDRESS : CELO_CONTRACT_ADDRESS;
+      const tokenAddress = isBase ? USDC_BASE_ADDRESS : USDGLO_CELO_ADDRESS;
+      const tokenName = isBase ? "USDC" : "USDGLO";
 
-      // Check if the contract exists at the specified address
-      const code = await provider.getCode(BASE_CONTRACT_ADDRESS);
+      const code = await provider.getCode(contractAddress);
       if (code === "0x") {
         throw new Error("Contract not found on this network. Check the contract address and network.");
       }
 
-      const contract = new ethers.Contract(BASE_CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+      const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, signer);
 
-      // Check if the user has a child contract
       const userChildContractAddress = await contract.getUserChildContractAddress();
       if (userChildContractAddress === ethers.ZeroAddress) {
         throw new Error("You must join Bitsave before topping up.");
       }
 
-      // Convert the user-entered amount to the appropriate units (e.g., USDC uses 6 decimals)
-      const usdcEquivalentAmount = ethers.parseUnits(userEnteredAmount.toString(), 6);
+     
+      const tokenAmount = ethers.parseUnits(userEnteredAmount.toString(), 6);
 
       console.log("Data being sent to incrementSaving:");
       console.log("Savings Name:", savingsPlanName);
-      console.log("Token Address:", "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"); // USDC on Base
-      console.log("USDC Equivalent Amount:", usdcEquivalentAmount.toString());
+      console.log("Token Address:", tokenAddress);
+      console.log("Token Amount:", tokenAmount.toString());
 
-      // Approve the contract to spend the USDC tokens
-      const approveBASEERC20 = async (tokenAddress: string, amount: ethers.BigNumberish, signer: ethers.Signer) => {
+      const approveERC20 = async (tokenAddress: string, amount: ethers.BigNumberish, signer: ethers.Signer) => {
         const erc20Contract = new ethers.Contract(tokenAddress, erc20ABI.abi, signer);
-        const tx = await erc20Contract.approve(BASE_CONTRACT_ADDRESS, amount);
+        const tx = await erc20Contract.approve(contractAddress, amount);
         await tx.wait();
         console.log("Approval Transaction Hash:", tx.hash);
       };
 
-      await approveBASEERC20("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", usdcEquivalentAmount, signer);
+      await approveERC20(tokenAddress, tokenAmount, signer);
 
-      // Call the incrementSaving function on the contract
       const tx = await contract.incrementSaving(
-        savingsPlanName, // Pass the savings plan name
-        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC token address
-        usdcEquivalentAmount, // Amount in USDC
+        savingsPlanName, 
+        tokenAddress, 
+        tokenAmount,
         {
-          gasLimit: 800000, // Adjust gas limit as needed
+          gasLimit: 800000,
         }
       );
 
       const receipt = await tx.wait();
       setTxHash(receipt.hash);
       
-      // Post transaction data to API
       try {
         const apiResponse = await axios.post(
-          "http://localhost:8000/transactions/",
+          "https://bitsaveapi.vercel.app/transactions/",
           {
             amount: userEnteredAmount,
             txnhash: receipt.hash,
-            chain: "base",
+            chain: isBase ? "base" : "celo",
             savingsname: savingsPlanName,
             useraddress: address,
             transaction_type: "deposit",
-            currency: "USDC" // Add currency information
+            currency: tokenName
           },
           {
             headers: {
@@ -154,22 +169,20 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
         console.log("API response:", apiResponse.data);
       } catch (apiError) {
         console.error("Error sending transaction data to API:", apiError);
-        // Don't fail the whole transaction if API call fails
       }
       
       setSuccess(true);
       setShowTransactionModal(true);
       
-    } catch (error: unknown) { // Change from any to unknown
-      console.error("Error topping up ETH savings plan:", error);
-      setError(`Failed to top up ETH savings plan: ${error instanceof Error ? error.message : String(error)}`);
+    } catch (error: unknown) {
+      console.error("Error topping up stablecoin savings plan:", error);
+      setError(`Failed to top up savings plan: ${error instanceof Error ? error.message : String(error)}`);
       setShowTransactionModal(true);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle ETH top up
   const handleEthTopUp = async (amount: string, savingsPlanName: string) => {
     if (!isConnected) {
       setError("Please connect your wallet.");
@@ -189,52 +202,53 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
       const provider = new ethers.BrowserProvider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = await provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+      
+      const network = await provider.getNetwork();
+      const BASE_CHAIN_ID = BigInt(8453);
+      const isBase = network.chainId === BASE_CHAIN_ID;
+      
+      const contractAddress = isBase ? BASE_CONTRACT_ADDRESS : CELO_CONTRACT_ADDRESS;
+      
+      const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, signer);
 
-      // Fetch ETH price in USD accurately
       const ethPriceInUSD = await fetchEthPrice();
       if (!ethPriceInUSD || ethPriceInUSD <= 0) {
         throw new Error("Failed to fetch ETH price.");
       }
 
-      // Convert user-entered USD amount to ETH
       const usdAmount = parseFloat(amount);
       if (isNaN(usdAmount) || usdAmount <= 0) {
         throw new Error("Invalid amount entered.");
       }
 
-      // Perform precise conversion (USD to ETH)
-      const ethAmount = (usdAmount / ethPriceInUSD).toFixed(18); // Limit to 18 decimal places
+      const ethAmount = (usdAmount / ethPriceInUSD).toFixed(18); 
 
-      // Convert ETH to Wei using parseUnits to avoid precision issues
       const ethAmountInWei = ethers.parseUnits(ethAmount, 18);
 
-      // Send transaction to top up the savings plan
       const tx = await contract.incrementSaving(
         savingsPlanName,
-        ETH_TOKEN_ADDRESS, // ETH token address
-        ethAmountInWei, // Amount in Wei
+        ETH_TOKEN_ADDRESS, 
+        ethAmountInWei,
         {
-          value: ethAmountInWei, // Ensure ETH is sent as value
-          gasLimit: 1200000, // Adjust gas limit if needed
+          value: ethAmountInWei, 
+          gasLimit: 1200000, 
         }
       );
 
       const receipt = await tx.wait();
       setTxHash(receipt.hash);
       
-      // Post transaction data to API
       try {
         const apiResponse = await axios.post(
-          "http://localhost:8000/transactions/",
+          "https://bitsaveapi.vercel.app/transactions/",
           {
             amount: usdAmount,
             txnhash: receipt.hash,
-            chain: "base",
+            chain: isBase ? "base" : "celo",
             savingsname: savingsPlanName,
             useraddress: address,
             transaction_type: "deposit",
-            currency: "ETH" // Add currency information
+            currency: "ETH" 
           },
           {
             headers: {
@@ -246,13 +260,12 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
         console.log("API response:", apiResponse.data);
       } catch (apiError) {
         console.error("Error sending transaction data to API:", apiError);
-        // Don't fail the whole transaction if API call fails
       }
       
       setSuccess(true);
       setShowTransactionModal(true);
       
-    } catch (error: unknown) { // Change from any to unknown
+    } catch (error: unknown) {
       console.error("Error topping up ETH savings plan:", error);
       setError(`Failed to top up ETH savings plan: ${error instanceof Error ? error.message : String(error)}`);
       setShowTransactionModal(true);
@@ -261,12 +274,10 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
     }
   };
   
-  // Prevent event propagation to parent
   const handleModalClick = (e: React.MouseEvent) => {
     e.stopPropagation()
   }
   
-  // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -283,7 +294,6 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
     }
   }, [isOpen, onClose])
   
-  // Handle escape key
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -309,11 +319,10 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
       return;
     }
     
-    // Call the appropriate function based on whether it's an ETH or USDC plan
     if (isEth) {
       await handleEthTopUp(amount, planName);
     } else {
-      await handleBaseSavingsTopUp(amount, planName);
+      await handleStablecoinTopUp(amount, planName);
     }
   }
   
@@ -326,6 +335,19 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
   }
   
   const presetAmounts = ['10', '50', '100', '500']
+  
+  const getTokenName = () => {
+    if (isEth) return "ETH";
+    return isBaseNetwork ? "USDC" : "USDGLO";
+  }
+  
+  const getNetworkName = () => {
+    return isBaseNetwork ? "Base" : "Celo";
+  }
+  
+  const getExplorerUrl = () => {
+    return isBaseNetwork ? "https://basescan.org/tx/" : "https://explorer.celo.org/mainnet/tx/";
+  }
   
   if (!isOpen) return null
   
@@ -372,7 +394,7 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
               {/* Transaction ID Button */}
               <button 
                 className="w-full py-2.5 sm:py-3 border border-gray-300 rounded-full text-gray-700 text-sm sm:text-base font-medium mb-3 sm:mb-4 hover:bg-gray-50 transition-colors"
-                onClick={() => txHash && window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
+                onClick={() => txHash && window.open(`${getExplorerUrl()}${txHash}`, '_blank')}
                 disabled={!txHash}
               >
                 View Transaction ID
@@ -382,7 +404,7 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
               <div className="flex w-full gap-3 sm:gap-4 flex-col sm:flex-row">
                 <button 
                   className="w-full py-2.5 sm:py-3 bg-gray-100 rounded-full text-gray-700 text-sm sm:text-base font-medium flex items-center justify-center hover:bg-gray-200 transition-colors"
-                  onClick={() => txHash && window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
+                  onClick={() => txHash && window.open(`${getExplorerUrl()}${txHash}`, '_blank')}
                   disabled={!txHash}
                 >
                   Go To Explorer
@@ -444,12 +466,12 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
                     {isEth ? (
                       <>
                         <img src="/eth.png" alt="ETH" className="w-4 h-4 mr-2" />
-                        <span className="text-xs font-medium text-gray-700">ETH on Base</span>
+                        <span className="text-xs font-medium text-gray-700">ETH on {getNetworkName()}</span>
                       </>
                     ) : (
                       <>
-                        <img src="/usdc.png" alt="USDC" className="w-4 h-4 mr-2" />
-                        <span className="text-xs font-medium text-gray-700">USDC on Base</span>
+                        <img src={`/${getTokenName().toLowerCase()}.png`} alt={getTokenName()} className="w-4 h-4 mr-2" />
+                        <span className="text-xs font-medium text-gray-700">{getTokenName()} on {getNetworkName()}</span>
                       </>
                     )}
                   </div>
