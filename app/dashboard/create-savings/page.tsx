@@ -553,7 +553,7 @@ export default function CreateSavingsPage() {
           console.log("Joining Bitsave...")
           const joinTx = await contract.joinBitsave({
             value: ethers.parseEther("0.0001"), // Join fee
-            gasLimit: 500000,
+            // gasLimit: 500000,
           })
           console.log("Join transaction sent:", joinTx.hash)
           const joinReceipt = await joinTx.wait()
@@ -590,10 +590,8 @@ export default function CreateSavingsPage() {
       if (currency === 'USDGLO') {
         tokenToSave = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
         
-        // Determine the correct decimals based on the token
         const decimals = 6;
         
-        // Parse the amount with the correct decimals
         tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
         
         console.log("Amount in token units:", tokenAmount.toString());
@@ -614,10 +612,8 @@ export default function CreateSavingsPage() {
       } else if (currency === '$G') {
         tokenToSave = "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A" 
         
-        // Determine the correct decimals based on the token
         const decimals = 18;
         
-        // Parse the amount with the correct decimals
         tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
         
         console.log("Amount in token units:", tokenAmount.toString());
@@ -638,10 +634,8 @@ export default function CreateSavingsPage() {
       } else if (currency === 'USDGLO') {
         tokenToSave = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
         
-        // Determine the correct decimals based on the token
         const decimals = 6;
         
-        // Parse the amount with the correct decimals
         tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
         
         console.log("Amount in token units:", tokenAmount.toString());
@@ -662,10 +656,8 @@ export default function CreateSavingsPage() {
       } else if (currency === '$G') {
         tokenToSave = "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A" 
         
-        // Determine the correct decimals based on the token
         const decimals = 18;
         
-        // Parse the amount with the correct decimals
         tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
         
         console.log("Amount in token units:", tokenAmount.toString());
