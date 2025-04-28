@@ -12,14 +12,14 @@ import contractABI from '@/app/abi/contractABI.js'
 import childContractABI from '@/app/abi/childContractABI.js'
 
 // Initialize the Space Grotesk font
-const spaceGrotesk = Space_Grotesk({ 
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   display: 'swap',
 })
 
 // Contract address
 const MAIN_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
-
+const CELO_CONTRACT_ADDRESS = "0x7d839923Eb2DAc3A0d1cABb270102E481A208F33"; // Celo
 // Define types for our plan data
 interface Plan {
   id: string;
@@ -29,6 +29,8 @@ interface Plan {
   targetAmount: string;
   progress: number;
   isEth: boolean;
+  isGToken?: boolean;
+  isUSDGLO?: boolean; // Add this property
   startTime: number;
   maturityTime: number;
   penaltyPercentage: number;
@@ -57,9 +59,9 @@ export default function PlansPage() {
     currentPlans: [],
     completedPlans: []
   })
-  
+
   const { address, isConnected } = useAccount()
-  
+
   // Function to fetch current ETH price
   const fetchEthPrice = async () => {
     try {
@@ -71,7 +73,7 @@ export default function PlansPage() {
       return null;
     }
   };
-  
+
   const fetchSavingsData = async () => {
     if (!isConnected || !address) return;
     try {
@@ -83,27 +85,32 @@ export default function PlansPage() {
       if (!window.ethereum) {
         throw new Error("No Ethereum wallet detected. Please install MetaMask.");
       }
-      
+
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      
-      // Check if on Base network
+
+      // Check if on Base or Celo network
       const network = await provider.getNetwork();
       const BASE_CHAIN_ID = BigInt(8453); // Base network chainId
-      
-      if (network.chainId !== BASE_CHAIN_ID) {
+      const CELO_CHAIN_ID = BigInt(42220); // Celo network chainId
+
+      if (network.chainId !== BASE_CHAIN_ID && network.chainId !== CELO_CHAIN_ID) {
         setIsCorrectNetwork(false);
         setIsLoading(false);
         return;
       }
-      
+
       setIsCorrectNetwork(true);
-      
-      const contract = new ethers.Contract(MAIN_CONTRACT_ADDRESS, contractABI, signer);
-      
+
+      // Determine which contract address to use based on the network
+      const isBase = network.chainId === BASE_CHAIN_ID;
+      const contractAddress = isBase ? MAIN_CONTRACT_ADDRESS : CELO_CONTRACT_ADDRESS;
+
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
       // Get user's child contract address
       const userChildContractAddress = await contract.getUserChildContractAddress();
-      
+
       if (userChildContractAddress === ethers.ZeroAddress) {
         // User hasn't joined BitSave yet
         setSavingsData({
@@ -116,18 +123,18 @@ export default function PlansPage() {
         setIsLoading(false);
         return;
       }
-      
+
       // Create a contract instance for the user's child contract
       const childContract = new ethers.Contract(
         userChildContractAddress,
         childContractABI,
         signer
       );
-      
+
       // Get savings names from the child contract
       const savingsNamesObj = await childContract.getSavingsNames();
       const savingsNamesArray = savingsNamesObj[0];
-      
+
       // Change 'let' to 'const' for variables that aren't reassigned
       const currentPlans = [];
       const completedPlans = [];
@@ -135,62 +142,75 @@ export default function PlansPage() {
       // const totalLockedValue = ethers.parseEther("0");
       let totalDeposits = 0;
       let totalUsdValue = 0;
-      
+
       // Process each savings plan
       if (Array.isArray(savingsNamesArray)) {
         // Create a Set to track processed plan names and avoid duplicates
         const processedPlanNames = new Set();
-        
+
         for (const savingName of savingsNamesArray) {
           try {
             // Skip if we've already processed this plan name
             if (processedPlanNames.has(savingName)) continue;
-            
+
             // Add to processed set
             processedPlanNames.add(savingName);
-            
+
             // Get saving details
             const savingData = await childContract.getSaving(savingName);
             if (!savingData.isValid) continue;
-            
+
             // Check if it's ETH or token based
             const tokenId = savingData.tokenId;
             const isEth = tokenId === "0x0000000000000000000000000000000000000000";
-            
+
+            // Check if this is a $G token plan
+            const isGToken = tokenId.toLowerCase() === "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A".toLowerCase();
+
             // Get decimals based on token type
-            const decimals = isEth ? 18 : 6;
-            
+            const decimals = isEth || isGToken ? 18 : 6;
+
             // Extract penalty percentage from saving data
             const penaltyPercentage = Number(savingData.penaltyPercentage);
-            
+
             // Format amounts
             const targetFormatted = ethers.formatUnits(savingData.amount, decimals);
             const currentFormatted = ethers.formatUnits(savingData.amount, decimals);
-            
-            // Calculate progress based on time
+
             const currentDate = new Date();
             const startTimestamp = Number(savingData.startTime);
             const maturityTimestamp = Number(savingData.maturityTime);
             const startDate = new Date(startTimestamp * 1000);
             const maturityDate = new Date(maturityTimestamp * 1000);
-            
+
             const totalDuration = maturityDate.getTime() - startDate.getTime();
             const elapsedTime = currentDate.getTime() - startDate.getTime();
             const progress = Math.min(Math.floor((elapsedTime / totalDuration) * 100), 100);
-            
+
+
+
             // Add to total USD value
             if (isEth) {
               const ethAmount = parseFloat(currentFormatted);
               const usdValue = ethAmount * currentEthPrice;
               console.log(`ETH plan: ${savingName}, amount: ${ethAmount} ETH, USD value: ${usdValue}, ethPrice: ${currentEthPrice}`);
               totalUsdValue += usdValue;
+            } else if (isGToken) {
+              // For $G token, treat 1 $G as $1 USD
+              const gAmount = parseFloat(currentFormatted);
+              console.log(`$G plan: ${savingName}, amount: ${gAmount} $G`);
+              totalUsdValue += gAmount;
             } else {
               console.log(`USDC plan: ${savingName}, amount: ${parseFloat(currentFormatted)} USD`);
               totalUsdValue += parseFloat(currentFormatted);
             }
-            
+
             totalDeposits++;
-            
+
+            // Check if this is a USDGLO token plan
+            const isUSDGLO = tokenId.toLowerCase() === "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3".toLowerCase();
+
+
             const planData = {
               id: savingName,
               address: userChildContractAddress,
@@ -199,11 +219,13 @@ export default function PlansPage() {
               targetAmount: targetFormatted,
               progress: progress,
               isEth,
-              startTime: startTimestamp, // Add startTime for sorting
+              isGToken,
+              isUSDGLO, // Add this property
+              startTime: startTimestamp,
               maturityTime: maturityTimestamp,
-              penaltyPercentage: penaltyPercentage, // Use the extracted penalty percentage
+              penaltyPercentage: penaltyPercentage,
             };
-            
+
             // Add to appropriate list based on completion status
             if (progress >= 100 || currentDate >= maturityDate) {
               completedPlans.push(planData);
@@ -215,11 +237,11 @@ export default function PlansPage() {
           }
         }
       }
-      
+
       // Sort plans from newest to oldest based on start time (most recent first)
       currentPlans.sort((a, b) => b.startTime - a.startTime);
       completedPlans.sort((a, b) => b.startTime - a.startTime);
-      
+
       console.log(`Total USD value before setting state: ${totalUsdValue}`);
       setSavingsData({
         totalLocked: totalUsdValue.toFixed(2),
@@ -234,41 +256,41 @@ export default function PlansPage() {
       setIsLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchSavingsData();
   }, [isConnected, address]);
-  
+
   // Update the openPlanDetails function to use the Plan type
   const openPlanDetails = (plan: Plan) => {
     setSelectedPlan(plan);
     setIsModalOpen(true);
   };
-  
+
   // Add a new function to handle top-up
   const openTopUpModal = (e: React.MouseEvent, plan: Plan) => {
     e.stopPropagation(); // Prevent the card click event from firing
     setTopUpPlan(plan);
     setIsTopUpModalOpen(true);
   };
-  
+
   return (
     <div className={`${spaceGrotesk.className} min-h-screen bg-gradient-to-b from-gray-50 to-gray-100`}>
       {/* Decorative elements */}
       <div className="fixed -top-40 -right-40 w-96 h-96 bg-[#81D7B4]/10 rounded-full blur-3xl"></div>
       <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
       <div className="fixed top-1/4 left-1/3 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl"></div>
-      
+
       {/* Noise texture */}
       <div className="fixed inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
-      
+
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <div className="mb-8 md:mb-12">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Your Savings Plans</h1>
           <p className="text-gray-600 max-w-2xl">Track and manage your savings goals. Create new plans or contribute to existing ones to reach your financial targets faster.</p>
         </div>
-        
+
         {/* Network Warning */}
         {!isCorrectNetwork && (
           <div className="mb-8 bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-yellow-800">
@@ -276,11 +298,11 @@ export default function PlansPage() {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-yellow-600" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              <span className="font-medium">Please connect to Base network to view your savings plans.</span>
+              <span className="font-medium">Please connect to Base or Celo network to view your savings plans.</span>
             </div>
           </div>
         )}
-        
+
         {/* Create New Plan Button */}
         <div className="mb-8">
           <Link href="/dashboard/create-savings">
@@ -292,7 +314,7 @@ export default function PlansPage() {
             </button>
           </Link>
         </div>
-        
+
         {/* Plans Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -318,13 +340,13 @@ export default function PlansPage() {
                 <div className="relative bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.2)] overflow-hidden transition-all duration-300 group-hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.25)] h-full">
                   {/* Card inner shadow for neomorphism effect */}
                   <div className="absolute inset-0 rounded-2xl shadow-inner pointer-events-none"></div>
-                  
+
                   {/* Subtle noise texture */}
                   <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
-                  
+
                   {/* Decorative accent */}
                   <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
-                  
+
                   <div className="p-6 relative">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center">
@@ -339,17 +361,32 @@ export default function PlansPage() {
                         </div>
                       </div>
                       <div className="flex items-center bg-white/70 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/60 shadow-sm">
-                        <img src={plan.isEth ? '/eth.png' : '/usdc.png'} alt={plan.isEth ? 'Ethereum' : 'USDC'} className="w-3.5 h-3.5 mr-1.5" />
-                        <span className="text-xs font-medium text-gray-700">{plan.isEth ? 'ETH on Base' : 'USDC on Base'}</span>
+                        <img
+                          src={plan.isEth ? '/eth.png' : plan.isGToken ? '/$g.png' : plan.isUSDGLO ? '/usdglo.png' : '/usdc.png'}
+                          className="w-3.5 h-3.5 mr-1.5"
+                        />
+                        <span className="text-xs font-medium text-gray-700">
+                          {plan.isEth
+                            ? 'ETH on Base'
+                            : plan.isGToken
+                              ? '$G on Celo'
+                              : plan.isUSDGLO
+                                ? 'USDGLO on Celo'
+                                : 'USDC on Base'}
+                        </span>
                       </div>
                     </div>
-                    
+
                     <div className="mb-4">
                       <div className="flex justify-between items-end mb-1.5">
                         <div>
                           <p className="text-xs text-gray-500 mb-0.5">Current Amount</p>
                           <p className="text-2xl font-bold text-gray-800">
-                            {plan.isEth ? `${parseFloat(plan.currentAmount).toFixed(4)} ETH` : `$${parseFloat(plan.currentAmount).toFixed(2)}`}
+                            {plan.isEth
+                              ? `${parseFloat(plan.currentAmount).toFixed(4)} ETH`
+                              : plan.isGToken
+                                ? `$${parseFloat(plan.currentAmount).toFixed(2)}`
+                                : `$${parseFloat(plan.currentAmount).toFixed(2)}`}
                           </p>
                           {plan.isEth && (
                             <p className="text-xs text-gray-500">
@@ -359,23 +396,23 @@ export default function PlansPage() {
                         </div>
                         {/* Target display removed */}
                       </div>
-                      
+
                       {/* Progress bar with neomorphism effect */}
                       <div className="relative h-2.5 bg-white rounded-full overflow-hidden mb-1.5 shadow-inner">
-                        <div 
-                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80 rounded-full shadow-[0_0_6px_rgba(129,215,180,0.5)]" 
+                        <div
+                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80 rounded-full shadow-[0_0_6px_rgba(129,215,180,0.5)]"
                           style={{ width: `${plan.progress}%` }}
                         ></div>
                       </div>
-                      
+
                       <div className="flex justify-between text-xs">
                         <span className="text-gray-500">{plan.progress}% Complete</span>
                         <span className="text-[#81D7B4] font-medium">Matures: {new Date(plan.maturityTime * 1000).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-2">
-                      <button 
+                      <button
                         className="flex-1 bg-white/70 backdrop-blur-sm text-gray-800 font-medium py-2 rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-300 text-sm flex items-center justify-center"
                         onClick={(e) => openTopUpModal(e, plan)}
                       >
@@ -384,7 +421,7 @@ export default function PlansPage() {
                         </svg>
                         Top Up
                       </button>
-                      <button 
+                      <button
                         className="flex-1 bg-gradient-to-r from-[#81D7B4]/90 to-[#81D7B4]/80 text-white font-medium py-2 rounded-xl shadow-[0_2px_8px_rgba(129,215,180,0.3)] hover:shadow-[0_4px_12px_rgba(129,215,180,0.4)] transition-all duration-300 text-sm flex items-center justify-center"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 mr-1.5 text-white">
@@ -397,7 +434,7 @@ export default function PlansPage() {
                 </div>
               </motion.div>
             ))}
-            
+
             {/* Empty state card with neomorphism */}
             {savingsData.currentPlans.length === 0 && (
               <motion.div
@@ -424,7 +461,7 @@ export default function PlansPage() {
             )}
           </div>
         )}
-        
+
         {/* Completed Plans Section */}
         {savingsData.completedPlans.length > 0 && (
           <div className="mt-12">
@@ -444,7 +481,7 @@ export default function PlansPage() {
                     <div className="absolute inset-0 rounded-2xl shadow-inner pointer-events-none"></div>
                     <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl"></div>
-                    
+
                     <div className="p-6 relative">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center">
@@ -463,7 +500,7 @@ export default function PlansPage() {
                           <span className="text-xs font-medium text-gray-700">{plan.isEth ? 'ETH' : 'USDC'}</span>
                         </div>
                       </div>
-                      
+
                       <div className="mb-4">
                         <div className="flex justify-between items-end mb-1.5">
                           <div>
@@ -473,17 +510,17 @@ export default function PlansPage() {
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="relative h-2.5 bg-white rounded-full overflow-hidden mb-1.5 shadow-inner">
                           <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full shadow-[0_0_6px_rgba(168,85,247,0.5)]" style={{ width: '100%' }}></div>
                         </div>
-                        
+
                         <div className="flex justify-between text-xs">
                           <span className="text-gray-500">100% Complete</span>
                           <span className="text-purple-500 font-medium">Ready to withdraw</span>
                         </div>
                       </div>
-                      
+
                       <button className="w-full bg-gradient-to-r from-purple-500/90 to-purple-600/80 text-white font-medium py-2 rounded-xl shadow-[0_2px_8px_rgba(168,85,247,0.3)] hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-300 text-sm">
                         Withdraw Funds
                       </button>
@@ -494,7 +531,7 @@ export default function PlansPage() {
             </div>
           </div>
         )}
-        
+
         {/* Stats Section with Neomorphism */}
         <div className="mt-12 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Savings Overview</h2>
@@ -503,7 +540,7 @@ export default function PlansPage() {
             <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.15)] p-6 relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
               <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl"></div>
-              
+
               <div className="flex items-center mb-4">
                 <div className="bg-blue-100 rounded-full p-2.5 mr-3 border border-blue-200">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-blue-500">
@@ -512,7 +549,7 @@ export default function PlansPage() {
                 </div>
                 <h3 className="font-bold text-gray-800">Total Saved</h3>
               </div>
-              
+
               <p className="text-3xl font-bold text-gray-800 mb-1">${savingsData.totalLocked}</p>
               <p className="text-sm text-blue-600 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 mr-1">
@@ -521,12 +558,12 @@ export default function PlansPage() {
                 Across all savings plans
               </p>
             </div>
-            
+
             {/* Total Goals Card */}
             <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.15)] p-6 relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
               <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl"></div>
-              
+
               <div className="flex items-center mb-4">
                 <div className="bg-purple-100 rounded-full p-2.5 mr-3 border border-purple-200">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-purple-500">
@@ -535,7 +572,7 @@ export default function PlansPage() {
                 </div>
                 <h3 className="font-bold text-gray-800">Active Goals</h3>
               </div>
-              
+
               <p className="text-3xl font-bold text-gray-800 mb-1">{savingsData.currentPlans.length}</p>
               <p className="text-sm text-purple-600 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 mr-1">
@@ -544,12 +581,12 @@ export default function PlansPage() {
                 {savingsData.currentPlans.length > 0 ? `${savingsData.currentPlans.length} active plans` : 'No active plans'}
               </p>
             </div>
-            
+
             {/* Rewards Card */}
             <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.15)] p-6 relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
               <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
-              
+
               <div className="flex items-center mb-4">
                 <div className="bg-[#81D7B4]/20 rounded-full p-2.5 mr-3 border border-[#81D7B4]/30">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-[#81D7B4]">
@@ -558,7 +595,7 @@ export default function PlansPage() {
                 </div>
                 <h3 className="font-bold text-gray-800">Total Deposits</h3>
               </div>
-              
+
               <p className="text-3xl font-bold text-gray-800 mb-1">{savingsData.deposits}</p>
               <p className="text-sm text-[#81D7B4] flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 mr-1">
@@ -569,7 +606,7 @@ export default function PlansPage() {
             </div>
           </div>
         </div>
-        
+
         {/* Tips Section */}
         <div className="mt-12 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Savings Tips</h2>
@@ -581,11 +618,11 @@ export default function PlansPage() {
                 </svg>
               </div>
               <div>
-              <h3 className="font-bold text-gray-800 text-lg mb-2">Build Your Financial Safety Net</h3>
-              <p className="text-gray-600">Every dollar saved today is peace of mind for tomorrow. Consistent saving creates a buffer against life&apos;s uncertainties while helping you achieve your most important goals.</p>
+                <h3 className="font-bold text-gray-800 text-lg mb-2">Build Your Financial Safety Net</h3>
+                <p className="text-gray-600">Every dollar saved today is peace of mind for tomorrow. Consistent saving creates a buffer against life&apos;s uncertainties while helping you achieve your most important goals.</p>
               </div>
             </div>
-            
+
             <div className="flex items-start">
               <div className="bg-blue-100 rounded-full p-2.5 mr-4 border border-blue-200 flex-shrink-0 mt-1">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-blue-500">
@@ -593,28 +630,28 @@ export default function PlansPage() {
                 </svg>
               </div>
               <div>
-              <h3 className="font-bold text-gray-800 text-lg mb-2">Spread Your Financial Wings</h3>
-              <p className="text-gray-600">Diversifying across assets and networks reduces risk while maximizing potential returns. A balanced savings portfolio protects you against market volatility.</p>
+                <h3 className="font-bold text-gray-800 text-lg mb-2">Spread Your Financial Wings</h3>
+                <p className="text-gray-600">Diversifying across assets and networks reduces risk while maximizing potential returns. A balanced savings portfolio protects you against market volatility.</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Plan Details Modal */}
       {selectedPlan && (
-        <WithdrawModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          planName={selectedPlan.name} 
+        <WithdrawModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          planName={selectedPlan.name}
           planId={selectedPlan.address}
           isEth={selectedPlan.isEth}
           penaltyPercentage={selectedPlan.penaltyPercentage}
         />
       )}
-      
-      {/* Top Up Modal */}
-      {topUpPlan && (
+
+      {/* TopUpModal component */}
+      {isTopUpModalOpen && topUpPlan && (
         <TopUpModal
           isOpen={isTopUpModalOpen}
           onClose={() => setIsTopUpModalOpen(false)}

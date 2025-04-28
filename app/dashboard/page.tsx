@@ -35,7 +35,13 @@ export default function Dashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('current');
   const [, setEthPrice] = useState<number | null>(null);
-  const [topUpModal, setTopUpModal] = useState({ isOpen: false, planName: '', planId: '', isEth: false });
+  const [topUpModal, setTopUpModal] = useState({
+    isOpen: false,
+    planName: '',
+    planId: '',
+    isEth: false,
+    isGToken: false
+  });
   const [displayName, setDisplayName] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -49,6 +55,8 @@ export default function Dashboard() {
     date: string;
     isNew: boolean;
   }>>([]);
+
+  
 
   useEffect(() => {
     if (mounted && address) {
@@ -472,28 +480,35 @@ export default function Dashboard() {
               const isEth = tokenId === "0x0000000000000000000000000000000000000000";
 
               let tokenName = "USDC"; // Default for Base
+              let decimals = 6; // Default decimals for most tokens
+              
               if (isEth) {
                 tokenName = "ETH";
+                decimals = 18;
               } else if (network.chainId === CELO_CHAIN_ID) {
-                // For Celo network, set USDGLO as default stablecoin
-                tokenName = "USDGLO"; 
-                
-                // Override with specific token if we can identify it
-                if (tokenId === "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3") {
-                  tokenName = "USDGLO";
-                } else if (tokenId === "0x765DE816845861e75A25fCA122bb6898B8B1282a") {
+                // For Celo network, check specific token addresses
+                if (tokenId.toLowerCase() === "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A".toLowerCase()) {
                   tokenName = "$G";
+                  decimals = 18; // $G uses 18 decimals
+                } else if (tokenId.toLowerCase() === "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3".toLowerCase()) {
+                  tokenName = "USDGLO";
+                  decimals = 6;
+                } else {
+                  // Default for unknown tokens on Celo
+                  tokenName = "USDGLO";
+                  decimals = 6;
                 }
               } else if (network.chainId === BASE_CHAIN_ID) {
-                tokenName = "USDC"; // Default for Base
-                
-                // Override with specific token if we can identify it
-                if (tokenId === "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913") {
+                // For Base network
+                if (tokenId.toLowerCase() === "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()) {
                   tokenName = "USDC";
+                  decimals = 6;
+                } else {
+                  // Default for unknown tokens on Base
+                  tokenName = "USDC";
+                  decimals = 6;
                 }
               }
-
-              const decimals = isEth ? 18 : 6;
 
               const penaltyPercentage = Number(savingData.penaltyPercentage);
 
@@ -568,12 +583,18 @@ export default function Dashboard() {
     }
   };
 
-  const openTopUpModal = (planName: string, planId: string, isEth: boolean) => {
-    setTopUpModal({ isOpen: true, planName, planId, isEth });
+  const openTopUpModal = (planName: string, planId: string, isEth: boolean, tokenName: string = '') => {
+    setTopUpModal({ 
+      isOpen: true, 
+      planName, 
+      planId, 
+      isEth,
+      isGToken: tokenName === '$G'
+    });
   };
 
   const closeTopUpModal = () => {
-    setTopUpModal({ isOpen: false, planName: '', planId: '', isEth: false });
+    setTopUpModal({ isOpen: false, planName: '', planId: '', isEth: false, isGToken: false });
   };
 
   const [withdrawModal, setWithdrawModal] = useState({

@@ -589,7 +589,14 @@ export default function CreateSavingsPage() {
       
       if (currency === 'USDGLO') {
         tokenToSave = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
-        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(6), 6)
+        
+        // Determine the correct decimals based on the token
+        const decimals = 6;
+        
+        // Parse the amount with the correct decimals
+        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
+        
+        console.log("Amount in token units:", tokenAmount.toString());
         
         try {
           console.log("Approving USDGLO token...")
@@ -605,8 +612,63 @@ export default function CreateSavingsPage() {
           throw new Error("Failed to approve USDGLO tokens. Please check your token balance.")
         }
       } else if (currency === '$G') {
-        tokenToSave = "0x000000000000000000000000000000000000000" 
-        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(18), 18)
+        tokenToSave = "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A" 
+        
+        // Determine the correct decimals based on the token
+        const decimals = 18;
+        
+        // Parse the amount with the correct decimals
+        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
+        
+        console.log("Amount in token units:", tokenAmount.toString());
+        
+        try {
+          console.log("Approving $G token...")
+          await approveERC20(tokenToSave, tokenAmount, signer)
+          console.log("$G approval successful")
+          
+          txOptions = {
+            gasLimit: 1500000,
+            value: ethers.parseEther("0.0001"),
+          }
+        } catch (approvalError) {
+          console.error("Error approving $G tokens:", approvalError)
+          throw new Error("Failed to approve $G tokens. Please check your token balance.")
+        }
+      } else if (currency === 'USDGLO') {
+        tokenToSave = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
+        
+        // Determine the correct decimals based on the token
+        const decimals = 6;
+        
+        // Parse the amount with the correct decimals
+        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
+        
+        console.log("Amount in token units:", tokenAmount.toString());
+        
+        try {
+          console.log("Approving USDGLO token...")
+          await approveERC20(tokenToSave, tokenAmount, signer)
+          console.log("USDGLO approval successful")
+          
+          txOptions = {
+            gasLimit: 1500000, 
+            value: ethers.parseEther("0.0001"), 
+          }
+        } catch (approvalError) {
+          console.error("Error approving USDGLO tokens:", approvalError)
+          throw new Error("Failed to approve USDGLO tokens. Please check your token balance.")
+        }
+      } else if (currency === '$G') {
+        tokenToSave = "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A" 
+        
+        // Determine the correct decimals based on the token
+        const decimals = 18;
+        
+        // Parse the amount with the correct decimals
+        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
+        
+        console.log("Amount in token units:", tokenAmount.toString());
         
         try {
           console.log("Approving $G token...")
