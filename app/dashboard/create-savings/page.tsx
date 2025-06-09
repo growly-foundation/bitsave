@@ -37,7 +37,7 @@ export default function CreateSavingsPage() {
   const [chain, setChain] = useState('base')
   const [startDate] = useState<Date | null>(new Date())
   const [endDate, setEndDate] = useState<Date | null>(null)
-  const [penalty, setPenalty] = useState('1%')
+  const [penalty, setPenalty] = useState('10%')
 
   const [isLoading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -105,7 +105,6 @@ export default function CreateSavingsPage() {
 
   const currencies = ['USDC', 'USDGLO', '$G']
   const chains = [
-    { id: 'arb', name: 'Arbitrum', logo: '/arbitrum.png', color: 'bg-blue-100', textColor: 'text-blue-600' },
     { id: 'base', name: 'Base', logo: '/base.svg', color: 'bg-blue-900/10', textColor: 'text-blue-800' },
     { id: 'celo', name: 'Celo', logo: '/celo.png', color: 'bg-green-100', textColor: 'text-green-600', active: true }
   ]

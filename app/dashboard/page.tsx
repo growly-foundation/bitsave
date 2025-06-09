@@ -910,7 +910,7 @@ export default function Dashboard() {
 
               {/* Dropdown menu */}
               <div id="chain-dropdown" className="absolute left-0 mt-2 w-48 bg-white/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-200/50 z-10 hidden">
-                {['Base', 'Arbitrum', 'Celo'].map((chain) => (
+                {['Base', 'Celo'].map((chain) => (
                   <button
                     key={chain}
                     onClick={() => {
@@ -931,9 +931,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center">
                       {chain}
-                      {chain === 'Arbitrum' && (
-                        <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">Coming Soon</span>
-                      )}
+                      
                     </div>
                   </button>
                 ))}
