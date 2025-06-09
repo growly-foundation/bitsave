@@ -13,9 +13,9 @@ import CONTRACT_ABI from '@/app/abi/contractABI.js'
 import erc20ABI from '@/app/abi/erc20ABI.json'
 
 const CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
-const BASE_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
+const BASE_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 const CELO_CONTRACT_ADDRESS = "0x7d839923Eb2DAc3A0d1cABb270102E481A208F33" 
-const ETH_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000"
+// const ETH_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000"
 const USDGLO_TOKEN_ADDRESS = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
 
 
@@ -103,13 +103,13 @@ export default function CreateSavingsPage() {
 
 
 
-  const currencies = ['USDC', 'ETH', 'USDGLO', '$G']
+  const currencies = ['USDC', 'USDGLO', '$G']
   const chains = [
     { id: 'arb', name: 'Arbitrum', logo: '/arbitrum.png', color: 'bg-blue-100', textColor: 'text-blue-600' },
     { id: 'base', name: 'Base', logo: '/base.svg', color: 'bg-blue-900/10', textColor: 'text-blue-800' },
     { id: 'celo', name: 'Celo', logo: '/celo.png', color: 'bg-green-100', textColor: 'text-green-600', active: true }
   ]
-  const penalties = ['1%', '2%', '3%', '4%', '5%']
+  const penalties = ['10%', '20%', '30%']
 
   const validateStep = () => {
     let valid = true
@@ -227,131 +227,131 @@ export default function CreateSavingsPage() {
     }
   };
 
-  const handleEthCreateSavings = async () => {
-    if (!isConnected) {
-      setError("Please connect your wallet.")
-      return
-    }
-    setLoading(true)
-    setError(null)
-    setTxHash(null)
-    setSuccess(false)
+  // const handleEthCreateSavings = async () => {
+  //   if (!isConnected) {
+  //     setError("Please connect your wallet.")
+  //     return
+  //   }
+  //   setLoading(true)
+  //   setError(null)
+  //   setTxHash(null)
+  //   setSuccess(false)
 
-    try {
-      let ethPriceInUsd
-      for (let i = 0; i < 3; i++) {
-        try {
-          ethPriceInUsd = await fetchEthPrice()
-          break
-        } catch (error) {
-          if (i === 2) throw error
-          await new Promise(resolve => setTimeout(resolve, 1000))
-        }
-      }
+  //   try {
+  //     let ethPriceInUsd
+  //     for (let i = 0; i < 3; i++) {
+  //       try {
+  //         ethPriceInUsd = await fetchEthPrice()
+  //         break
+  //       } catch (error) {
+  //         if (i === 2) throw error
+  //         await new Promise(resolve => setTimeout(resolve, 1000))
+  //       }
+  //     }
 
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      await provider.send("eth_requestAccounts", [])
-      const signer = await provider.getSigner()
+  //     const provider = new ethers.BrowserProvider(window.ethereum)
+  //     await provider.send("eth_requestAccounts", [])
+  //     const signer = await provider.getSigner()
 
-      const code = await provider.getCode(CONTRACT_ADDRESS)
-      if (code === "0x") {
-        throw new Error("Contract not found on this network. Check the contract address and network.")
-      }
+  //     const code = await provider.getCode(CONTRACT_ADDRESS)
+  //     if (code === "0x") {
+  //       throw new Error("Contract not found on this network. Check the contract address and network.")
+  //     }
 
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
+  //     const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
 
-      const userChildContractAddress = await contract.getUserChildContractAddress()
-      if (userChildContractAddress === ethers.ZeroAddress) {
-        const joinTx = await contract.joinBitsave({
-          value: ethers.parseEther("0.0001"),
-        })
-        await joinTx.wait()
-      }
+  //     const userChildContractAddress = await contract.getUserChildContractAddress()
+  //     if (userChildContractAddress === ethers.ZeroAddress) {
+  //       const joinTx = await contract.joinBitsave({
+  //         value: ethers.parseEther("0.0001"),
+  //       })
+  //       await joinTx.wait()
+  //     }
 
-      console.log("User child contract address:", userChildContractAddress)
+  //     console.log("User child contract address:", userChildContractAddress)
 
-      const maturityTime = selectedDayRange.to
-        ? Math.floor(
-          new Date(
-            selectedDayRange.to.year ?? 0,
-            (selectedDayRange.to.month ?? 1) - 1,
-            selectedDayRange.to.day ?? 1
-          ).getTime() / 1000
-        )
-        : 0
-      const safeMode = false
-      const tokenToSave = ETH_TOKEN_ADDRESS
+  //     const maturityTime = selectedDayRange.to
+  //       ? Math.floor(
+  //         new Date(
+  //           selectedDayRange.to.year ?? 0,
+  //           (selectedDayRange.to.month ?? 1) - 1,
+  //           selectedDayRange.to.day ?? 1
+  //         ).getTime() / 1000
+  //       )
+  //       : 0
+  //     const safeMode = false
+  //     const tokenToSave = ETH_TOKEN_ADDRESS
 
-      const userEnteredUsdAmount = parseFloat(amount)
-      const ethAmount = userEnteredUsdAmount / ethPriceInUsd
-      const ethAmountInWei = ethers.parseEther(ethAmount.toFixed(18))
-      const totalAmount = ethAmountInWei + ethers.parseEther("0.0001")
+  //     const userEnteredUsdAmount = parseFloat(amount)
+  //     const ethAmount = userEnteredUsdAmount / ethPriceInUsd
+  //     const ethAmountInWei = ethers.parseEther(ethAmount.toFixed(18))
+  //     const totalAmount = ethAmountInWei + ethers.parseEther("0.0001")
 
-      console.log("Parameters:", {
-        savingsName,
-        maturityTime,
-        selectedPenalty,
-        safeMode,
-        tokenToSave,
-        userEnteredUsdAmount,
-        ethPriceInUsd,
-        ethAmount,
-        totalAmount,
-      })
+  //     console.log("Parameters:", {
+  //       savingsName,
+  //       maturityTime,
+  //       selectedPenalty,
+  //       safeMode,
+  //       tokenToSave,
+  //       userEnteredUsdAmount,
+  //       ethPriceInUsd,
+  //       ethAmount,
+  //       totalAmount,
+  //     })
 
-      const txOptions = {
-        gasLimit: 1200000,
-        value: totalAmount,
-      }
+  //     const txOptions = {
+  //       gasLimit: 1200000,
+  //       value: totalAmount,
+  //     }
 
-      const tx = await contract.createSaving(
-        savingsName,
-        maturityTime,
-        selectedPenalty,
-        safeMode,
-        tokenToSave,
-        ethAmountInWei,
-        txOptions
-      )
+  //     const tx = await contract.createSaving(
+  //       savingsName,
+  //       maturityTime,
+  //       selectedPenalty,
+  //       safeMode,
+  //       tokenToSave,
+  //       ethAmountInWei,
+  //       txOptions
+  //     )
 
-      const receipt = await tx.wait()
-      setTxHash(receipt.hash)
+  //     const receipt = await tx.wait()
+  //     setTxHash(receipt.hash)
 
-      try {
-        const apiResponse = await axios.post(
-          "https://bitsaveapi.vercel.app/transactions/",
-          {
-            amount: parseFloat(amount),
-            txnhash: receipt.hash,
-            chain: "base", 
-            savingsname: savingsName,
-            useraddress: walletAddress,
-            transaction_type: "deposit",
-            currency: currency
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "X-API-Key": process.env.NEXT_PUBLIC_API_KEY
-            }
-          }
-        );
-        console.log("API response:", apiResponse.data);
-      } catch (apiError) {
-        console.error("Error sending transaction data to API:", apiError);
-      }
+  //     try {
+  //       const apiResponse = await axios.post(
+  //         "https://bitsaveapi.vercel.app/transactions/",
+  //         {
+  //           amount: parseFloat(amount),
+  //           txnhash: receipt.hash,
+  //           chain: "base", 
+  //           savingsname: savingsName,
+  //           useraddress: walletAddress,
+  //           transaction_type: "deposit",
+  //           currency: currency
+  //         },
+  //         {
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //             "X-API-Key": process.env.NEXT_PUBLIC_API_KEY
+  //           }
+  //         }
+  //       );
+  //       console.log("API response:", apiResponse.data);
+  //     } catch (apiError) {
+  //       console.error("Error sending transaction data to API:", apiError);
+  //     }
 
-      setSuccess(true)
-      console.log("ETH savings plan created successfully!")
-    } catch (error) {
-      console.error("Error creating ETH savings plan:", error)
-      setError("Failed to create ETH savings plan: " + (error instanceof Error ? error.message : String(error)))
-      setSuccess(false) 
-      throw error 
-    } finally {
-      setLoading(false)
-    }
-  }
+  //     setSuccess(true)
+  //     console.log("ETH savings plan created successfully!")
+  //   } catch (error) {
+  //     console.error("Error creating ETH savings plan:", error)
+  //     setError("Failed to create ETH savings plan: " + (error instanceof Error ? error.message : String(error)))
+  //     setSuccess(false) 
+  //     throw error 
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   const handleBaseSavingsCreate = async () => {
     if (!isConnected) {
@@ -395,7 +395,7 @@ export default function CreateSavingsPage() {
         throw new Error("Please switch your wallet to the Base network.")
       }
 
-      const contract = new ethers.Contract(BASE_CONTRACT_ADDRESS, CONTRACT_ABI, signer)
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
 
       let userChildContractAddress = await contract.getUserChildContractAddress()
       console.log("User's Child Contract Address (Before Join):", userChildContractAddress)
@@ -421,7 +421,7 @@ export default function CreateSavingsPage() {
         : 0
 
       const safeMode = false
-      const tokenToSave = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" 
+      const tokenToSave = BASE_CONTRACT_ADDRESS
 
       await approveERC20(tokenToSave, usdcEquivalentAmount, signer)
 
@@ -784,8 +784,8 @@ export default function CreateSavingsPage() {
     try {
       if (chain === 'celo') {
         await handleCeloSavingsCreate()
-      } else if (currency === 'ETH') {
-        await handleEthCreateSavings()
+      // } else if (currency === 'ETH') {
+      //   // await handleEthCreateSavings()
       } else {
         await handleBaseSavingsCreate()
       }

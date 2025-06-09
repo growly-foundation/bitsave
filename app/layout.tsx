@@ -16,7 +16,7 @@ import { Providers } from './providers';
 // import "../styles/date-picker.css";
 
 export const metadata: Metadata = {
-  title: 'BitSave - Simplified Crypto Investing',
+  title: 'BitSave - Simplified Crypto Savings',
   description: 'BitSave offers a simplified approach to crypto investing with professionally managed portfolios.',
 }
 
