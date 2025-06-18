@@ -1,61 +1,86 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import OptimizedSection from './OptimizedSection';
 
 export default function Security() {
-  const [activeFeature, setActiveFeature] = useState(0);
-  const [isHovering, setIsHovering] = useState(false);
-  
-  // Auto-rotate features
-  useEffect(() => {
-    if (isHovering) return;
-    
-    const interval = setInterval(() => {
-      setActiveFeature((prev) => (prev + 1) % 4);
-    }, 3000);
-    
-    return () => clearInterval(interval);
-  }, [isHovering]);
-  
   const securityFeatures = [
     {
-      title: "Smart Contract Audited",
+      title: "Simple UX Design",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-7 h-7 text-primary">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
         </svg>
       ),
-      description: "All smart contracts undergo rigorous third-party security audits to ensure they're free from vulnerabilities."
+      description: "Intuitive interface designed for both Web3 natives and newcomers."
     },
     {
-      title: "Multi-Layer Protection",
+      title: "Goal-Based Locked Savings",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-7 h-7 text-secondary">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7.864 4.243A7.5 7.5 0 0119.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 004.5 10.5a7.464 7.464 0 01-1.15 3.993m1.989 3.559A11.209 11.209 0 008.25 10.5a3.75 3.75 0 117.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 01-3.6 9.75m6.633-4.596a18.666 18.666 0 01-2.485 5.33" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
         </svg>
       ),
-      description: "Multiple security layers protect your assets, from encrypted communications to secure transaction validation."
+      description: "Set savings goals and lock your funds until you reach them."
     },
     {
-      title: "Private Key Control",
+      title: "Earn $BTS Tokens on Savings",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-7 h-7 text-primary">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.171-.879-1.171-2.303 0-3.182C10.582 7.72 11.35 7.5 12 7.5c.725 0 1.45.22 2.003.659" />
         </svg>
       ),
-      description: "You maintain full control of your private keys at all times. BitSave never has access to your funds."
+      description: "Get rewarded with $BTS tokens for consistent saving habits."
     },
     {
-      title: "Immutable Contracts",
+      title: "Secured with Child-Parent Contract",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-7 h-7 text-secondary">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
         </svg>
       ),
-      description: "Once deployed, our smart contracts cannot be modified, ensuring consistent and predictable behavior."
+      description: "Enhanced security through our innovative contract structure."
     }
   ];
+
+  const [isHovering, setIsHovering] = useState(false);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+  
+  // Clone features for infinite scroll effect on mobile
+  const duplicatedFeatures = [...securityFeatures, ...securityFeatures];
+  
+  // Continuous smooth scroll animation for mobile
+  useEffect(() => {
+    const isMobile = window.innerWidth < 1024; // lg breakpoint
+    if (!isMobile || isHovering) return;
+    
+    let animationFrameId: number;
+    let scrollPos = 0;
+    const scrollSpeed = 1; // Adjust for faster/slower scroll
+    
+    const animate = () => {
+      if (!carouselRef.current) return;
+      
+      scrollPos += scrollSpeed;
+      const maxScroll = (300 + 24) * securityFeatures.length; // card width + gap
+      
+      if (scrollPos >= maxScroll) {
+        scrollPos = 0;
+        carouselRef.current.scrollLeft = 0;
+      } else {
+        carouselRef.current.scrollLeft = scrollPos;
+      }
+      
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    
+    animate();
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [isHovering, securityFeatures.length]);
 
   return (
     <OptimizedSection id="security" className="py-24 px-4 md:px-8 lg:px-16 relative overflow-hidden bg-gradient-to-b from-white to-[#f8fafa]">
@@ -115,6 +140,7 @@ export default function Security() {
       </div>
       
       <div className="container mx-auto font-space-grotesk">
+        {/* Problems Section */}
         <motion.div 
           className="text-center mb-20"
           initial={{ opacity: 0, y: 20 }}
@@ -124,228 +150,505 @@ export default function Security() {
         >
           {/* Enhanced badge with glow effect */}
           <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
-            {/* Holographic shimmer effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/0 via-[#81D7B4]/20 to-[#81D7B4]/0 animate-shimmer"></div>
             <div className="absolute inset-0 bg-gradient-to-t from-[#81D7B4]/0 via-[#81D7B4]/10 to-[#81D7B4]/0 animate-shimmer-slow"></div>
             
             <div className="w-3 h-3 rounded-full bg-[#81D7B4] animate-pulse relative z-10"></div>
-            <span className="text-sm font-semibold text-[#81D7B4] uppercase tracking-wider relative z-10">Top-Tier Security Rating</span>
+            <span className="text-sm font-semibold text-[#81D7B4] uppercase tracking-wider relative z-10">Today&apos;s Problems</span>
           </div>
           
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80">
-              Enterprise-Grade Security
+              Today&apos;s Savings Problems
             </span>
           </h2>
-          
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Your assets are protected by multiple layers of security, from smart contract audits to non-custodial architecture.
-          </p>
-        </motion.div>
         
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Left side: Interactive Security visualization - light theme */}
-          <motion.div 
-            className="relative"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          >
-            <div className="backdrop-blur-xl bg-white/90 p-8 rounded-2xl border border-[#81D7B4]/10 shadow-[0_0_50px_rgba(129,215,180,0.1)] relative z-10 group hover:shadow-[0_0_70px_rgba(129,215,180,0.2)] transition-all duration-700">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#81D7B4]/5 to-[#81D7B4]/5 rounded-2xl"></div>
-              
-              {/* Animated security shield in the background */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-64 h-64 text-[#81D7B4]">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                </svg>
+          {/* Problems Content */}
+          <div className="glass-card p-6 sm:p-8 md:p-10 rounded-3xl relative overflow-hidden group animate-scale-in mt-12">
+            {/* Enhanced Background Effects */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/30 to-transparent backdrop-blur-xl"></div>
+            <div className="absolute inset-0 bg-[#81D7B4]/5 mix-blend-overlay"></div>
+            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] mix-blend-overlay"></div>
+            
+            {/* Animated Decorative Elements */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-px bg-gradient-to-r from-transparent via-[#81D7B4]/20 to-transparent"></div>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-px bg-gradient-to-r from-transparent via-[#81D7B4]/20 to-transparent"></div>
+            <div className="absolute -right-20 -top-20 w-96 h-96 bg-[#81D7B4]/5 rounded-full blur-3xl animate-float"></div>
+            <div className="absolute -left-10 -bottom-10 w-80 h-80 bg-[#81D7B4]/5 rounded-full blur-2xl animate-float" style={{ animationDelay: '-2s' }}></div>
+            
+            {/* Content */}
+            <div className="relative z-10 max-w-7xl mx-auto">
+              {/* Grid Container */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                {/* Left Column - Ifeanyi */}
+                <div className="relative p-6 sm:p-8 rounded-2xl bg-white/40 backdrop-blur-sm border border-[#81D7B4]/20 group/section hover:bg-white/50 transition-all duration-500">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-8 sm:mb-10">
+                    <div className="relative group shrink-0">
+                      <div className="absolute -inset-2 rounded-2xl bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                      <img 
+                        src="/images/savings-problems/ifeanyi-avatar.svg" 
+                        alt="Ifeanyi" 
+                        className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl shadow-lg relative transform group-hover:scale-105 transition-all duration-300"
+                      />
               </div>
-              
-              <div className="grid grid-cols-2 gap-6 relative z-10">
-                {securityFeatures.map((feature, index) => (
-                  <div 
-                    key={index}
-                    className={`backdrop-blur-md bg-white/80 p-5 rounded-xl border ${activeFeature === index ? 'border-[#81D7B4]/50' : 'border-gray-100'} flex flex-col items-center justify-center aspect-square group/card hover:scale-105 hover:bg-white/90 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md`}
-                    onMouseEnter={() => {
-                      setActiveFeature(index);
-                      setIsHovering(true);
-                    }}
-                    onMouseLeave={() => setIsHovering(false)}
-                  >
-                    <div className={`w-14 h-14 rounded-full ${activeFeature === index ? 'bg-[#81D7B4]/20' : 'bg-[#81D7B4]/10'} flex items-center justify-center mb-4 group-hover/card:bg-[#81D7B4]/20 transition-colors`}>
-                      <div className="text-[#81D7B4]">{feature.icon}</div>
+                    <div>
+                      <h3 className="text-base sm:text-lg md:text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600">Ifeanyi is a</h3>
+                      <span className="inline-block mt-2 sm:mt-3 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#81D7B4]/10 rounded-full text-[#81D7B4] font-medium text-sm sm:text-base border border-[#81D7B4]/20 shadow-sm transform hover:scale-105 transition-all duration-300">
+                        web3 User
+                      </span>
                     </div>
-                    <span className="font-semibold text-sm text-center text-gray-800">{feature.title}</span>
-                    
-                    {/* Pulsing ring when active */}
-                    {activeFeature === index && (
-                      <div className="absolute inset-0 border border-[#81D7B4]/30 rounded-xl scale-[1.03] animate-ping-slow opacity-70"></div>
-                    )}
                   </div>
-                ))}
+
+                  {/* Problems Grid */}
+                  <div className="space-y-4 sm:space-y-6">
+                    {[1, 2, 3].map((num) => (
+                      <motion.div 
+                        key={num}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: num * 0.1 }}
+                        className="group/card relative transform hover:-translate-y-1 transition-all duration-300"
+                      >
+                        {/* Card Container */}
+                        <div className="relative p-6 rounded-xl overflow-hidden">
+                          {/* Glassmorphic Background */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-white/40 backdrop-blur-md"></div>
+                          
+                          {/* Border Gradient */}
+                          <div className="absolute inset-0 p-[1px] rounded-xl bg-gradient-to-br from-[#81D7B4]/30 via-[#81D7B4]/10 to-transparent">
+                            <div className="h-full w-full rounded-xl bg-white/40"></div>
               </div>
               
-              {/* Feature description - light theme */}
-              <div className="mt-6 p-4 backdrop-blur-md bg-white/80 rounded-xl border border-gray-100 min-h-[80px] flex items-center justify-center shadow-sm">
-                <p className="text-center text-sm text-gray-600">
-                  {securityFeatures[activeFeature].description}
-                </p>
+                          {/* Content */}
+                          <div className="relative">
+                            {/* Problem Number */}
+                            <div className="flex items-center gap-4 mb-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-red-500/20 rounded-xl blur-lg transform group-hover/card:scale-150 transition-transform duration-700 opacity-0 group-hover/card:opacity-100"></div>
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center relative shadow-sm border border-red-100">
+                                  <svg className="w-5 h-5 md:w-6 md:h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                </div>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-gray-800">Problem {num}</h4>
+                                <div className="h-0.5 w-8 bg-gradient-to-r from-red-500/30 to-transparent rounded-full mt-1 transform origin-left group-hover/card:scale-x-150 transition-transform duration-500"></div>
               </div>
             </div>
             
-            {/* Decorative elements */}
-            <div className="absolute -z-10 w-64 h-64 bg-[#81D7B4]/10 rounded-full blur-3xl -bottom-10 -left-10"></div>
-            <div className="absolute top-1/2 -right-8 transform -translate-y-1/2 w-16 h-16 bg-[#81D7B4]/20 rounded-full blur-xl animate-pulse"></div>
+                            {/* Problem Text */}
+                            <p className="text-gray-600 leading-relaxed">
+                              {num === 1 && "Ifeanyi earns from his Web3 job and wants to save onchain, but there aren&apos;t any savings protocols—only investments protocols (DeFi)."}
+                              {num === 2 && "If Ifeanyi saves with a DeFi protocol, he&apos;ll have to deal with complex DeFi UX and also lose his savings to market volatility."}
+                              {num === 3 && "Ifeanyi also doesn&apos;t want to get tempted to touch his rent savings, by risking it in a degen trade to make a quick 2x."}
+                            </p>
+              </div>
+                </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right Column - Rukevwe */}
+                <div className="relative p-6 sm:p-8 rounded-2xl bg-white/40 backdrop-blur-sm border border-[#81D7B4]/20 group/section hover:bg-white/50 transition-all duration-500">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-8 sm:mb-10">
+                    <div className="relative group shrink-0">
+                      <div className="absolute -inset-2 rounded-2xl bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                      <img 
+                        src="/images/savings-problems/rukevwe-avatar.svg" 
+                        alt="Rukevwe" 
+                        className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl shadow-lg relative transform group-hover:scale-105 transition-all duration-300"
+                      />
+                    </div>
+                  <div>
+                      <h3 className="text-base sm:text-lg md:text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600">Rukevwe</h3>
+                      <span className="inline-block mt-2 sm:mt-3 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#81D7B4]/10 rounded-full text-[#81D7B4] font-medium text-sm sm:text-base border border-[#81D7B4]/20 shadow-sm transform hover:scale-105 transition-all duration-300">
+                        saves with banks
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Problems Grid */}
+                  <div className="space-y-4 sm:space-y-6">
+                    {[1, 2, 3].map((num) => (
+                      <motion.div 
+                        key={num}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: num * 0.1 }}
+                        className="group/card relative transform hover:-translate-y-1 transition-all duration-300"
+                      >
+                        {/* Card Container */}
+                        <div className="relative p-6 rounded-xl overflow-hidden">
+                          {/* Glassmorphic Background */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-white/40 backdrop-blur-md"></div>
+                          
+                          {/* Border Gradient */}
+                          <div className="absolute inset-0 p-[1px] rounded-xl bg-gradient-to-br from-[#81D7B4]/30 via-[#81D7B4]/10 to-transparent">
+                            <div className="h-full w-full rounded-xl bg-white/40"></div>
+                          </div>
+                          
+                          {/* Content */}
+                          <div className="relative">
+                            {/* Problem Number */}
+                            <div className="flex items-center gap-4 mb-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-red-500/20 rounded-xl blur-lg transform group-hover/card:scale-150 transition-transform duration-700 opacity-0 group-hover/card:opacity-100"></div>
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center relative shadow-sm border border-red-100">
+                                  <svg className="w-5 h-5 md:w-6 md:h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                </div>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-gray-800">Problem {num}</h4>
+                                <div className="h-0.5 w-8 bg-gradient-to-r from-red-500/30 to-transparent rounded-full mt-1 transform origin-left group-hover/card:scale-x-150 transition-transform duration-500"></div>
+                              </div>
+                            </div>
+                            
+                            {/* Problem Text */}
+                            <p className="text-gray-600 leading-relaxed">
+                              {num === 1 && "Rukevwe wants to avoid the Inflation on her local currency and the devaluation that affects her savings"}
+                              {num === 2 && "She tried to save in dollars through her banks but she needed to have at least $100 to begin, and the fees were expensive."}
+                              {num === 3 && "Her friend told her about using DeFi protocols, but she couldn&apos;t understand the UX."}
+                            </p>
+                  </div>
+                </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Solutions Section */}
+        <motion.div 
+          className="text-center mb-20"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        >
+          {/* Enhanced badge with glow effect */}
+          <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/0 via-[#81D7B4]/20 to-[#81D7B4]/0 animate-shimmer"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#81D7B4]/0 via-[#81D7B4]/10 to-[#81D7B4]/0 animate-shimmer-slow"></div>
             
-            {/* Tech decorative elements */}
-            <div className="absolute -bottom-4 -right-4 w-24 h-24 border border-[#81D7B4]/20 rounded-lg rotate-12 opacity-30"></div>
-            <div className="absolute -top-4 -left-4 w-16 h-16 border border-[#81D7B4]/20 rounded-lg -rotate-12 opacity-30"></div>
-          </motion.div>
+            <div className="w-3 h-3 rounded-full bg-[#81D7B4] animate-pulse relative z-10"></div>
+            <span className="text-sm font-semibold text-[#81D7B4] uppercase tracking-wider relative z-10">The Solution</span>
+          </div>
           
-          {/* Right side: Security features with animated tech elements - light theme */}
-          <motion.div 
-            className="space-y-8"
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          >
-            {/* Terminal-like security feature - lighter version */}
-            <div className="backdrop-blur-xl bg-[#f8fafa] p-1 rounded-xl border border-[#81D7B4]/20 relative overflow-hidden group hover:border-[#81D7B4]/40 transition-all duration-500 hover:shadow-[0_0_30px_rgba(129,215,180,0.15)] shadow-sm">
-              <div className="flex items-center gap-2 px-4 py-2 border-b border-[#81D7B4]/10">
-                <div className="w-3 h-3 rounded-full bg-red-400/70"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-400/70"></div>
-                <div className="w-3 h-3 rounded-full bg-green-400/70"></div>
-                <div className="text-xs text-gray-500 ml-2">security_protocol.sh</div>
-              </div>
-              
-              <div className="p-5 font-mono text-sm">
-                <div className="flex">
-                  <span className="text-[#81D7B4] mr-2">$</span>
-                  <span className="text-gray-600">running security_check</span>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80">
+              The Bitsave Solution
+            </span>
+          </h2>
+        </motion.div>
+
+        {/* Features Strip - Auto-scrolling Carousel */}
+        <div className="hidden lg:grid grid-cols-4 gap-6 mb-12">
+          {securityFeatures.map((feature, index) => (
+            <motion.div
+              key={`desktop-${index}`}
+              className="group relative"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              {/* Card Container */}
+              <div className="relative h-full p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#81D7B4]/20 transition-all duration-500 group-hover:translate-y-[-2px] overflow-hidden">
+                {/* Decorative SVG Elements */}
+                <div className="absolute top-0 right-0 w-24 h-24 opacity-[0.07] pointer-events-none">
+                  <svg viewBox="0 0 100 100" className="w-full h-full transform rotate-45">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#81D7B4] animate-spin-slow" />
+                    <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#81D7B4] animate-spin-slow" style={{ animationDirection: 'reverse' }} />
+                    <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#81D7B4] animate-spin-slow" />
+                  </svg>
                 </div>
-                <div className="mt-2 flex items-start">
-                  <span className="text-[#81D7B4] mr-2"></span>
-                  <div>
-                    <span className="text-[#81D7B4]">Smart Contract Audit</span>
-                    <span className="text-gray-600">: </span>
-                    <span className="text-green-500">PASSED</span>
-                    <div className="text-xs text-gray-500 mt-1">All contracts verified on-chain with public source code</div>
-                  </div>
-                </div>
-                <div className="mt-2 flex items-start">
-                  <span className="text-[#81D7B4] mr-2"></span>
-                  <div>
-                    <span className="text-[#81D7B4]">Vulnerability Scan</span>
-                    <span className="text-gray-600">: </span>
-                    <span className="text-green-500">SECURE</span>
-                    <div className="text-xs text-gray-500 mt-1">No critical vulnerabilities detected</div>
-                  </div>
-                </div>
-                <div className="mt-2 flex items-start">
-                  <span className="text-[#81D7B4] mr-2"></span>
-                  <div className="flex items-center">
-                    <span className="text-[#81D7B4]">Encryption</span>
-                    <span className="text-gray-600">: </span>
-                    <span className="text-green-500 ml-1">ACTIVE</span>
-                    <div className="w-2 h-2 bg-green-500 rounded-full ml-2 animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Blockchain security feature with animated elements - light theme */}
-            <div className="backdrop-blur-xl bg-white/90 p-6 rounded-xl border border-[#81D7B4]/10 relative overflow-hidden group hover:bg-white transition-all duration-500 hover:shadow-[0_0_30px_rgba(129,215,180,0.15)] shadow-sm">
-              <div className="absolute top-0 right-0 bg-[#81D7B4] text-xs font-bold py-1 px-3 rounded-bl-lg text-white">BLOCKCHAIN</div>
-              <div className="absolute -right-20 -top-20 w-40 h-40 bg-[#81D7B4]/5 rounded-full blur-3xl group-hover:bg-[#81D7B4]/10 transition-colors"></div>
-              
-              {/* Animated blockchain in background */}
-              <div className="absolute right-4 bottom-4 opacity-10 pointer-events-none">
-                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#81D7B4]">
-                  <path d="M60 10L100 30V90L60 110L20 90V30L60 10Z" stroke="currentColor" strokeWidth="2" />
-                  <path d="M60 40L100 20M60 40L20 20M60 40V100" stroke="currentColor" strokeWidth="2" />
+                
+                {/* Corner Patterns */}
+                <div className="absolute top-0 left-0 w-16 h-16 opacity-[0.07] pointer-events-none">
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <pattern id={`grid-${index}`} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                      <circle cx="5" cy="5" r="1" fill="currentColor" className="text-[#81D7B4]" />
+                    </pattern>
+                    <rect width="100" height="100" fill={`url(#grid-${index})`} />
                 </svg>
               </div>
               
-              <div className="relative z-10">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-[#81D7B4]">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                {/* Bottom Right Circuit Pattern */}
+                <div className="absolute bottom-0 right-0 w-20 h-20 opacity-[0.07] pointer-events-none transform rotate-45">
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <path d="M10,50 L90,50 M50,10 L50,90 M30,30 L70,70 M70,30 L30,70" 
+                          stroke="currentColor" 
+                          strokeWidth="1" 
+                          className="text-[#81D7B4]" 
+                          fill="none"
+                          strokeDasharray="5,5" />
                   </svg>
-                  Smart Contract Security
-                </h3>
-                <p className="text-gray-600 mb-4">
-                Our smart contracts are professionally audited and verified on-chain, with open-source code for full transparency. We prioritize robust security measures to ensure user protection and system integrity.
-                </p>
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-[#81D7B4]/20 to-transparent my-4"></div>
+                </div>
+
+                {/* Animated Border */}
+                <div className="absolute inset-[-1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none"
+                     style={{
+                       background: 'linear-gradient(90deg, transparent, rgba(129,215,180,0.3), transparent)',
+                       backgroundSize: '200% 100%',
+                       animation: 'shimmer 2s infinite'
+                     }}
+                ></div>
                 
-                {/* Security metrics with tech styling */}
-                <div className="grid grid-cols-2 gap-2 text-center">
-                  <div className="backdrop-blur-md bg-white/90 p-2 rounded-lg border border-[#81D7B4]/10 shadow-sm">
-                    <div className="text-lg font-bold text-[#81D7B4]">100%</div>
-                    <div className="text-xs text-gray-500 mt-1">Code Coverage</div>
+                {/* Content */}
+                <div className="relative z-10">
+                  {/* Icon */}
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-[#81D7B4]/20 rounded-xl blur-xl transform group-hover:scale-150 transition-transform duration-700"></div>
+                    <div className="relative w-14 h-14 rounded-xl bg-gradient-to-br from-[#81D7B4]/20 to-[#81D7B4]/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                      <div className="text-[#81D7B4] transform group-hover:scale-110 transition-transform duration-500">
+                        {feature.icon}
+                      </div>
+                    </div>
                   </div>
                  
-                  <div className="backdrop-blur-md bg-white/90 p-2 rounded-lg border border-[#81D7B4]/10 shadow-sm">
-                    <div className="text-lg font-bold text-[#81D7B4]">0</div>
-                    <div className="text-xs text-gray-500 mt-1">Vulnerabilities</div>
+                  {/* Title */}
+                  <div className="relative mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">{feature.title}</h3>
+                    <div className="h-0.5 w-12 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/30 rounded-full transform origin-left group-hover:w-full transition-all duration-700"></div>
+                  </div>
+                  
+                  {/* Description */}
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+                
+                {/* Hover Effects */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#81D7B4]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700 rounded-2xl pointer-events-none"></div>
+                <div className="absolute inset-0 bg-[url('/grain-texture.png')] opacity-[0.03] mix-blend-overlay rounded-2xl pointer-events-none"></div>
+              </div>
+            </motion.div>
+          ))}
+            </div>
+            
+        {/* Features - Mobile Continuous Scroll */}
+        <div className="lg:hidden relative overflow-hidden">
+          <div 
+            ref={carouselRef}
+            className="flex gap-6 pb-12 overflow-x-hidden"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            onTouchStart={() => setIsHovering(true)}
+            onTouchEnd={() => setIsHovering(false)}
+            style={{
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {/* Duplicate features for seamless loop */}
+            {duplicatedFeatures.map((feature, index) => (
+              <motion.div
+                key={`mobile-${index}`}
+                className="relative w-[300px] flex-shrink-0"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                {/* Use the same card content as desktop */}
+                <div className="relative h-full p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#81D7B4]/20 transition-all duration-500 group-hover:translate-y-[-2px]">
+                  {/* Decorative SVG Elements */}
+                  <div className="absolute top-0 right-0 w-24 h-24 opacity-[0.07] pointer-events-none">
+                    <svg viewBox="0 0 100 100" className="w-full h-full transform rotate-45">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#81D7B4] animate-spin-slow" />
+                      <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#81D7B4] animate-spin-slow" style={{ animationDirection: 'reverse' }} />
+                      <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#81D7B4] animate-spin-slow" />
+                    </svg>
+                  </div>
+                  
+                  {/* Corner Patterns */}
+                  <div className="absolute top-0 left-0 w-16 h-16 opacity-[0.07] pointer-events-none">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <pattern id={`grid-${index}`} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                        <circle cx="5" cy="5" r="1" fill="currentColor" className="text-[#81D7B4]" />
+                      </pattern>
+                      <rect width="100" height="100" fill={`url(#grid-${index})`} />
+                    </svg>
+                  </div>
+
+                  {/* Bottom Right Circuit Pattern */}
+                  <div className="absolute bottom-0 right-0 w-20 h-20 opacity-[0.07] pointer-events-none transform rotate-45">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <path d="M10,50 L90,50 M50,10 L50,90 M30,30 L70,70 M70,30 L30,70" 
+                            stroke="currentColor" 
+                            strokeWidth="1" 
+                            className="text-[#81D7B4]" 
+                            fill="none"
+                            strokeDasharray="5,5" />
+                    </svg>
+                  </div>
+
+                  {/* Animated Border */}
+                  <div className="absolute inset-[-1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none"
+                       style={{
+                         background: 'linear-gradient(90deg, transparent, rgba(129,215,180,0.3), transparent)',
+                         backgroundSize: '200% 100%',
+                         animation: 'shimmer 2s infinite'
+                       }}
+                  ></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    {/* Icon */}
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-[#81D7B4]/20 rounded-xl blur-xl transform group-hover:scale-150 transition-transform duration-700"></div>
+                      <div className="relative w-14 h-14 rounded-xl bg-gradient-to-br from-[#81D7B4]/20 to-[#81D7B4]/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                        <div className="text-[#81D7B4] transform group-hover:scale-110 transition-transform duration-500">
+                          {feature.icon}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Title */}
+                    <div className="relative mb-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{feature.title}</h3>
+                      <div className="h-0.5 w-12 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/30 rounded-full transform origin-left group-hover:w-full transition-all duration-700"></div>
+                    </div>
+                    
+                    {/* Description */}
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Market Opportunity Section */}
+        <motion.div 
+          className="mt-32 mb-24"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        >
+          {/* Enhanced badge with glow effect */}
+          <div className="text-center">
+            <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/0 via-[#81D7B4]/20 to-[#81D7B4]/0 animate-shimmer"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#81D7B4]/0 via-[#81D7B4]/10 to-[#81D7B4]/0 animate-shimmer-slow"></div>
+              
+              <div className="w-3 h-3 rounded-full bg-[#81D7B4] animate-pulse relative z-10"></div>
+              <span className="text-sm font-semibold text-[#81D7B4] uppercase tracking-wider relative z-10">Market Opportunity</span>
+            </div>
+            
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80">
+                The SaveFi Market Opportunity
+              </span>
+            </h2>
+          </div>
+
+          {/* Main Content Container */}
+          <div className="mt-12 relative">
+            {/* Neomorphic Background with Web3 Elements */}
+            <div className="absolute inset-0 bg-[#f8fafa] rounded-3xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]"></div>
+            <div className="absolute inset-0 bg-[url('/circuit-pattern.svg')] opacity-[0.03] mix-blend-overlay"></div>
+            
+            {/* Floating Elements */}
+            <div className="absolute -right-20 -top-20 w-96 h-96 bg-[#81D7B4]/5 rounded-full blur-3xl animate-float"></div>
+            <div className="absolute -left-10 -bottom-10 w-80 h-80 bg-[#81D7B4]/5 rounded-full blur-2xl animate-float" style={{ animationDelay: '-2s' }}></div>
+            
+            {/* Content Grid */}
+            <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 md:p-12">
+              {/* Left Column - Main Text */}
+              <div className="space-y-8">
+                {/* Intro Text Card */}
+                <div className="p-8 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#81D7B4]/20 shadow-lg relative overflow-hidden group hover:bg-white/70 transition-all duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#81D7B4]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
+                  <p className="text-lg md:text-xl text-gray-800 leading-relaxed relative z-10">
+                    Web3 already has DeFi, Bitsave introduces <span className="font-bold text-[#81D7B4]">SaveFi</span>, a trend that normalizes onchain savings rather than onchain investments.
+                  </p>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {/* Stat Card 1 */}
+                  <div className="p-6 rounded-2xl bg-white/40 backdrop-blur-sm border border-[#81D7B4]/20 relative group hover:bg-white/50 transition-all duration-500">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#81D7B4]/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl"></div>
+                    <div className="relative z-10">
+                      <div className="text-4xl font-bold text-[#81D7B4] mb-3">70%+</div>
+                      <p className="text-gray-600">of onchain users engage in frequent trading, with no structured savings behavior.</p>
+                    </div>
+                  </div>
+
+                  {/* Stat Card 2 */}
+                  <div className="p-6 rounded-2xl bg-white/40 backdrop-blur-sm border border-[#81D7B4]/20 relative group hover:bg-white/50 transition-all duration-500">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#81D7B4]/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl"></div>
+                    <div className="relative z-10">
+                      <div className="text-4xl font-bold text-[#81D7B4] mb-3">60%+</div>
+                      <p className="text-gray-600">of Web3 income earners admit to dipping into savings meant for essentials like <span className="font-semibold">rent, tuition, or bills</span>.</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Non-custodial architecture feature */}
-            <div className="backdrop-blur-xl bg-white/90 p-6 rounded-xl border border-[#81D7B4]/10 relative overflow-hidden group hover:bg-white transition-all duration-500 hover:shadow-[0_0_30px_rgba(129,215,180,0.15)] shadow-sm">
-              <div className="absolute -right-20 -top-20 w-40 h-40 bg-[#81D7B4]/5 rounded-full blur-3xl group-hover:bg-[#81D7B4]/10 transition-colors"></div>
-              
-              <div className="relative z-10">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-[#81D7B4]">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Non-Custodial Architecture
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  BitSave operates on a non-custodial model, meaning we never hold your private keys or have access to your funds.
-                  You maintain complete control over your assets at all times through your personal wallet.
-                </p>
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-[#81D7B4]/20 to-transparent my-4"></div>
-                
-                {/* Tech diagram */}
-                <div className="relative h-16 mb-4">
-                  <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-lg backdrop-blur-md bg-white/80 border border-[#81D7B4]/10 flex items-center justify-center shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-[#81D7B4]">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />
-                    </svg>
+
+              {/* Right Column - Additional Stats */}
+              <div className="space-y-8">
+                {/* Market Size Card */}
+                <div className="p-8 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#81D7B4]/20 relative group hover:bg-white/70 transition-all duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#81D7B4]/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 rounded-xl bg-[#81D7B4]/10 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#81D7B4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800">Market Size</h3>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed">
+                      <span className="font-bold text-[#81D7B4]">190,000+</span> people currently earn from web3 jobs, but no onchain Savings protocol exists in web3 to serve them.
+                    </p>
                   </div>
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-lg backdrop-blur-md bg-white/80 border border-[#81D7B4]/10 flex items-center justify-center shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-[#81D7B4]">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 9.563C9 9.252 9.252 9 9.563 9h4.874c.311 0 .563.252.563.563v4.874c0 .311-.252.563-.563.563H9.564A.562.562 0 019 14.437V9.564z" />
-                    </svg>
-                  </div>
-                  <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-lg backdrop-blur-md bg-white/80 border border-[#81D7B4]/10 flex items-center justify-center z-10 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8 text-[#81D7B4]">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                    </svg>
-                  </div>
-                  <div className="absolute left-[calc(25%-6px)] top-1/2 transform -translate-y-1/2 w-[calc(25%+12px)] h-px bg-gradient-to-r from-[#81D7B4]/50 to-[#81D7B4]/20"></div>
-                  <div className="absolute right-[calc(25%-6px)] top-1/2 transform -translate-y-1/2 w-[calc(25%+12px)] h-px bg-gradient-to-l from-[#81D7B4]/50 to-[#81D7B4]/20"></div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#81D7B4]/10 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 text-[#81D7B4]">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                {/* Adoption Card */}
+                <div className="p-8 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#81D7B4]/20 relative group hover:bg-white/70 transition-all duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#81D7B4]/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 rounded-xl bg-[#81D7B4]/10 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#81D7B4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800">Stablecoin Adoption</h3>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed">
+                      Stable coins are getting increased adoption in web2 spaces and African regions like Shopify enabling USDC payments. The next urgent need is not spending tools, but <span className="font-semibold text-[#81D7B4]">savings tools</span>.
+                    </p>
                   </div>
-                  <span className="text-sm text-gray-700">Your keys, your crypto - always</span>
+                </div>
+
+                {/* Conclusion Card */}
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-[#81D7B4] to-[#81D7B4]/80 relative group">
+                  <div className="absolute inset-0 bg-[url('/grain-texture.png')] opacity-[0.1] mix-blend-overlay"></div>
+                  <p className="text-white font-semibold text-lg relative z-10">
+                    Bitsave fills this gap by offering SaveFi
+                  </p>
+                </div>
                 </div>
               </div>
             </div>
           </motion.div>
-        </div>
       </div>
   </OptimizedSection>
   )

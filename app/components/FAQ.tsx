@@ -1,104 +1,45 @@
 'use client'
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
-type FAQItemProps = {
-  question: string;
-  answer: string;
-  index: number;
-  isActive: boolean;
-  onToggle: () => void;
-};
-
-function FAQItem({ question, answer, index, isActive, onToggle }: FAQItemProps) {
-  const itemRef = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
-  
-  const variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.5,
-        ease: [0.25, 0.1, 0.25, 1.0],
-      },
-    }),
-  };
-
-  return (
-    <motion.div
-      ref={itemRef}
-      className={`backdrop-blur-md bg-white/90 border ${isActive ? 'border-primary/30' : 'border-gray-200'} rounded-2xl relative overflow-hidden transition-all duration-500 ${isActive ? 'shadow-[0_0_25px_rgba(129,215,180,0.15)]' : 'shadow-sm'}`}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
-      custom={index}
-      variants={variants}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Animated background elements */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-30"></div>
-      
-      {/* Shimmer effect */}
-      <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -z-5 transform -translate-x-full ${hovered ? 'animate-shimmer' : ''}`}></div>
-      
-      <button 
-        className="flex justify-between items-center w-full text-left p-6"
-        onClick={onToggle}
-        aria-expanded={isActive}
-      >
-        <div className="flex items-center gap-4">
-          <div className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-500 ${isActive ? 'bg-gradient-to-r from-[#81D7B4] to-secondary text-white' : 'bg-[#81D7B4]/10 text-[#81D7B4]'}`}>
-            {index + 1}
-          </div>
-          <span className={`text-xl font-medium transition-colors duration-300 ${isActive ? 'text-black' : 'text-black'}`}>{question}</span>
-        </div>
-        <div className={`relative w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${isActive ? 'bg-[#81D7B4] text-white rotate-180' : 'bg-[#81D7B4]/10 text-[#81D7B4]'}`}>
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor" 
-            className="w-5 h-5"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </button>
-      
-      <AnimatePresence>
-        {isActive && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-            <div className="p-6 pt-0 border-t border-primary/10">
-              <div className="bg-white/80 p-4 rounded-xl backdrop-blur-sm">
-                <p className="text-gray-600 text-lg leading-relaxed">{answer}</p>
-              </div>
-              
-              {/* Decorative elements */}
-              <div className="mt-4 flex items-center gap-2">
-                <div className="h-1 w-3 rounded-full bg-primary/30"></div>
-                <div className="h-1 w-6 rounded-full bg-primary/50"></div>
-                <div className="h-1 w-3 rounded-full bg-primary/30"></div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
+// Combine all cards into one array
+const allCards = [
+  {
+    id: '01',
+    question: "What fees do I pay to use BitSave?",
+    answer: "You pay a $1 fee per savings plan, split evenly between the CryptoSmart wallet (for operational costs) and the Buy Back Wallet (for $BTS buybacks).",
+    color: 'bg-[#81D7B4]/10',
+    pinColor: 'bg-[#81D7B4]',
+    hoverColor: 'hover:bg-[#81D7B4]/20'
+  },
+  {
+    id: '02',
+    question: "Can I create multiple savings plans?",
+    answer: "Yes, users can create multiple savings plans, each with its own principal, lock period, and penalty settings (10%–30%).",
+    color: 'bg-[#81D7B4]/5',
+    pinColor: 'bg-[#81D7B4]',
+    hoverColor: 'hover:bg-[#81D7B4]/15'
+  },
+  {
+    id: '03',
+    question: "What is the penalty for breaking a savings plan?",
+    answer: "You set the penalty (10%–30% of your savings) when creating the plan. If you break it early, this penalty is deducted and sent to the CryptoSmart wallet.",
+    color: 'bg-[#81D7B4]/8',
+    pinColor: 'bg-[#81D7B4]',
+    hoverColor: 'hover:bg-[#81D7B4]/18'
+  },
+  {
+    id: '04',
+    question: "Still have questions?",
+    answer: "Our team is available 24/7 to help you with any questions about BitSave. We're here to support your crypto savings journey.",
+    color: 'bg-[#81D7B4]/5',
+    pinColor: 'bg-[#81D7B4]',
+    hoverColor: 'hover:bg-[#81D7B4]/15',
+    isContact: true
+  }
+];
 
 export default function FAQ() {
-  const [activeIndex, setActiveIndex] = useState<number | null>(0);
   const sectionRef = useRef<HTMLElement>(null);
   
   // Handle mouse movement for interactive background elements
@@ -125,66 +66,34 @@ export default function FAQ() {
     return () => document.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const faqItems = [
-    {
-      question: "What fees do I pay to use BitSave?",
-      answer: "You pay a $1 fee per savings plan, split evenly between the CryptoSmart wallet (for operational costs) and the Buy Back Wallet (for $BTS buybacks)."
-    },
-    {
-      question: "Can I create multiple savings plans?",
-      answer: "Yes, users can create multiple savings plans, each with its own principal, lock period, and penalty settings (1%–5%)."
-    },
-    {
-      question: "What is the penalty for breaking a savings plan?",
-      answer: "You set the penalty (1%–5% of your savings) when creating the plan. If you break it early, this penalty is deducted and sent to the CryptoSmart wallet."
-    }
-];
-
-
-  const toggleFAQ = (index: number) => {
-    setActiveIndex(activeIndex === index ? null : index);
-  };
-
   return (
-    <section id="faq" ref={sectionRef} className="py-24 px-4 md:px-8 lg:px-16 relative overflow-hidden bg-gradient-to-b from-white to-[#f8fafa]">
-      {/* Enhanced background elements */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(129,215,180,0.05)_0%,transparent_70%)] pointer-events-none"></div>
-      <div className="absolute -z-10 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] bottom-1/4 right-0 transform translate-x-1/2 animate-pulse-slow glow-element"></div>
-      <div className="absolute -z-10 w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[100px] top-1/4 left-0 transform -translate-x-1/3 animate-pulse-slow-delayed glow-element"></div>
+    <section id="faq" ref={sectionRef} className="py-24 px-4 md:px-8 lg:px-16 relative overflow-hidden bg-[#f8fafa]">
+      {/* Background Elements */}
+      <div className="absolute inset-0 -z-10 bg-[url('/grain-texture.png')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
+      <div className="absolute inset-0 -z-10 bg-[url('/circuit-pattern.svg')] opacity-[0.02] pointer-events-none"></div>
       
-      {/* Decorative elements - increased opacity and ensured visibility */}
-      <div className="absolute top-20 right-20 w-24 h-24 border-2 border-primary/30 rounded-lg rotate-12 opacity-60 lg:block hidden"></div>
-      <div className="absolute bottom-20 left-20 w-16 h-16 border-2 border-secondary/30 rounded-lg -rotate-12 opacity-60 lg:block hidden"></div>
-      
-      {/* Decorative elements */}
-      <div className="absolute top-20 right-20 w-24 h-24 border border-primary/20 rounded-lg rotate-12 opacity-30 hidden lg:block"></div>
-      <div className="absolute bottom-20 left-20 w-16 h-16 border border-secondary/20 rounded-lg -rotate-12 opacity-30 hidden lg:block"></div>
-      
-      <div className="container mx-auto relative z-10">
+      {/* Floating Elements */}
+      <div className="absolute -z-10 w-[600px] h-[600px] bg-[#81D7B4]/5 rounded-full blur-[100px] top-1/4 right-0 transform translate-x-1/3 animate-pulse-slow"></div>
+      <div className="absolute -z-10 w-[500px] h-[500px] bg-[#81D7B4]/5 rounded-full blur-[100px] bottom-0 left-0 transform -translate-x-1/3 animate-pulse-slow-delayed"></div>
+
+      <div className="container mx-auto max-w-7xl">
+        {/* Section Header */}
         <motion.div 
-          className="text-center mb-16"
+          className="text-center mb-20"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
-          {/* Enhanced badge with glow effect - fixed centering and text visibility */}
-          <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
-              {/* Holographic shimmer effect */}
+          <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/0 via-[#81D7B4]/20 to-[#81D7B4]/0 animate-shimmer"></div>
               <div className="absolute inset-0 bg-gradient-to-t from-[#81D7B4]/0 via-[#81D7B4]/10 to-[#81D7B4]/0 animate-shimmer-slow"></div>
               
-              <div className="w-3 h-3 rounded-full bg-[#81D7B4] animate-pulse relative z-10"></div>
-              <span className="text-sm font-semibold text-[#81D7B4] uppercase tracking-wider relative z-10">Common Questions</span>
-            </div>
+            <div className="w-2 h-2 rounded-full bg-[#81D7B4] animate-pulse relative z-10"></div>
+            <span className="text-sm font-medium text-[#81D7B4] uppercase tracking-wider relative z-10">Common Questions</span>
           </div>
           
-          {/* Decorative box elements - added to ensure visibility */}
-          <div className="absolute top-0 right-20 w-24 h-24 border border-[#81D7B4] rounded-lg rotate-12 opacity-50 lg:block hidden"></div>
-          <div className="absolute bottom-0 left-20 w-16 h-16 border border-[#81D7B4] rounded-lg -rotate-12 opacity-50 lg:block hidden"></div>
-          
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80">
               Frequently Asked Questions
             </span>
@@ -195,119 +104,87 @@ export default function FAQ() {
           </p>
         </motion.div>
         
-        <div className="max-w-3xl mx-auto space-y-4">
-          {faqItems.map((item, index) => (
-            <FAQItem 
-              key={index} 
-              question={item.question} 
-              answer={item.answer} 
-              index={index}
-              isActive={activeIndex === index}
-              onToggle={() => toggleFAQ(index)}
-            />
-          ))}
-        </div>
-        
-        {/* Enhanced Call to action */}
+        {/* FAQ Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {allCards.map((card, index) => (
         <motion.div 
-          className="mt-16 text-center"
+              key={card.id}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <div className="backdrop-blur-2xl bg-white/70 border border-[#81D7B4]/20 p-8 md:p-10 rounded-2xl max-w-2xl mx-auto relative overflow-hidden group shadow-lg">
-            {/* Grain texture overlay */}
-            <div className="absolute inset-0 bg-[url('/grain-texture.png')] opacity-[0.07] mix-blend-overlay pointer-events-none"></div>
-            
-            {/* Gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#81D7B4]/10 via-transparent to-secondary/10 opacity-70"></div>
-            
-            {/* Floating blobs */}
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#81D7B4]/10 rounded-full blur-3xl animate-blob"></div>
-            <div className="absolute -bottom-32 -left-20 w-72 h-72 bg-secondary/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-accent/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
-            
-            {/* Decorative elements - increased visibility */}
-            <div className="absolute top-6 left-6 w-20 h-20 border-2 border-primary/30 rounded-lg rotate-12 opacity-60"></div>
-            <div className="absolute bottom-6 right-6 w-16 h-16 border-2 border-secondary/30 rounded-lg -rotate-12 opacity-60"></div>
-            
-            {/* Floating particles */}
-            <div className="absolute inset-0 overflow-hidden">
-              {[...Array(6)].map((_, i) => (
-                <div 
-                  key={i}
-                  className="absolute w-1 h-1 rounded-full bg-primary/60"
-                  style={{
-                    top: `${10 + (i * 15)}%`,
-                    left: `${5 + (i * 16)}%`,
-                    animation: `float-particle ${3 + i}s ease-in-out infinite ${i * 0.5}s`
-                  }}
-                ></div>
-              ))}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="group relative"
+            >
+              <div className={`relative p-8 rounded-2xl ${card.color} shadow-lg backdrop-blur-xl border border-[#81D7B4]/20 transition-all duration-500 ${card.hoverColor} group-hover:shadow-xl h-full`}>
+                {/* Background Effects */}
+                <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/30 to-transparent opacity-50"></div>
+                  <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] mix-blend-overlay"></div>
             </div>
             
-            {/* Glowing border effect */}
-            <div className="absolute inset-0 rounded-2xl border border-primary/10 opacity-50 group-hover:border-primary/30 transition-colors duration-500"></div>
-            <div className="absolute inset-[1px] rounded-[14px] border border-primary/5 group-hover:border-primary/20 transition-colors duration-500"></div>
-            
-            <div className="relative z-10">
-              {/* Modern badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-sm">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">Support Available 24/7</span>
+                {/* Content */}
+                <div className="relative z-10 h-full flex flex-col">
+                  {/* Question Number & Pin */}
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-[#81D7B4] to-[#81D7B4]/80">
+                        {card.id}
+                      </span>
+                      <div className={`w-2 h-2 rounded-full ${card.pinColor} animate-pulse`}></div>
               </div>
-              
-              <h3 className="text-2xl md:text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Still have questions?</h3>
-              
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#81D7B4" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
                   </div>
-                  <span className="text-sm text-gray-600">Expert Support</span>
+
+                  {/* Question */}
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4 group-hover:text-gray-900 transition-colors duration-300">
+                    {card.question}
+                  </h3>
+
+                  {/* Answer */}
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    {card.answer}
+                  </p>
+
+                  {/* Contact Actions */}
+                  {card.isContact && (
+                    <div className="flex flex-col sm:flex-row gap-4 mt-auto">
+                      <a 
+                        href="mailto:support@bitsave.finance" 
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-[#81D7B4] text-white rounded-xl hover:bg-[#81D7B4]/90 transition-colors duration-300 group/button relative overflow-hidden flex-1"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover/button:translate-x-full transition-transform duration-1000"></div>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                          <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <span>Email Support</span>
+                      </a>
+                      
+                      <a 
+                        href="https://t.me/bitsave" 
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-white/80 text-gray-800 rounded-xl border border-[#81D7B4]/20 hover:bg-white hover:border-[#81D7B4]/40 transition-all duration-300 group/button relative overflow-hidden flex-1"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/0 via-[#81D7B4]/10 to-[#81D7B4]/0 -translate-x-full group-hover/button:translate-x-full transition-transform duration-1000"></div>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[#81D7B4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21.2 5L2.5 12.3c-1.2.5-1.2 1.7 0 2.1l4.7 1.5L17.5 8"></path>
+                          <path d="M7.2 15.9l1.5 4.7c.4 1.2 1.6 1.2 2.1 0L18 2.5"></path>
+                    </svg>
+                        <span>Join Telegram</span>
+                      </a>
+                  </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#7F66F9" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+
+                {/* Decorative Elements */}
+                <div className="absolute top-4 right-4 w-12 h-12 opacity-[0.07]">
+                  <svg viewBox="0 0 100 100" className="w-full h-full transform rotate-45">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#81D7B4] animate-spin-slow" />
+                    <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#81D7B4] animate-spin-slow" style={{ animationDirection: 'reverse' }} />
                     </svg>
-                  </div>
-                  <span className="text-sm text-gray-600">Quick Response</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#F97066" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-                    </svg>
-                  </div>
-                  <span className="text-sm text-gray-600">Personalized Help</span>
                 </div>
               </div>
-                
-              <p className="text-lg text-gray-600 mb-8">Our team is here to help you navigate the world of crypto savings</p>
-              
-              <a 
-                href="#contact" 
-                className="relative inline-flex items-center gap-2 px-8 py-3 text-lg font-medium text-white rounded-xl overflow-hidden group/button"
-              >
-                {/* Button background with animated gradient */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-100 group-hover/button:opacity-90 transition-opacity duration-300"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 group-hover/button:opacity-100 blur-xl transition-opacity duration-300"></div>
-                
-                {/* Button shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/button:translate-x-full transition-transform duration-1000"></div>
-                
-                <span className="relative z-10">Contact Our Team</span>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 relative z-10 group-hover/button:translate-x-1 transition-transform duration-300">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </a>
-            </div>
+            </motion.div>
+          ))}
           </div>
-        </motion.div>
       </div>
       
       {/* Decorative elements */}
