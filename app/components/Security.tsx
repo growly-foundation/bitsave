@@ -175,7 +175,7 @@ export default function Security() {
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-px bg-gradient-to-r from-transparent via-[#81D7B4]/20 to-transparent"></div>
             <div className="absolute -right-20 -top-20 w-96 h-96 bg-[#81D7B4]/5 rounded-full blur-3xl animate-float"></div>
             <div className="absolute -left-10 -bottom-10 w-80 h-80 bg-[#81D7B4]/5 rounded-full blur-2xl animate-float" style={{ animationDelay: '-2s' }}></div>
-            
+              
             {/* Content */}
             <div className="relative z-10 max-w-7xl mx-auto">
               {/* Grid Container */}

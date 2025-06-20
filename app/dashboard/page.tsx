@@ -704,7 +704,7 @@ export default function Dashboard() {
       <p className="text-gray-600 mb-6 max-w-md mx-auto">Your completed savings plans will appear here. Keep saving to reach your goals!</p>
       <div className="inline-flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl border border-gray-200/50 transition-all duration-300">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 00-1 1v3a1 1 0 002 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
         </svg>
         Keep Saving
       </div>
@@ -1045,22 +1045,6 @@ export default function Dashboard() {
           >
             Completed
           </button>
-
-          {/* Fixed View All Plans button - show only when there are more than 3 plans */}
-          <div className="ml-auto">
-            {((activeTab === 'current' && savingsData.currentPlans.length > 3) ||
-              (activeTab === 'completed' && savingsData.completedPlans.length > 3)) && (
-                <Link
-                  href="/dashboard/plans"
-                  className="text-xs font-medium text-[#81D7B4] bg-[#81D7B4]/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-[#81D7B4]/20 hover:bg-[#81D7B4]/20 transition-all duration-300 flex items-center"
-                >
-                  View All Plans
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-3 h-3 ml-1">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              )}
-          </div>
         </div>
 
         {/* Savings plan cards with empty states */}
@@ -1074,125 +1058,127 @@ export default function Dashboard() {
               <>
                 {/* Show only first 3 plans on dashboard */}
                 {savingsData.currentPlans.slice(0, 3).map((plan) => (
-                  <motion.div
-                    key={plan.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(31,38,135,0.1)] p-6 hover:shadow-[0_8px_32px_rgba(129,215,180,0.2)] transition-all duration-300 relative overflow-hidden group"
-                  >
-                    {/* Enhanced glassmorphism effects */}
-                    <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
-                    <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
-                    <div className="absolute -left-10 -top-10 w-60 h-60 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80"></div>
+                  <div className="relative bg-white/70 backdrop-blur-2xl rounded-3xl border border-[#81D7B4]/30 shadow-[0_8px_32px_rgba(129,215,180,0.18),0_1.5px_8px_rgba(34,158,217,0.10)] p-7 md:p-8 hover:shadow-[0_16px_48px_rgba(129,215,180,0.22)] transition-all duration-300 group overflow-hidden flex flex-col gap-6 before:absolute before:inset-0 before:rounded-3xl before:bg-gradient-to-br before:from-white/60 before:to-[#81D7B4]/10 before:opacity-80 before:pointer-events-none after:absolute after:inset-0 after:rounded-3xl after:shadow-[inset_0_2px_16px_rgba(129,215,180,0.10),inset_0_1.5px_8px_rgba(34,158,217,0.08)] after:pointer-events-none">
+                    {/* Decorative gradients */}
+                    <div className="absolute -top-16 -right-16 w-56 h-56 bg-gradient-to-br from-[#81D7B4]/30 to-[#229ED9]/20 rounded-full blur-3xl z-0"></div>
+                    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-gradient-to-tr from-[#229ED9]/20 to-[#81D7B4]/30 rounded-full blur-3xl z-0"></div>
+                    <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.05] mix-blend-overlay pointer-events-none z-0"></div>
 
-                    <div className="flex justify-between items-start mb-5">
-                      <div className="flex items-start">
-                        <div className="mr-3 mt-1 bg-[#81D7B4]/10 p-2 rounded-full">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#81D7B4]" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                          </svg>
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between relative z-10">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-[#81D7B4]/20 p-2 rounded-xl border border-[#81D7B4]/30 shadow-sm">
+                          <img src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2 truncate max-w-[180px] sm:max-w-[220px] md:max-w-[300px]">{plan.name}</h3>
-                          <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/40 shadow-sm">
-                            <img
-                              src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`}
-                              alt={plan.isEth ? 'ETH' : plan.tokenName}
-                              className="w-4 h-4 mr-2"
-                            />
-                            <span className="text-xs font-medium text-gray-700">
-                              {plan.isEth ? 'ETH' : plan.tokenName} on {isBaseNetwork ? 'Base' : 'Celo'}
+                          <h3 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight mb-0.5 truncate max-w-[180px] sm:max-w-[220px] md:max-w-[300px]">{plan.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/20 text-[#163239] text-xs font-medium shadow-sm">
+                              <img src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-4 h-4 mr-1" />
+                              {plan.isEth ? 'ETH' : plan.tokenName}
+                              <span className="mx-1 text-gray-300">|</span>
+                              <img src={isBaseNetwork ? '/base.svg' : '/celo.png'} alt={isBaseNetwork ? 'Base' : 'Celo'} className="w-4 h-4 mr-1" />
+                              {isBaseNetwork ? 'Base' : 'Celo'}
                             </span>
                           </div>
                         </div>
                       </div>
                       <button
                         onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth)}
-                        className="bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/10 text-[#81D7B4] text-xs font-medium px-4 py-2 rounded-full border border-[#81D7B4]/30 hover:from-[#81D7B4]/30 hover:to-[#81D7B4]/20 transition-all duration-300 shadow-sm hover:shadow-md"
+                        className="bg-[#81D7B4] text-white text-xs font-semibold px-4 py-2 rounded-full border border-[#81D7B4]/20 shadow-sm hover:shadow-md transition-all duration-300"
                       >
-                        <span>Top Up</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 ml-1.5 inline-block" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                        </svg>
+                        Top Up
                       </button>
                     </div>
 
-                    <div className="mb-5">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600">Progress</span>
-                        <span className="font-medium text-gray-800">{Math.round(plan.progress)}%</span>
+                    {/* Progress Bars Row */}
+                    <div className="flex flex-col md:flex-row md:items-end md:space-x-6 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_2px_12px_rgba(129,215,180,0.08)] px-4 py-4 gap-4 md:gap-0">
+                      {/* Progress to Completion */}
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center text-xs mb-1">
+                          <span className="text-gray-700 font-semibold flex items-center gap-1">
+                            Progress
+                            <span className="ml-1 text-gray-400" title="How close you are to your savings goal">(to completion)</span>
+                          </span>
+                          <span className="font-bold text-gray-900">{Math.round(plan.progress)}%</span>
+                        </div>
+                        <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-gradient-to-r from-[#81D7B4] to-green-400 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]" style={{ width: `${plan.progress}%` }}></div>
+                        </div>
                       </div>
-                      <div className="w-full h-3 bg-gray-100/80 rounded-full overflow-hidden backdrop-blur-sm shadow-inner">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#81D7B4] to-green-400 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]"
-                          style={{ width: `${plan.progress}%` }}
-                        ></div>
+                      {/* $BTS Rewards */}
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center text-xs mb-1">
+                          <span className="text-gray-700 font-semibold flex items-center gap-1">
+                            $BTS Rewards
+                            <span className="ml-1 text-gray-400" title="Earned only when you complete your savings">(on completion)</span>
+                          </span>
+                          <span className="font-bold text-gray-900">{(parseFloat(plan.currentAmount) * 1000).toLocaleString()} $BTS</span>
+                        </div>
+                        <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-gradient-to-r from-[#229ED9] to-[#81D7B4] rounded-full shadow-[0_0_12px_rgba(34,158,217,0.3)]" style={{ width: `${plan.progress}%` }}></div>
+                        </div>
                       </div>
-                      <div className="flex justify-end mt-1">
-                        <span className="text-xs text-gray-500">
+                    </div>
+
+                    {/* Info Row */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 font-medium">Current Amount:</span>
+                        <span className="text-base font-bold text-gray-900">
+                          {plan.isEth ? (
+                            <>{parseFloat(plan.currentAmount).toFixed(4)} <span className="text-xs font-medium text-gray-500 ml-1">ETH</span></>
+                          ) : (
+                            <>{parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">{plan.tokenName}</span></>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 font-medium">Time Left:</span>
+                        <span className="text-sm font-semibold text-gray-800">
                           {(() => {
-                            // Calculate remaining time
                             const currentDate = new Date();
                             const maturityTimestamp = Number(plan.maturityTime || 0);
                             const maturityDate = new Date(maturityTimestamp * 1000);
-
                             if (isNaN(maturityDate.getTime())) return '';
-
                             const remainingTime = maturityDate.getTime() - currentDate.getTime();
                             const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
-
                             if (remainingDays === 0) return 'Completed';
-                            if (remainingDays === 1) return '1 day remaining';
-                            if (remainingDays < 30) return `${remainingDays} days remaining`;
-
+                            if (remainingDays === 1) return '1 day';
+                            if (remainingDays < 30) return `${remainingDays} days`;
                             const remainingMonths = Math.ceil(remainingDays / 30);
-                            return remainingMonths === 1 ? '1 month remaining' : `${remainingMonths} months remaining`;
+                            if (remainingMonths === 1) return '1 month';
+                            if (remainingMonths > 1) return `${remainingMonths} months`;
+                            return '';
                           })()}
                         </span>
                       </div>
                     </div>
 
-                    {/* Enhanced amount display with stronger neomorphism */}
-                    <div className="mb-5 bg-gradient-to-br from-white to-gray-50/90 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_16px_rgba(129,215,180,0.1)] relative overflow-hidden group-hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_20px_rgba(129,215,180,0.2)] transition-all duration-300">
-                      <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
-                      <div className="absolute top-0 right-0 w-20 h-20 bg-[#81D7B4]/5 rounded-full blur-xl"></div>
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500">Current Amount</span>
-                        <span className="text-lg font-semibold text-gray-800 flex items-baseline">
-                          {plan.isEth ? (
-                            <>
-                              {parseFloat(plan.currentAmount).toFixed(4)}
-                              <span className="text-xs font-medium text-gray-500 ml-1">ETH</span>
-                            </>
-                          ) : (
-                            <>
-                              {parseFloat(plan.currentAmount).toFixed(2)}
-                              <span className="text-xs font-medium text-gray-500 ml-1">{plan.tokenName}</span>
-                            </>
-                          )}
+                    {/* Info Icon and Label */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#229ED9]/10 border border-[#229ED9]/30 text-[#229ED9] text-xs font-bold cursor-pointer group relative" tabIndex={0}>
+                        i
+                        <span className="absolute left-6 top-1/2 -translate-y-1/2 w-64 bg-white/90 text-[#163239] text-xs rounded-lg shadow-lg border border-[#81D7B4]/20 px-4 py-2 z-20 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 pointer-events-none">
+                          Withdrawing before the set completion date will forfeit your $BTS rewards and incur a penalty on your savings.
                         </span>
-                      </div>
+                      </span>
+                      <span className="text-xs text-gray-500 font-medium">Early withdrawal results in loss of rewards and a penalty fee.</span>
                     </div>
 
-                    {/* Updated view details button with #81D7B4 color */}
+                    {/* Withdraw Button */}
                     <button
                       onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage)}
-                      className="w-full py-3 text-center text-sm font-medium text-white bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.4)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.5)] transition-all duration-300 transform hover:translate-y-[-2px] relative overflow-hidden group"
+                      className="w-full py-3 text-center text-sm font-bold text-white bg-[#81D7B4] rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.15)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.18)] transition-all duration-300 transform hover:scale-[1.02] relative overflow-hidden group mt-2"
                     >
-                      <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.05] mix-blend-overlay pointer-events-none"></div>
-                      <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-white/10 rounded-full blur-md"></div>
-                      <span className="relative z-10 flex items-center justify-center">
-                        Withdraw
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                          <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                      <span className="flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
+                        Withdraw
                       </span>
                     </button>
-                  </motion.div>
+                  </div>
                 ))}
               </>
             ) : (
@@ -1211,75 +1197,127 @@ export default function Dashboard() {
               <>
                 {/* Show only first 3 completed plans on dashboard */}
                 {savingsData.completedPlans.slice(0, 3).map((plan) => (
-                  <motion.div
-                    key={plan.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(31,38,135,0.1)] p-6 hover:shadow-[0_8px_32px_rgba(129,215,180,0.2)] transition-all duration-300 relative overflow-hidden group"
-                  >
-                    {/* Enhanced glassmorphism effects */}
-                    <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
-                    <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
-                    <div className="absolute -left-10 -top-10 w-60 h-60 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80"></div>
+                  <div className="relative bg-white/70 backdrop-blur-2xl rounded-3xl border border-[#81D7B4]/30 shadow-[0_8px_32px_rgba(129,215,180,0.18),0_1.5px_8px_rgba(34,158,217,0.10)] p-7 md:p-8 hover:shadow-[0_16px_48px_rgba(129,215,180,0.22)] transition-all duration-300 group overflow-hidden flex flex-col gap-6 before:absolute before:inset-0 before:rounded-3xl before:bg-gradient-to-br before:from-white/60 before:to-[#81D7B4]/10 before:opacity-80 before:pointer-events-none after:absolute after:inset-0 after:rounded-3xl after:shadow-[inset_0_2px_16px_rgba(129,215,180,0.10),inset_0_1.5px_8px_rgba(34,158,217,0.08)] after:pointer-events-none">
+                    {/* Decorative gradients */}
+                    <div className="absolute -top-16 -right-16 w-56 h-56 bg-gradient-to-br from-[#81D7B4]/30 to-[#229ED9]/20 rounded-full blur-3xl z-0"></div>
+                    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-gradient-to-tr from-[#229ED9]/20 to-[#81D7B4]/30 rounded-full blur-3xl z-0"></div>
+                    <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.05] mix-blend-overlay pointer-events-none z-0"></div>
 
-                    <div className="flex justify-between items-start mb-5">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">{plan.name}</h3>
-                        <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/40 shadow-sm">
-                          <img
-                            src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`}
-                            alt={plan.isEth ? 'ETH' : plan.tokenName}
-                            className="w-4 h-4 mr-2"
-                          />
-                          <span className="text-xs font-medium text-gray-700">
-                            {plan.isEth ? 'ETH' : plan.tokenName} on {isBaseNetwork ? 'Base' : 'Celo'}
-                          </span>
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between relative z-10">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-[#81D7B4]/20 p-2 rounded-xl border border-[#81D7B4]/30 shadow-sm">
+                          <img src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight mb-0.5 truncate max-w-[180px] sm:max-w-[220px] md:max-w-[300px]">{plan.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/20 text-[#163239] text-xs font-medium shadow-sm">
+                              <img src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-4 h-4 mr-1" />
+                              {plan.isEth ? 'ETH' : plan.tokenName}
+                              <span className="mx-1 text-gray-300">|</span>
+                              <img src={isBaseNetwork ? '/base.svg' : '/celo.png'} alt={isBaseNetwork ? 'Base' : 'Celo'} className="w-4 h-4 mr-1" />
+                              {isBaseNetwork ? 'Base' : 'Celo'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <button
                         onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth)}
-                        className="bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/10 text-[#81D7B4] text-xs font-medium px-4 py-2 rounded-full border border-[#81D7B4]/30 hover:from-[#81D7B4]/30 hover:to-[#81D7B4]/20 transition-all duration-300 shadow-sm hover:shadow-md"
+                        className="bg-[#81D7B4] text-white text-xs font-semibold px-4 py-2 rounded-full border border-[#81D7B4]/20 shadow-sm hover:shadow-md transition-all duration-300"
                       >
-                        <span>Top Up</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 ml-1.5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                        </svg>
+                        Top Up
                       </button>
                     </div>
 
-                    <div className="mb-5">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600">Progress</span>
-                        <span className="font-medium text-gray-800">100%</span>
+                    {/* Progress Bars Row */}
+                    <div className="flex flex-col md:flex-row md:items-end md:space-x-6 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_2px_12px_rgba(129,215,180,0.08)] px-4 py-4 gap-4 md:gap-0">
+                      {/* Progress to Completion */}
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center text-xs mb-1">
+                          <span className="text-gray-700 font-semibold flex items-center gap-1">
+                            Progress
+                            <span className="ml-1 text-gray-400" title="How close you are to your savings goal">(to completion)</span>
+                          </span>
+                          <span className="font-bold text-gray-900">{Math.round(plan.progress)}%</span>
+                        </div>
+                        <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-gradient-to-r from-[#81D7B4] to-green-400 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]" style={{ width: `${plan.progress}%` }}></div>
+                        </div>
                       </div>
-                      <div className="w-full h-3 bg-gray-100/80 rounded-full overflow-hidden backdrop-blur-sm shadow-inner">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]"
-                          style={{ width: '100%' }}
-                        ></div>
+                      {/* $BTS Rewards */}
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center text-xs mb-1">
+                          <span className="text-gray-700 font-semibold flex items-center gap-1">
+                            $BTS Rewards
+                            <span className="ml-1 text-gray-400" title="Earned only when you complete your savings">(on completion)</span>
+                          </span>
+                          <span className="font-bold text-gray-900">{(parseFloat(plan.currentAmount) * 1000).toLocaleString()} $BTS</span>
+                        </div>
+                        <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-gradient-to-r from-[#229ED9] to-[#81D7B4] rounded-full shadow-[0_0_12px_rgba(34,158,217,0.3)]" style={{ width: `${plan.progress}%` }}></div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Enhanced amount display with stronger neomorphism */}
-                    <div className="mb-5 bg-gradient-to-br from-white to-gray-50/90 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_16px_rgba(129,215,180,0.1)] relative overflow-hidden group-hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),0_4px_20px_rgba(129,215,180,0.2)] transition-all duration-300">
-                      <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
-                      <div className="absolute top-0 right-0 w-20 h-20 bg-[#81D7B4]/5 rounded-full blur-xl"></div>
-                      <div className="flex flex-col">
-                        <span className="text-3xl font-bold text-gray-800">${parseFloat(plan.currentAmount).toFixed(2)}</span>
-                        <span className="block text-xs text-gray-500 mt-1">Amount Saved</span>
+                    {/* Info Row */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 font-medium">Current Amount:</span>
+                        <span className="text-base font-bold text-gray-900">
+                          {plan.isEth ? (
+                            <>{parseFloat(plan.currentAmount).toFixed(4)} <span className="text-xs font-medium text-gray-500 ml-1">ETH</span></>
+                          ) : (
+                            <>{parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">{plan.tokenName}</span></>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 font-medium">Time Left:</span>
+                        <span className="text-sm font-semibold text-gray-800">
+                          {(() => {
+                            const currentDate = new Date();
+                            const maturityTimestamp = Number(plan.maturityTime || 0);
+                            const maturityDate = new Date(maturityTimestamp * 1000);
+                            if (isNaN(maturityDate.getTime())) return '';
+                            const remainingTime = maturityDate.getTime() - currentDate.getTime();
+                            const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
+                            if (remainingDays === 0) return 'Completed';
+                            if (remainingDays === 1) return '1 day';
+                            if (remainingDays < 30) return `${remainingDays} days`;
+                            const remainingMonths = Math.ceil(remainingDays / 30);
+                            if (remainingMonths === 1) return '1 month';
+                            if (remainingMonths > 1) return `${remainingMonths} months`;
+                            return '';
+                          })()}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Updated view details button with #81D7B4 color */}
+                    {/* Info Icon and Label */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#229ED9]/10 border border-[#229ED9]/30 text-[#229ED9] text-xs font-bold cursor-pointer group relative" tabIndex={0}>
+                        i
+                        <span className="absolute left-6 top-1/2 -translate-y-1/2 w-64 bg-white/90 text-[#163239] text-xs rounded-lg shadow-lg border border-[#81D7B4]/20 px-4 py-2 z-20 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 pointer-events-none">
+                          Withdrawing before the set completion date will forfeit your $BTS rewards and incur a penalty on your savings.
+                        </span>
+                      </span>
+                      <span className="text-xs text-gray-500 font-medium">Early withdrawal results in loss of rewards and a penalty fee.</span>
+                    </div>
+
+                    {/* Withdraw Button */}
                     <button
-                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth)}
-                      className="w-full py-3 text-center text-sm font-medium text-white bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.4)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.5)] transition-all duration-300 transform hover:translate-y-[-2px] relative overflow-hidden group"
+                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage)}
+                      className="w-full py-3 text-center text-sm font-bold text-white bg-[#81D7B4] rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.15)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.18)] transition-all duration-300 transform hover:scale-[1.02] relative overflow-hidden group mt-2"
                     >
-
+                      <span className="flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                        Withdraw
+                      </span>
                     </button>
-                  </motion.div>
+                  </div>
                 ))}
               </>
             ) : (

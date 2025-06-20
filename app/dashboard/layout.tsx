@@ -111,6 +111,20 @@ export default function DashboardLayout({
             {!sidebarCollapsed && <span className="ml-3">Activity</span>}
           </Link>
           
+          <Link href="/dashboard/social" className={`flex items-center px-4 py-3 mb-2 rounded-lg mx-2 ${
+            isActive('/dashboard/social') 
+              ? 'bg-[#81D7B4]/20 text-[#229ED9]' 
+              : 'hover:bg-gray-100/60 text-gray-600 hover:text-[#229ED9] transition-colors'
+          }`}>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 11.5C21 7.36 16.97 4 12 4C7.03 4 3 7.36 3 11.5C3 13.54 4.23 15.37 6.19 16.5L5 20L9.02 18.13C9.99 18.37 10.98 18.5 12 18.5C16.97 18.5 21 15.14 21 11.5Z"/>
+              <circle cx="8.5" cy="11" r="1.5"/>
+              <circle cx="12" cy="11" r="1.5"/>
+              <circle cx="15.5" cy="11" r="1.5"/>
+            </svg>
+            {!sidebarCollapsed && <span className="ml-3">Social Activity</span>}
+          </Link>
+          
           <Link href="/dashboard/leaderboard" className={`flex items-center px-4 py-3 mb-2 rounded-lg mx-2 ${
             isActive('/dashboard/leaderboard') 
               ? 'bg-[#81D7B4]/20 text-[#81D7B4]' 

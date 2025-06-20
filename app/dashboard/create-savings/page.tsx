@@ -864,7 +864,9 @@ export default function CreateSavingsPage() {
       {/* Transaction Status Notifications */}
       {showTransactionModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-0">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md mx-auto overflow-hidden">
+          <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-md mx-auto overflow-hidden border border-[#81D7B4]/30 relative">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#229ED9]/10 rounded-full blur-2xl"></div>
             <div className="p-5 sm:p-8 flex flex-col items-center">
               {/* Success or Error Icon */}
               <div className={`w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mb-4 sm:mb-6 ${success ? 'bg-green-100' : 'bg-red-100'}`}>
@@ -885,7 +887,7 @@ export default function CreateSavingsPage() {
 
               {/* Title */}
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2">
-                {success ? 'Successful' : 'Failed'}
+                {success ? 'Savings Plan Created!' : 'Failed'}
               </h2>
 
               {/* Message */}
@@ -904,6 +906,19 @@ export default function CreateSavingsPage() {
                 >
                   View Transaction ID
                 </button>
+              )}
+
+              {/* Tweet Button (only on success) */}
+              {success && (
+                <a
+                  href={`https://twitter.com/intent/tweet?text=I%20just%20saved%20${amount}%20${currency}%20on%20BitSave%20(${chain.toUpperCase()})%20with%20my%20plan%20%22${name || 'Untitled Plan'}%22!%20Join%20me%20on%20@bitsavehq%20and%20start%20your%20DeFi%20savings%20journey!%20%23DeFi%20%23Savings%20%23Web3`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 sm:py-3 bg-[#229ED9] text-white rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 mb-3 sm:mb-4 hover:bg-[#1b7bb3] transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                  Tweet your savings
+                </a>
               )}
 
               {/* Action Buttons */}
@@ -950,32 +965,33 @@ export default function CreateSavingsPage() {
           <p className="text-gray-600 max-w-xl mx-auto text-sm sm:text-base">Set up a new savings plan to help you reach your financial goals with automated savings and rewards.</p>
         </div>
 
-        {/* Enhanced Progress bar */}
+        {/* Enhanced Progress bar - Modern, Fluid, Visually Stunning, Brand Color Only */}
         <div className="mb-8 sm:mb-10 px-2 sm:px-0">
-          <div className="flex justify-between items-center mb-2 relative">
-            <div className="absolute left-0 right-0 h-1 bg-gray-200 top-1/2 transform -translate-y-1/2 z-0"></div>
-
+          <div className="relative flex items-center justify-between mb-2">
+            {/* Connecting line with single-color gradient and glow */}
+            <div className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 z-0 bg-gradient-to-r from-[#81D7B4]/60 via-[#81D7B4]/30 to-[#81D7B4]/60 rounded-full blur-[2px] shadow-[0_0_24px_#81D7B4aa]" style={{ height: '10px' }}></div>
             {[1, 2, 3].map((i) => (
-              <div key={i} className="z-10 flex flex-col items-center">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${step >= i
-                  ? 'bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 text-white shadow-[0_0_15px_rgba(129,215,180,0.5)]'
-                  : 'bg-white text-gray-400 border border-gray-200 shadow-sm'
-                  } transition-all duration-500`}>
+              <div key={i} className="relative z-10 flex flex-col items-center flex-1">
+                {/* Animated step circle - single brand color, glassy/neomorphic */}
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full border-4 transition-all duration-500 shadow-[0_4px_24px_rgba(129,215,180,0.18),0_2px_8px_rgba(129,215,180,0.10)] bg-white/80 backdrop-blur-md ${step === i
+                  ? 'border-[#81D7B4] scale-110 animate-pulse bg-gradient-to-br from-[#81D7B4]/90 to-[#81D7B4]/60'
+                  : step > i
+                    ? 'border-[#81D7B4]/60 bg-gradient-to-br from-[#81D7B4]/60 to-[#81D7B4]/30'
+                    : 'border-gray-200/60'} `}>
                   {step > i ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#81D7B4]" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   ) : (
-                    i
+                    <span className={`font-bold text-lg ${step === i ? 'text-white drop-shadow' : 'text-[#81D7B4]'}`}>{i}</span>
                   )}
                 </div>
-                <span className={`mt-2 text-xs sm:text-sm font-medium transition-colors duration-300 ${step >= i ? 'text-[#81D7B4]' : 'text-gray-500'
-                  } hidden sm:block`}>
-                  {i === 1 ? 'Plan Details' : i === 2 ? 'Duration & Penalties' : 'Review & Create'}
-                </span>
+                {/* Step label */}
+                <span className={`mt-3 text-xs sm:text-sm font-semibold transition-colors duration-300 ${step === i ? 'text-[#81D7B4]' : step > i ? 'text-[#81D7B4]/80' : 'text-gray-400'} hidden sm:block tracking-wide`}>{i === 1 ? 'Plan Details' : i === 2 ? 'Duration & Penalties' : 'Review & Create'}</span>
               </div>
             ))}
           </div>
+          {/* Mobile step labels */}
           <div className="flex justify-between text-xs sm:hidden mt-3">
             <span className={step >= 1 ? 'text-[#81D7B4] font-medium' : 'text-gray-500'}>Details</span>
             <span className={step >= 2 ? 'text-[#81D7B4] font-medium' : 'text-gray-500'}>Duration</span>
@@ -1074,65 +1090,85 @@ export default function CreateSavingsPage() {
                         {errors.amount && <p className="mt-1 text-sm text-red-500">{errors.amount}</p>}
                       </motion.div>
 
-                      {/* Currency - enhanced */}
+                      {/* Currency - enhanced, responsive, DeFi style */}
                       <motion.div variants={itemVariants}>
                         <label className="block text-sm font-medium text-gray-700 mb-3">
                           Currency
                         </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="flex flex-wrap gap-3 w-full">
                           {currencies.map((curr) => (
                             <button
                               key={curr}
                               type="button"
                               onClick={() => setCurrency(curr)}
-                              className={`flex items-center justify-center px-4 py-3 rounded-xl border transition-all duration-300 ${currency === curr
-                                ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_10px_rgba(129,215,180,0.15)]'
-                                : 'bg-white/70 border-gray-200/50 text-gray-700 hover:bg-gray-50'
-                                }`}
+                              className={`flex items-center justify-center px-4 py-3 rounded-2xl border transition-all duration-300 flex-1 min-w-0 text-base sm:text-sm ${currency === curr
+                                ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_16px_rgba(129,215,180,0.18)] scale-105'
+                                : 'bg-white/80 border-gray-200/50 text-gray-700 hover:bg-gray-50 shadow-[0_2px_8px_rgba(129,215,180,0.06)]'} font-medium`}
+                              style={{ minWidth: 0 }}
                             >
                               <img
                                 src={curr === '$G' ? '/$g.png' : `/${curr.toLowerCase().replace('$', '')}.png`}
                                 alt={curr}
                                 className="w-5 h-5 mr-2"
                               />
-                              <span className="font-medium">{curr}</span>
+                              <span>{curr}</span>
                             </button>
                           ))}
                         </div>
                       </motion.div>
 
-                      {/* Chain - enhanced */}
+                      {/* Chain - improved: Base as main, others in dropdown */}
                       <motion.div variants={itemVariants}>
                         <label className="block text-sm font-medium text-gray-700 mb-3">
-                          Select Chain
+                          Select Network
                         </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          {chains.map((c) => (
+                        <div className="flex gap-3 w-full">
+                          {/* Main network (Base) */}
+                          <button
+                            type="button"
+                            onClick={() => setChain('base')}
+                            className={`flex items-center justify-center px-5 py-3 rounded-2xl border transition-all duration-300 flex-1 text-base sm:text-sm ${chain === 'base'
+                              ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_16px_rgba(129,215,180,0.18)] scale-105'
+                              : 'bg-white/80 border-gray-200/50 text-gray-700 hover:bg-gray-50 shadow-[0_2px_8px_rgba(129,215,180,0.06)]'} font-medium`}
+                          >
+                            <img src="/base.svg" alt="Base" className="w-5 h-5 mr-2" />
+                            Base
+                          </button>
+                          {/* Dropdown for other networks - show selected network if not base */}
+                          <div className="relative flex-1">
                             <button
-                              key={c.id}
                               type="button"
-                              onClick={() => (c.id === 'base' || c.id === 'celo') ? setChain(c.id) : null}
-                              disabled={c.id !== 'base' && c.id !== 'celo'}
-                              className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all duration-300 ${(c.id === 'base' || c.id === 'celo')
-                                ? (chain === c.id
-                                  ? `${c.color} border-${c.textColor}/30 ${c.textColor} shadow-[0_4px_10px_rgba(0,0,0,0.05)]`
-                                  : 'bg-white/70 border-gray-200/50 text-gray-700 hover:bg-gray-50')
-                                : 'bg-gray-100/70 border-gray-200/50 text-gray-400 cursor-not-allowed'
-                                }`}
+                              className={`flex items-center justify-center px-5 py-3 rounded-2xl border transition-all duration-300 w-full text-base sm:text-sm font-medium group shadow-[0_2px_8px_rgba(129,215,180,0.06)] ${chain !== 'base'
+                                ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_16px_rgba(129,215,180,0.18)] scale-105'
+                                : 'bg-white/80 border-gray-200/50 text-gray-700 hover:bg-gray-50'}`}
+                              onClick={() => {
+                                const el = document.getElementById('network-dropdown');
+                                if (el) el.classList.toggle('hidden');
+                              }}
                             >
-                              <div className="flex items-center">
-                                <div className={`rounded-full p-1.5 mr-3 shadow-sm ${(c.id !== 'base' && c.id !== 'celo') ? 'bg-gray-200' : 'bg-white'}`}>
-                                  <img src={c.logo} alt={c.name} className={`w-5 h-5 ${(c.id !== 'base' && c.id !== 'celo') ? 'opacity-50' : ''}`} />
-                                </div>
-                                <span className="font-medium">{c.name}</span>
-                              </div>
-                              {c.id !== 'base' && c.id !== 'celo' && (
-                                <span className="text-xs font-medium bg-gray-200 text-gray-500 px-2 py-1 rounded-full">
-                                  Coming Soon
-                                </span>
+                              {chain !== 'base' ? (
+                                <>
+                                  <img src={chains.find(c => c.id === chain)?.logo || ''} alt={chains.find(c => c.id === chain)?.name || ''} className="w-5 h-5 mr-2" />
+                                  {chains.find(c => c.id === chain)?.name || 'Other Networks'}
+                                </>
+                              ) : (
+                                <>Other Networks<svg className="w-4 h-4 ml-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></>
                               )}
                             </button>
-                          ))}
+                            <div id="network-dropdown" className="hidden absolute left-0 mt-2 w-full bg-white/95 backdrop-blur-xl rounded-xl shadow-lg border border-gray-200/50 z-10">
+                              {chains.filter(c => c.id !== 'base').map((c) => (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  onClick={() => { setChain(c.id); document.getElementById('network-dropdown')?.classList.add('hidden'); }}
+                                  className={`flex items-center w-full px-4 py-2 rounded-xl border-b border-gray-100 last:border-b-0 text-base sm:text-sm ${chain === c.id ? 'bg-[#81D7B4]/10 text-[#81D7B4]' : 'hover:bg-gray-100/80 text-gray-700'} font-medium`}
+                                >
+                                  <img src={c.logo} alt={c.name} className="w-5 h-5 mr-2" />
+                                  {c.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     </motion.div>

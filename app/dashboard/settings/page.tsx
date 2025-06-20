@@ -68,11 +68,12 @@ export default function Settings() {
   }
 
   return (
-    <div className={`${spaceGrotesk.variable} font-sans p-4 sm:p-6 md:p-8 bg-[#f2f2f2] text-gray-800 relative min-h-screen pb-20`}>
+    <div className={`${spaceGrotesk.variable} font-sans p-4 sm:p-6 md:p-8 bg-gradient-to-b from-white to-gray-50 text-gray-800 relative min-h-screen pb-20`}>
       {/* Decorative elements */}
       <div className="fixed inset-0 z-0 opacity-30 pointer-events-none bg-[url('/noise.jpg')] mix-blend-overlay"></div>
       <div className="absolute top-20 right-10 md:right-20 w-40 md:w-64 h-40 md:h-64 bg-[#81D7B4]/20 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-20 left-10 md:left-20 w-40 md:w-80 h-40 md:h-80 bg-blue-500/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute top-1/3 left-1/4 w-40 md:w-60 h-40 md:h-60 bg-purple-500/5 rounded-full blur-3xl -z-10"></div>
       
       {/* Copy notification banner */}
       <AnimatePresence>
@@ -94,21 +95,16 @@ export default function Settings() {
       </AnimatePresence>
       
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">Settings</h1>
-        <p className="text-sm md:text-base text-gray-500">
-          Customize your BitSave experience
-        </p>
+      <div className="mb-10 text-center">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-2 drop-shadow-sm">Settings</h1>
+        <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto">Customize your BitSave experience and connect your social accounts for more rewards.</p>
       </div>
       
-      {/* Settings Container */}
-      <div className="max-w-4xl mx-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/60 shadow-[0_10px_25px_-15px_rgba(0,0,0,0.1)] mb-6"
-        >
+      <div className="max-w-3xl mx-auto flex flex-col gap-8">
+        {/* Profile Settings Card */}
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-8 border border-white/60 shadow-[0_10px_25px_-15px_rgba(129,215,180,0.10)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
           <div className="flex items-center mb-6">
             <div className="bg-[#81D7B4]/10 p-3 rounded-full mr-4">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-[#81D7B4]">
@@ -199,13 +195,71 @@ export default function Settings() {
               </button>
             </div>
           </div>
-        </motion.div>
+        </div>
+        
+        {/* Email Connect Card - DeFi Neomorphic, Techy Web3 Style */}
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-8 border border-[#81D7B4]/30 shadow-[0_8px_32px_-12px_rgba(129,215,180,0.13),0_1.5px_8px_rgba(129,215,180,0.10)] relative overflow-hidden neomorphic-card">
+          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
+          <div className="absolute -top-10 -left-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
+          <div className="flex items-center mb-6">
+            <div className="bg-[#81D7B4]/10 p-3 rounded-full mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-[#81D7B4]">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 12H8m8 0a4 4 0 11-8 0 4 4 0 018 0zm-8 0v4a4 4 0 008 0v-4" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-[#81D7B4]">Connect Email</h2>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <input
+              type="email"
+              placeholder="Enter your email address"
+              className="flex-1 bg-white/80 border-2 border-[#81D7B4] focus:border-[#81D7B4] focus:ring-2 focus:ring-[#81D7B4]/40 rounded-lg px-5 py-3 text-gray-900 shadow-[inset_2px_2px_8px_rgba(129,215,180,0.08),0_1.5px_8px_rgba(129,215,180,0.10)] transition-all placeholder:text-[#81D7B4]/60 font-medium text-base outline-none"
+            />
+            <button className="bg-[#81D7B4] text-white px-8 py-3 rounded-lg shadow-[0_2px_8px_rgba(129,215,180,0.13)] hover:bg-[#6bc4a1] transition-all duration-300 font-bold text-base tracking-wide border-2 border-[#81D7B4]/60">
+              Connect
+            </button>
+          </div>
+          <p className="text-xs text-[#229ED9] mt-2 font-medium">Connect your email to receive updates, rewards, and important notifications.</p>
+        </div>
+
+        {/* Social Connect Card */}
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-8 border border-[#8A63D2]/20 shadow-[0_10px_25px_-15px_rgba(138,99,210,0.10)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#8A63D2]/10 rounded-full blur-2xl"></div>
+          <div className="flex items-center mb-6">
+            <div className="bg-[#8A63D2]/10 p-3 rounded-full mr-4">
+              <svg className="w-6 h-6 text-[#8A63D2]" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="16" r="16" fill="#8A63D2"/>
+                <path d="M21.5 10.5C21.5 9.67157 20.8284 9 20 9H12C11.1716 9 10.5 9.67157 10.5 10.5V21.5C10.5 22.3284 11.1716 23 12 23H20C20.8284 23 21.5 22.3284 21.5 21.5V10.5Z" fill="white"/>
+                <path d="M16 13.5C17.3807 13.5 18.5 14.6193 18.5 16C18.5 17.3807 17.3807 18.5 16 18.5C14.6193 18.5 13.5 17.3807 13.5 16C13.5 14.6193 14.6193 13.5 16 13.5Z" fill="#8A63D2"/>
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-[#8A63D2]">Connect Social Accounts</h2>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <button className="flex-1 flex items-center justify-center gap-3 bg-[#8A63D2]/10 border border-[#8A63D2]/20 text-[#8A63D2] px-6 py-3 rounded-xl font-semibold shadow-sm hover:bg-[#8A63D2]/20 transition-all duration-300">
+              <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="16" r="16" fill="#8A63D2"/>
+                <path d="M21.5 10.5C21.5 9.67157 20.8284 9 20 9H12C11.1716 9 10.5 9.67157 10.5 10.5V21.5C10.5 22.3284 11.1716 23 12 23H20C20.8284 23 21.5 22.3284 21.5 21.5V10.5Z" fill="white"/>
+                <path d="M16 13.5C17.3807 13.5 18.5 14.6193 18.5 16C18.5 17.3807 17.3807 18.5 16 18.5C14.6193 18.5 13.5 17.3807 13.5 16C13.5 14.6193 14.6193 13.5 16 13.5Z" fill="#8A63D2"/>
+              </svg>
+              Connect Farcaster
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-3 bg-[#229ED9]/10 border border-[#229ED9]/20 text-[#229ED9] px-6 py-3 rounded-xl font-semibold shadow-sm hover:bg-[#229ED9]/20 transition-all duration-300">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+              </svg>
+              Connect X (Twitter)
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">Connect your social accounts to unlock exclusive rewards and onchain perks.</p>
+        </div>
         
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/60 shadow-[0_10px_25px_-15px_rgba(0,0,0,0.1)] mb-6"
+          className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/60 shadow-[0_10px_25px_-15px_rgba(0,0,0,0.1)]"
         >
           <div className="flex items-center mb-6">
             <div className="bg-[#81D7B4]/10 p-3 rounded-full mr-4">

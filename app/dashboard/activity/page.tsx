@@ -186,7 +186,7 @@ export default function ActivityPage() {
   }
   
   return (
-    <div className={`${spaceGrotesk.className} min-h-screen bg-gradient-to-b from-gray-50 to-gray-100`}>
+    <div className={`${spaceGrotesk.className} min-h-screen bg-gradient-to-b from-white to-gray-50`}>
       {/* Decorative elements */}
       <div className="fixed -top-40 -right-40 w-96 h-96 bg-[#81D7B4]/10 rounded-full blur-3xl"></div>
       <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
@@ -196,6 +196,107 @@ export default function ActivityPage() {
       <div className="fixed inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
       
       <div className="container mx-auto px-4 py-8 relative z-10">
+        {/* Points System Card - Modern, Full Width, Web3/DeFi Style */}
+        <div className="mb-14 w-full max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="relative w-full bg-white/90 backdrop-blur-2xl rounded-3xl border border-[#81D7B4]/30 shadow-[0_12px_48px_-12px_#81D7B4a0,0_2px_8px_#81D7B420] px-0 py-0 overflow-hidden flex flex-col gap-0"
+            style={{ boxShadow: '0 12px 48px -12px #81D7B4a0, 0 2px 8px #81D7B420' }}
+          >
+            {/* Animated Glow & Modern Glassmorphism */}
+            <div className="absolute -inset-2 rounded-3xl bg-[#81D7B4]/10 blur-2xl animate-pulse opacity-40 pointer-events-none z-0"></div>
+            <div className="absolute -top-24 -left-24 w-72 h-72 bg-[#81D7B4]/10 rounded-full blur-3xl z-0"></div>
+            <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-[#81D7B4]/10 rounded-full blur-3xl z-0"></div>
+            <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none z-0"></div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-10 pt-8 sm:pt-12 pb-2 gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-0">
+                <div className="bg-[#81D7B4]/20 p-2 sm:p-3 rounded-2xl border border-[#81D7B4]/30 shadow-[0_2px_12px_rgba(129,215,180,0.10)] animate-pulse">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#81D7B4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 17.75l-6.172 3.245 1.179-6.873L2 9.755l6.914-1.004L12 2.5l3.086 6.251L22 9.755l-5.007 4.367 1.179 6.873z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#111] tracking-tight mb-2 sm:mb-4 drop-shadow-[0_2px_12px_rgba(129,215,180,0.18)] relative">
+                    <span className="relative z-10">Earn Points</span>
+                    <span className="absolute left-0 right-0 -bottom-1 h-1 bg-gradient-to-r from-[#81D7B4]/60 to-transparent rounded-full blur-sm opacity-60 z-0"></span>
+                  </h2>
+                  <span className="text-sm sm:text-base font-semibold text-[#81D7B4] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">Points System</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <span className="text-base sm:text-lg font-bold text-[#81D7B4]">0</span>
+                <span className="text-sm sm:text-base text-gray-700">Points</span>
+              </div>
+            </div>
+            <div className="px-2 sm:px-10 pb-6 sm:pb-10 mt-6 sm:mt-8 mb-2">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                {/* Task Pills - Responsive, DeFi style, high contrast, accent bar */}
+                <li className="flex items-center gap-3 sm:gap-4 bg-white/95 backdrop-blur-xl rounded-xl border border-[#81D7B4]/20 shadow-[0_2px_12px_rgba(129,215,180,0.10)] px-4 sm:px-6 py-4 sm:py-6 hover:shadow-[0_4px_16px_rgba(129,215,180,0.14)] transition-all duration-300 group relative overflow-hidden">
+                  {/* Accent bar */}
+                  <div className="w-1 h-10 sm:w-1.5 sm:h-12 rounded-full bg-[#81D7B4] mr-2 sm:mr-3"></div>
+                  <div className="bg-[#81D7B4]/15 p-2 sm:p-3 rounded-full border border-[#81D7B4]/30 shadow-sm">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#81D7B4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-base sm:text-lg font-bold text-[#163239] mb-0.5 sm:mb-1 truncate">Refer a Friend</span>
+                    <span className="block text-xs sm:text-sm text-[#555] truncate">Invite friends to BitSave and earn points for each successful referral.</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+100 pts</span>
+                </li>
+                <li className="flex items-center gap-3 sm:gap-4 bg-white/95 backdrop-blur-xl rounded-xl border border-[#81D7B4]/20 shadow-[0_2px_12px_rgba(129,215,180,0.10)] px-4 sm:px-6 py-4 sm:py-6 hover:shadow-[0_4px_16px_rgba(129,215,180,0.14)] transition-all duration-300 group relative overflow-hidden">
+                  <div className="w-1 h-10 sm:w-1.5 sm:h-12 rounded-full bg-[#81D7B4] mr-2 sm:mr-3"></div>
+                  <div className="bg-[#81D7B4]/15 p-2 sm:p-3 rounded-full border border-[#81D7B4]/30 shadow-sm">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#81D7B4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2h2" />
+                      <rect width="8" height="8" x="8" y="2" rx="4" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-base sm:text-lg font-bold text-[#163239] mb-0.5 sm:mb-1 truncate">Connect Farcaster</span>
+                    <span className="block text-xs sm:text-sm text-[#555] truncate">Link your Farcaster account to unlock social rewards and onchain perks.</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+50 pts</span>
+                </li>
+                <li className="flex items-center gap-3 sm:gap-4 bg-white/95 backdrop-blur-xl rounded-xl border border-[#81D7B4]/20 shadow-[0_2px_12px_rgba(129,215,180,0.10)] px-4 sm:px-6 py-4 sm:py-6 hover:shadow-[0_4px_16px_rgba(129,215,180,0.14)] transition-all duration-300 group relative overflow-hidden">
+                  <div className="w-1 h-10 sm:w-1.5 sm:h-12 rounded-full bg-[#81D7B4] mr-2 sm:mr-3"></div>
+                  <div className="bg-[#81D7B4]/15 p-2 sm:p-3 rounded-full border border-[#81D7B4]/30 shadow-sm">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#81D7B4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 01-8 0m8 0V8a4 4 0 00-8 0v4m8 0a4 4 0 01-8 0m8 0v4a4 4 0 01-8 0v-4" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-base sm:text-lg font-bold text-[#163239] mb-0.5 sm:mb-1 truncate">Connect Email</span>
+                    <span className="block text-xs sm:text-sm text-[#555] truncate">Add your email to receive updates, rewards, and important notifications.</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+30 pts</span>
+                </li>
+                <li className="flex items-center gap-3 sm:gap-4 bg-white/95 backdrop-blur-xl rounded-xl border border-[#81D7B4]/20 shadow-[0_2px_12px_rgba(129,215,180,0.10)] px-4 sm:px-6 py-4 sm:py-6 hover:shadow-[0_4px_16px_rgba(129,215,180,0.14)] transition-all duration-300 group relative overflow-hidden">
+                  <div className="w-1 h-10 sm:w-1.5 sm:h-12 rounded-full bg-[#81D7B4] mr-2 sm:mr-3"></div>
+                  <div className="bg-[#81D7B4]/15 p-2 sm:p-3 rounded-full border border-[#81D7B4]/30 shadow-sm">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#81D7B4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 8a6 6 0 11-12 0 6 6 0 0112 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 20h20M4 16h16" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-base sm:text-lg font-bold text-[#163239] mb-0.5 sm:mb-1 truncate">Connect X (Twitter)</span>
+                    <span className="block text-xs sm:text-sm text-[#555] truncate">Connect your X (Twitter) account for social bonuses and campaign rewards.</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+30 pts</span>
+                </li>
+              </ul>
+              <div className="mt-6 sm:mt-10 flex justify-end">
+                <button className="bg-[#81D7B4] text-white font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-lg hover:bg-[#6bc4a1] transition-all duration-300 text-base sm:text-lg">View All Tasks</button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
         {/* Header */}
         <div className="mb-8 md:mb-12">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Activity History</h1>
@@ -320,115 +421,6 @@ export default function ActivityPage() {
               })}
             </div>
           )}
-        </div>
-        
-        {/* Activity Stats */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Monthly Summary Card */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.15)] p-6 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
-            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl"></div>
-            
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Summary</h3>
-            
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="bg-[#81D7B4]/20 rounded-full p-2 mr-3 border border-[#81D7B4]/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 text-[#81D7B4]">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                    </svg>
-                  </div>
-                  <span className="text-gray-600">Total Deposits</span>
-                </div>
-                <span className="font-bold text-gray-800">
-                  {stats.totalDeposits.toFixed(4)} {activities[0]?.currency || 'ETH'}
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="bg-orange-100 rounded-full p-2 mr-3 border border-orange-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 text-orange-500">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                    </svg>
-                  </div>
-                  <span className="text-gray-600">Total Withdrawals</span>
-                </div>
-                <span className="font-bold text-gray-800">
-                  {stats.totalWithdrawals.toFixed(4)} {activities[0]?.currency || 'ETH'}
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="bg-purple-100 rounded-full p-2 mr-3 border border-purple-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 text-purple-500">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <span className="text-gray-600">Net Change</span>
-                </div>
-                <span className={`font-bold ${stats.netChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.netChange >= 0 ? '+' : ''}{stats.netChange.toFixed(4)} {activities[0]?.currency || 'ETH'}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Activity by Plan Card */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.15)] p-6 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
-            <div className="absolute -left-10 -top-10 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl"></div>
-            
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Activity by Plan</h3>
-            
-            <div className="space-y-4">
-              {Object.entries(stats.planActivity).map(([planName, amount], index) => {
-                // Calculate percentage for progress bar (max 100%)
-                const totalAmount = Object.values(stats.planActivity).reduce((sum, val) => sum + val, 0);
-                const percentage = totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
-                
-                // Assign different colors to different plans
-                const colors = [
-                  'from-blue-400 to-blue-500/80 shadow-[0_0_6px_rgba(96,165,250,0.5)]',
-                  'from-purple-400 to-purple-500/80 shadow-[0_0_6px_rgba(168,85,247,0.5)]',
-                  'from-orange-400 to-orange-500/80 shadow-[0_0_6px_rgba(251,146,60,0.5)]',
-                  'from-[#81D7B4] to-[#81D7B4]/80 shadow-[0_0_6px_rgba(129,215,180,0.5)]'
-                ];
-                
-                return (
-                  <div key={planName}>
-                    <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-sm font-medium text-gray-700">{planName}</span>
-                      <span className="text-sm font-medium text-gray-700">
-                        {amount.toFixed(4)} {activities.find(a => a.savingsname === planName)?.currency || 'ETH'}
-                      </span>
-                    </div>
-                    <div className="relative h-2 bg-white rounded-full overflow-hidden shadow-inner">
-                      <div 
-                        className={`absolute top-0 left-0 h-full bg-gradient-to-r ${colors[index % colors.length]} rounded-full`} 
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {Object.keys(stats.planActivity).length === 0 && (
-                <div className="text-center py-4 text-gray-500">
-                  No plan activity data available
-                </div>
-              )}
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-gray-200/50">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Most Active Plan</span>
-                <span className="font-medium text-gray-800">{getTopPlan()}</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
       
