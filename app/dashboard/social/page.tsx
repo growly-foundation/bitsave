@@ -123,7 +123,7 @@ export default function SocialActivityPage() {
                   className="min-w-[320px] max-w-xs bg-white/80 backdrop-blur-xl rounded-2xl border border-[#81D7B4]/20 shadow-[0_8px_32px_rgba(129,215,180,0.10)] px-8 py-7 flex flex-col items-center text-center transition-all duration-300 group overflow-hidden hover:shadow-[0_12px_40px_rgba(129,215,180,0.15)] mx-2"
                 >
                   <h3 className="text-lg font-bold text-[#229ED9] mb-2">{r.name}</h3>
-                  <p className="text-gray-700 mb-2">"{r.review}"</p>
+                  <p className="text-gray-700 mb-2">&quot;{r.review}&quot;</p>
                   <span className="inline-block bg-[#81D7B4]/10 text-[#81D7B4] px-4 py-1.5 rounded-full font-medium text-xs border border-[#81D7B4]/20 mt-2">Verified User</span>
                 </div>
               ))}

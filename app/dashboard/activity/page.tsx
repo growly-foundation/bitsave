@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Space_Grotesk } from 'next/font/google'
+import Image from 'next/image'
 
 // Initialize the Space Grotesk font
 const spaceGrotesk = Space_Grotesk({ 
@@ -31,12 +32,6 @@ export default function ActivityPage() {
   const [selectedActivity, setSelectedActivity] = useState<Transaction | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [currentUserAddress, setCurrentUserAddress] = useState<string>('')
-  const [stats, setStats] = useState({
-    totalDeposits: 0,
-    totalWithdrawals: 0,
-    netChange: 0,
-    planActivity: {} as Record<string, number>
-  })
   
   // Get the user's wallet address
   useEffect(() => {
@@ -86,33 +81,7 @@ export default function ActivityPage() {
         const data: Transaction[] = await response.json()
         setActivities(data)
         
-        // Calculate statistics
-        let totalDeposits = 0
-        let totalWithdrawals = 0
-        const planActivity: Record<string, number> = {}
-        
-        data.forEach(tx => {
-          if (tx.transaction_type === 'deposit') {
-            totalDeposits += tx.amount
-            
-            // Add to plan activity
-            if (planActivity[tx.savingsname]) {
-              planActivity[tx.savingsname] += tx.amount
-            } else {
-              planActivity[tx.savingsname] = tx.amount
-            }
-          } else if (tx.transaction_type === 'withdrawal') {
-            totalWithdrawals += tx.amount
-          }
-        })
-        
-        setStats({
-          totalDeposits,
-          totalWithdrawals,
-          netChange: totalDeposits - totalWithdrawals,
-          planActivity
-        })
-        
+        // (No-op: removed unused totalDeposits and totalWithdrawals)
       } catch (error) {
         console.error('Error fetching transactions:', error)
       } finally {
@@ -170,19 +139,6 @@ export default function ActivityPage() {
       date: date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
       time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     }
-  }
-  
-  // Get top plan by activity
-  const getTopPlan = () => {
-    let topPlan = { name: '', amount: 0 }
-    
-    Object.entries(stats.planActivity).forEach(([name, amount]) => {
-      if (amount > topPlan.amount) {
-        topPlan = { name, amount }
-      }
-    })
-    
-    return topPlan.name || 'None'
   }
   
   return (
@@ -510,7 +466,7 @@ export default function ActivityPage() {
                   <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
                     <p className="text-sm text-gray-500 mb-1">Network</p>
                     <div className="flex items-center">
-                      <img src="/base.svg" alt="Base" className="w-4 h-4 mr-2" />
+                      <Image src="/base.svg" alt="Base" width={16} height={16} className="w-4 h-4 mr-2" />
                       <span className="font-medium text-gray-800">Base</span>
                     </div>
                   </div>
