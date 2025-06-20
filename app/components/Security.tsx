@@ -154,12 +154,12 @@ export default function Security() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#81D7B4]/0 via-[#81D7B4]/10 to-[#81D7B4]/0 animate-shimmer-slow"></div>
             
             <div className="w-3 h-3 rounded-full bg-[#81D7B4] animate-pulse relative z-10"></div>
-            <span className="text-sm font-semibold text-[#81D7B4] uppercase tracking-wider relative z-10">Today&apos;s Problems</span>
+            <span className="text-sm font-semibold text-[#81D7B4] uppercase tracking-wider relative z-10">Today&#39;s Problems</span>
           </div>
           
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80">
-              Today&apos;s Savings Problems
+              Today&#39;s Savings Problems
             </span>
           </h2>
         
@@ -241,9 +241,9 @@ export default function Security() {
             
                             {/* Problem Text */}
                             <p className="text-gray-600 leading-relaxed">
-                              {num === 1 && "Ifeanyi earns from his Web3 job and wants to save onchain, but there aren&apos;t any savings protocols—only investments protocols (DeFi)."}
-                              {num === 2 && "If Ifeanyi saves with a DeFi protocol, he&apos;ll have to deal with complex DeFi UX and also lose his savings to market volatility."}
-                              {num === 3 && "Ifeanyi also doesn&apos;t want to get tempted to touch his rent savings, by risking it in a degen trade to make a quick 2x."}
+                              {num === 1 && "Ifeanyi earns from his Web3 job and wants to save onchain, but there aren't any savings protocols—only investments protocols (DeFi)."}
+                              {num === 2 && "If Ifeanyi saves with a DeFi protocol, he'll have to deal with complex DeFi UX and also lose his savings to market volatility."}
+                              {num === 3 && "Ifeanyi also doesn't want to get tempted to touch his rent savings, by risking it in a degen trade to make a quick 2x."}
                             </p>
               </div>
                 </div>
@@ -315,7 +315,7 @@ export default function Security() {
                             <p className="text-gray-600 leading-relaxed">
                               {num === 1 && "Rukevwe wants to avoid the Inflation on her local currency and the devaluation that affects her savings"}
                               {num === 2 && "She tried to save in dollars through her banks but she needed to have at least $100 to begin, and the fees were expensive."}
-                              {num === 3 && "Her friend told her about using DeFi protocols, but she couldn&apos;t understand the UX."}
+                              {num === 3 && "Her friend told her about using DeFi protocols, but she couldn't understand the UX."}
                             </p>
                   </div>
                 </div>
