@@ -16,7 +16,7 @@ const CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
 const BASE_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 const CELO_CONTRACT_ADDRESS = "0x7d839923Eb2DAc3A0d1cABb270102E481A208F33" 
 // const ETH_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000"
-const USDGLO_TOKEN_ADDRESS = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
+// const USDGLO_TOKEN_ADDRESS = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
 
 
 const spaceGrotesk = Space_Grotesk({
@@ -101,9 +101,22 @@ export default function CreateSavingsPage() {
     setSelectedPenalty(parseInt(penalty))
   }, [penalty])
 
+  // Define available currencies for each network
+  const networkCurrencies: Record<string, string[]> = {
+    base: ['USDC'],
+    celo: ['cUSD', 'USDGLO', 'Gooddollar'],
+  };
 
+  // Update currency options when chain changes
+  useEffect(() => {
+    const available = networkCurrencies[chain] || [];
+    if (!available.includes(currency)) {
+      setCurrency(available[0]);
+    }
+  }, [chain]);
 
-  const currencies = ['USDC', 'USDGLO', '$G']
+  const currencies = networkCurrencies[chain];
+
   const chains = [
     { id: 'base', name: 'Base', logo: '/base.svg', color: 'bg-blue-900/10', textColor: 'text-blue-800' },
     { id: 'celo', name: 'Celo', logo: '/celo.png', color: 'bg-green-100', textColor: 'text-green-600', active: true }
@@ -492,80 +505,66 @@ export default function CreateSavingsPage() {
     }
   }
 
+  // Token addresses and decimals for Celo
+  const CELO_TOKENS = {
+    USDGLO: { address: '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3', decimals: 6 },
+    cUSD: { address: '0x765DE816845861e75A25fCA122bb6898B8B1282a', decimals: 18 },
+    Gooddollar: { address: '0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A', decimals: 18 },
+  };
 
-  const handleCeloSavingsCreate = async () => {
-    if (!isConnected) {
-      setError("Please connect your wallet.")
-      return
-    }
-    setLoading(true)
-    setError(null)
-    setTxHash(null)
-    setSuccess(false)
-
+  // Helper to fetch CELO price in USD
+  const fetchCeloPrice = async () => {
     try {
-      if (!window.ethereum) {
-        throw new Error("No Ethereum wallet detected. Please install MetaMask.")
-      }
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=celo&vs_currencies=usd');
+      const data = await response.json();
+      return data.celo.usd;
+    } catch (error) {
+      console.error('Error fetching CELO price:', error);
+      return null;
+    }
+  };
 
-      console.log("User Input - Amount:", amount)
-      console.log("User Input - Savings Name:", savingsName)
-      console.log("User Input - Selected Day Range:", selectedDayRange)
-      console.log("User Input - Selected Penalty:", selectedPenalty)
-
-      const userEnteredAmount = parseFloat(amount)
-      if (isNaN(userEnteredAmount) || userEnteredAmount <= 0) {
-        throw new Error("Invalid amount. Please enter an amount greater than zero.")
-      }
-
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      await provider.send("eth_requestAccounts", [])
-      const signer = await provider.getSigner()
-
-      const CELO_CHAIN_ID = 42220 
-
-      const network = await provider.getNetwork()
-      console.log("User's Current Network:", network)
-
-      if (Number(network.chainId) !== CELO_CHAIN_ID) {
-        throw new Error("Please switch your wallet to the Celo network.")
-      }
-
-      const code = await provider.getCode(CELO_CONTRACT_ADDRESS)
-      if (code === "0x") {
-        throw new Error("Contract not found on Celo network. Please check the contract address.")
-      }
-
-      const contract = new ethers.Contract(CELO_CONTRACT_ADDRESS, CONTRACT_ABI, signer)
-      
-      let userChildContractAddress
+  // Approve and create saving for a Celo ERC20 token
+  const handleCeloTokenSavings = async (tokenKey: 'USDGLO' | 'cUSD' | 'Gooddollar') => {
+    if (!isConnected) {
+      setError("Please connect your wallet.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setTxHash(null);
+    setSuccess(false);
+    try {
+      if (!window.ethereum) throw new Error("No Ethereum wallet detected. Please install MetaMask.");
+      const celoPrice = await fetchCeloPrice();
+      if (!celoPrice) throw new Error('Could not fetch CELO price.');
+      const joinFeeCelo = (1 / celoPrice).toFixed(4); // $1 in CELO
+      const userEnteredAmount = parseFloat(amount);
+      if (isNaN(userEnteredAmount) || userEnteredAmount <= 0) throw new Error("Invalid amount. Please enter an amount greater than zero.");
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+      const CELO_CHAIN_ID = 42220;
+      const network = await provider.getNetwork();
+      if (Number(network.chainId) !== CELO_CHAIN_ID) throw new Error("Please switch your wallet to the Celo network.");
+      const contract = new ethers.Contract(CELO_CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+      let userChildContractAddress;
       try {
-        userChildContractAddress = await contract.getUserChildContractAddress()
-        console.log("User's Child Contract Address (Before Join):", userChildContractAddress)
+        userChildContractAddress = await contract.getUserChildContractAddress();
       } catch (error) {
-        console.error("Error getting user child contract:", error)
-        throw new Error("Failed to interact with the Bitsave contract. Please try again.")
+        console.error(error);
+        throw new Error("Failed to interact with the Bitsave contract. Please try again.");
       }
-
       if (userChildContractAddress === ethers.ZeroAddress) {
         try {
-          console.log("Joining Bitsave...")
-          const joinTx = await contract.joinBitsave({
-            value: ethers.parseEther("0.0001"), // Join fee
-            // gasLimit: 500000,
-          })
-          console.log("Join transaction sent:", joinTx.hash)
-          const joinReceipt = await joinTx.wait()
-          console.log("Join transaction confirmed:", joinReceipt)
-          
-          userChildContractAddress = await contract.getUserChildContractAddress()
-          console.log("User's Child Contract Address (After Join):", userChildContractAddress)
+          const joinTx = await contract.joinBitsave({ value: ethers.parseEther(joinFeeCelo) });
+          await joinTx.wait();
+          userChildContractAddress = await contract.getUserChildContractAddress();
         } catch (joinError) {
-          console.error("Error joining Bitsave:", joinError)
-          throw new Error("Failed to join Bitsave. Please check your wallet has enough CELO for gas fees.")
+          console.error(joinError);
+          throw new Error("Failed to join Bitsave. Please check your wallet has enough CELO for gas fees.");
         }
       }
-
       const maturityTime = selectedDayRange.to
         ? Math.floor(
           new Date(
@@ -574,243 +573,101 @@ export default function CreateSavingsPage() {
             selectedDayRange.to.day ?? 1
           ).getTime() / 1000
         )
-        : 0
-      
-      if (maturityTime === 0) {
-        throw new Error("Please select a valid end date for your savings plan.")
-      }
-
-      const safeMode = false
-      
-      let tokenToSave
-      let tokenAmount
-      let txOptions
-      
-      if (currency === 'USDGLO') {
-        tokenToSave = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
-        
-        const decimals = 6;
-        
-        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
-        
-        console.log("Amount in token units:", tokenAmount.toString());
-        
-        try {
-          console.log("Approving USDGLO token...")
-          await approveERC20(tokenToSave, tokenAmount, signer)
-          console.log("USDGLO approval successful")
-          
-          txOptions = {
-            gasLimit: 1500000, 
-            value: ethers.parseEther("0.0001"), 
-          }
-        } catch (approvalError) {
-          console.error("Error approving USDGLO tokens:", approvalError)
-          throw new Error("Failed to approve USDGLO tokens. Please check your token balance.")
-        }
-      } else if (currency === '$G') {
-        tokenToSave = "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A" 
-        
-        const decimals = 18;
-        
-        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
-        
-        console.log("Amount in token units:", tokenAmount.toString());
-        
-        try {
-          console.log("Approving $G token...")
-          await approveERC20(tokenToSave, tokenAmount, signer)
-          console.log("$G approval successful")
-          
-          txOptions = {
-            gasLimit: 1500000,
-            value: ethers.parseEther("0.0001"),
-          }
-        } catch (approvalError) {
-          console.error("Error approving $G tokens:", approvalError)
-          throw new Error("Failed to approve $G tokens. Please check your token balance.")
-        }
-      } else if (currency === 'USDGLO') {
-        tokenToSave = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3"
-        
-        const decimals = 6;
-        
-        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
-        
-        console.log("Amount in token units:", tokenAmount.toString());
-        
-        try {
-          console.log("Approving USDGLO token...")
-          await approveERC20(tokenToSave, tokenAmount, signer)
-          console.log("USDGLO approval successful")
-          
-          txOptions = {
-            gasLimit: 1500000, 
-            value: ethers.parseEther("0.0001"), 
-          }
-        } catch (approvalError) {
-          console.error("Error approving USDGLO tokens:", approvalError)
-          throw new Error("Failed to approve USDGLO tokens. Please check your token balance.")
-        }
-      } else if (currency === '$G') {
-        tokenToSave = "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A" 
-        
-        const decimals = 18;
-        
-        tokenAmount = ethers.parseUnits(userEnteredAmount.toFixed(decimals), decimals);
-        
-        console.log("Amount in token units:", tokenAmount.toString());
-        
-        try {
-          console.log("Approving $G token...")
-          await approveERC20(tokenToSave, tokenAmount, signer)
-          console.log("$G approval successful")
-          
-          txOptions = {
-            gasLimit: 1500000,
-            value: ethers.parseEther("0.0001"),
-          }
-        } catch (approvalError) {
-          console.error("Error approving $G tokens:", approvalError)
-          throw new Error("Failed to approve $G tokens. Please check your token balance.")
-        }
+        : 0;
+      if (maturityTime === 0) throw new Error("Please select a valid end date for your savings plan.");
+      const safeMode = false;
+      const token = CELO_TOKENS[tokenKey];
+      let tokenAmount;
+      let gAmount = userEnteredAmount;
+      if (tokenKey === 'Gooddollar') {
+        // Convert USD to $G using live price
+        gAmount = userEnteredAmount / goodDollarPrice;
+        tokenAmount = ethers.parseUnits(gAmount.toFixed(token.decimals), token.decimals);
       } else {
-        tokenToSave = USDGLO_TOKEN_ADDRESS
-        tokenAmount = ethers.parseEther(userEnteredAmount.toFixed(18))
-        
-        txOptions = {
-          gasLimit: 1500000,
-          value: tokenAmount + ethers.parseEther("0.0001"), 
-        }
+        tokenAmount = ethers.parseUnits(amount.trim(), token.decimals);
       }
-
-      console.log("Creating savings with parameters:", {
+      await approveERC20(token.address, tokenAmount, signer);
+      const txOptions = { gasLimit: 1500000, value: ethers.parseEther(joinFeeCelo) };
+      const tx = await contract.createSaving(
         savingsName,
         maturityTime,
         selectedPenalty,
         safeMode,
-        tokenToSave,
-        tokenAmount: tokenAmount.toString(),
+        token.address,
+        tokenAmount,
         txOptions
-      })
-
+      );
+      const receipt = await tx.wait();
+      setTxHash(receipt.hash);
       try {
-        const tx = await contract.createSaving(
-          savingsName,
-          maturityTime,
-          selectedPenalty,
-          safeMode,
-          tokenToSave,
-          tokenAmount,
-          txOptions
-        )
-        
-        console.log("Transaction sent:", tx.hash)
-        const receipt = await tx.wait()
-        console.log("Transaction confirmed:", receipt)
-        setTxHash(receipt.hash)
-        
-        try {
-          const apiResponse = await axios.post(
-            "https://bitsaveapi.vercel.app/transactions/",
-            {
-              amount: parseFloat(amount),
-              txnhash: receipt.hash,
-              chain: "celo",
-              savingsname: savingsName,
-              useraddress: walletAddress,
-              transaction_type: "deposit",
-              currency: currency
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                "X-API-Key": process.env.NEXT_PUBLIC_API_KEY
-              }
+        const apiResponse = await axios.post(
+          "https://bitsaveapi.vercel.app/transactions/",
+          {
+            amount: tokenKey === 'Gooddollar' ? gAmount : parseFloat(amount),
+            txnhash: receipt.hash,
+            chain: "celo",
+            savingsname: savingsName,
+            useraddress: walletAddress,
+            transaction_type: "deposit",
+            currency: tokenKey
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-Key": process.env.NEXT_PUBLIC_API_KEY
             }
-          );
-          console.log("API response:", apiResponse.data);
-        } catch (apiError) {
-          console.error("Error sending transaction data to API:", apiError);
-        }
-        
-        setSuccess(true)
-        console.log("Celo savings plan created successfully!")
-      } catch (txError: unknown) {
-        console.error("Transaction error:", txError)
-        
-        if (typeof txError === 'object' && txError !== null && 'code' in txError) {
-          const ethError = txError as { code: string; message?: string };
-          if (ethError.code === "CALL_EXCEPTION") {
-            throw new Error("Transaction reverted by the contract. Please check your inputs and try again.")
-          } else if (ethError.code === "INSUFFICIENT_FUNDS") {
-            throw new Error("Insufficient funds to complete the transaction. Please check your balance.")
-          } else {
-            throw new Error(`Transaction failed: ${ethError.message || "Unknown error"}`)
           }
-        } else {
-          throw new Error(`Transaction failed: ${txError instanceof Error ? txError.message : "Unknown error"}`)
-        }
+        );
+        console.log("API response:", apiResponse.data);
+      } catch (apiError) {
+        console.error("Error sending transaction data to API:", apiError);
       }
+      setSuccess(true);
     } catch (error) {
-      console.error("Error creating Celo savings plan:", error)
-      setSuccess(false)
-
-      if (error instanceof Error) {
-        setError(error.message || "Failed to create Celo savings plan.")
-      } else if (typeof error === 'object' && error !== null && 'code' in error) {
-        const ethError = error as { code: string; message?: string }
-        if (ethError.code === "CALL_EXCEPTION") {
-          setError("Transaction reverted. Please check the contract and inputs.")
-        } else if (ethError.code === "INSUFFICIENT_FUNDS") {
-          setError("Insufficient funds to cover the transaction.")
-        } else {
-          setError(ethError.message || "Failed to create Celo savings plan.")
-        }
-      } else {
-        setError("An unknown error occurred while creating the Celo savings plan.")
-      }
+      console.error("Error creating Celo savings plan:", error);
+      setSuccess(false);
+      setError(error instanceof Error ? error.message : String(error));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
+  // Main submit handler
   const handleSubmit = async () => {
-    setSubmitting(true)
-    setError(null)
-    setSuccess(false)
-
+    setSubmitting(true);
+    setError(null);
+    setSuccess(false);
     try {
       if (chain === 'celo') {
-        await handleCeloSavingsCreate()
-      // } else if (currency === 'ETH') {
-      //   // await handleEthCreateSavings()
+        if (currency === 'USDGLO') {
+          await handleCeloTokenSavings('USDGLO');
+        } else if (currency === 'cUSD') {
+          await handleCeloTokenSavings('cUSD');
+        } else if (currency === 'Gooddollar') {
+          await handleCeloTokenSavings('Gooddollar');
+        } else {
+          throw new Error('Unsupported currency for Celo network.');
+        }
       } else {
-        await handleBaseSavingsCreate()
+        await handleBaseSavingsCreate();
       }
-  
-
-      // If we reach here without an error, the transaction was successful
-      setSuccess(true)
+      setSuccess(true);
     } catch (err) {
-      console.error('Error creating savings plan:', err)
-
-      // Check if this is a user rejection error
+      console.error('Error creating savings plan:', err);
       const errorMessage = err instanceof Error ? err.message : String(err);
       if (errorMessage.includes('user rejected') ||
         errorMessage.includes('User denied') ||
         errorMessage.includes('user cancelled') ||
         errorMessage.includes('ACTION_REJECTED')) {
-        setError('Transaction was rejected by user')
+        setError('Transaction was rejected by user');
       } else {
-        setError(errorMessage)
+        setError(errorMessage);
       }
-
-      setSuccess(false) // Ensure success is set to false on error
+      setSuccess(false);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   const handleCloseTransactionModal = () => {
     setShowTransactionModal(false)
@@ -850,6 +707,25 @@ export default function CreateSavingsPage() {
     }
   }
 
+  // Add state for GoodDollar price
+  const [goodDollarPrice, setGoodDollarPrice] = useState(0.0001);
+
+  // Fetch GoodDollar price from Coingecko
+  const fetchGoodDollarPrice = async () => {
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=gooddollar&vs_currencies=usd');
+      const data = await response.json();
+      return data.gooddollar.usd;
+    } catch (error) {
+      console.error(error);
+      return 0.0001; // fallback
+    }
+  };
+
+  useEffect(() => {
+    fetchGoodDollarPrice().then(setGoodDollarPrice);
+  }, []);
+
   if (!mounted) return null
 
   return (
@@ -868,78 +744,92 @@ export default function CreateSavingsPage() {
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#229ED9]/10 rounded-full blur-2xl"></div>
             <div className="p-5 sm:p-8 flex flex-col items-center">
-              {/* Success or Error Icon */}
-              <div className={`w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mb-4 sm:mb-6 ${success ? 'bg-green-100' : 'bg-red-100'}`}>
-                {success ? (
-                  <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-green-500 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                ) : (
-                  <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-red-500 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
-              </div>
+              {/* Success, Cancelled, or Error Icon */}
+              {success ? (
+                <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-green-500 flex items-center justify-center mb-4 sm:mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              ) : error === 'Transaction was rejected by user' ? (
+                <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-yellow-200 flex items-center justify-center mb-4 sm:mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              ) : (
+                <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-red-500 flex items-center justify-center mb-4 sm:mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
 
-              {/* Title */}
-              <h2 className="text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2">
-                {success ? 'Savings Plan Created!' : 'Failed'}
-              </h2>
+              {/* Title and Message */}
+              {success ? (
+                <>
+                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2">Savings Plan Created!</h2>
+                  <p className="text-sm sm:text-base text-gray-500 text-center mb-5 sm:mb-8 max-w-xs sm:max-w-none mx-auto">
+                    Your Transaction to create your savings plan has been processed and is successful.
+                  </p>
+                </>
+              ) : error === 'Transaction was rejected by user' ? (
+                <>
+                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2 text-yellow-700">Transaction Cancelled</h2>
+                  <p className="text-sm sm:text-base text-gray-500 text-center mb-5 sm:mb-8 max-w-xs sm:max-w-none mx-auto">
+                    You cancelled the transaction in your wallet. No changes were made.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2 text-red-700">Failed</h2>
+                  <p className="text-sm sm:text-base text-gray-500 text-center mb-5 sm:mb-8 max-w-xs sm:max-w-none mx-auto">
+                    Your Transaction to create your savings plan failed, please contact customer care for support.
+                    {error && <span className="block mt-2 text-xs text-red-500">{error}</span>}
+                  </p>
+                </>
+              )}
 
-              {/* Message */}
-              <p className="text-sm sm:text-base text-gray-500 text-center mb-5 sm:mb-8 max-w-xs sm:max-w-none mx-auto">
-                {success
-                  ? 'Your Transaction to create your savings plan has been processed and is successful.'
-                  : `Your Transaction to create your savings plan failed, please contact customer care for support.`}
-                {!success && error && <span className="block mt-2 text-xs text-red-500">{error}</span>}
-              </p>
-
-              {/* Transaction ID Button */}
-              {txHash && (
+              {/* Transaction ID Button (only on success or error, not on cancel) */}
+              {txHash && (success || (error && error !== 'Transaction was rejected by user')) && (
                 <button
                   className="w-full py-2.5 sm:py-3 border border-gray-300 rounded-full text-gray-700 text-sm sm:text-base font-medium mb-3 sm:mb-4 hover:bg-gray-50 transition-colors"
-                  onClick={() => window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
+                  onClick={() => window.open(
+                    chain === 'celo'
+                      ? `https://explorer.celo.org/tx/${txHash}`
+                      : `https://basescan.org/tx/${txHash}`,
+                    '_blank'
+                  )}
                 >
                   View Transaction ID
                 </button>
               )}
 
               {/* Tweet Button (only on success) */}
-              {success && (
-                <a
-                  href={`https://twitter.com/intent/tweet?text=I%20just%20saved%20${amount}%20${currency}%20on%20BitSave%20(${chain.toUpperCase()})%20with%20my%20plan%20%22${name || 'Untitled Plan'}%22!%20Join%20me%20on%20@bitsavehq%20and%20start%20your%20DeFi%20savings%20journey!%20%23DeFi%20%23Savings%20%23Web3`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-2.5 sm:py-3 bg-[#229ED9] text-white rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 mb-3 sm:mb-4 hover:bg-[#1b7bb3] transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                  Tweet your savings
-                </a>
-              )}
+              {success && (() => {
+                const referralLink = 'https://bitsave.com/ref/123xyz'; // Placeholder
+                const tweetText = `Just locked up some ${currency} for my future self on @bitsaveprotocol, no degen plays today, web3 savings never looked this good 💰\n\nYou should be doing #SaveFi → ${referralLink}`;
+                const encodedTweetText = encodeURIComponent(tweetText);
+                return (
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodedTweetText}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 sm:py-3 bg-black text-white rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 mb-3 sm:mb-4 hover:bg-gray-900 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.209c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                    Post on X
+                  </a>
+                );
+              })()}
 
               {/* Action Buttons */}
               <div className="flex w-full gap-3 sm:gap-4 flex-col sm:flex-row">
-                {txHash && (
-                  <button
-                    className="w-full py-2.5 sm:py-3 bg-gray-100 rounded-full text-gray-700 text-sm sm:text-base font-medium flex items-center justify-center hover:bg-gray-200 transition-colors"
-                    onClick={() => window.open(`https://basescan.org/tx/${txHash}`, '_blank')}
-                  >
-                    Go To Explorer
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1.5 sm:ml-2" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                    </svg>
-                  </button>
-                )}
                 <button
-                  className={`w-full py-2.5 sm:py-3 ${success ? 'bg-[#81D7B4] hover:bg-[#6bc4a1]' : 'bg-gray-700 hover:bg-gray-800'} rounded-full text-white text-sm sm:text-base font-medium transition-colors`}
+                  className={`w-full py-2.5 sm:py-3 ${success ? 'bg-[#81D7B4] hover:bg-[#6bc4a1]' : error === 'Transaction was rejected by user' ? 'bg-yellow-400 hover:bg-yellow-500 text-gray-900' : 'bg-gray-700 hover:bg-gray-800'} rounded-full text-white text-sm sm:text-base font-medium transition-colors`}
                   onClick={handleCloseTransactionModal}
                 >
-                  {success ? 'Go to Dashboard' : 'Close'}
+                  {success ? 'Go to Dashboard' : error === 'Transaction was rejected by user' ? 'Close' : 'Close'}
                 </button>
               </div>
             </div>
@@ -1088,6 +978,18 @@ export default function CreateSavingsPage() {
                           </div>
                         </div>
                         {errors.amount && <p className="mt-1 text-sm text-red-500">{errors.amount}</p>}
+                        {chain === 'celo' && currency === 'Gooddollar' && amount && !isNaN(Number(amount)) && (
+                          <div className="mt-2 text-xs text-[#81D7B4] font-medium">
+                            {goodDollarPrice > 0 ? (
+                              <>
+                                {Number(amount) / goodDollarPrice} G$<br />
+                                <span className="text-gray-600 font-normal">1 $G = ${goodDollarPrice}</span>
+                              </>
+                            ) : (
+                              'Loading $G price...'
+                            )}
+                          </div>
+                        )}
                       </motion.div>
 
                       {/* Currency - enhanced, responsive, DeFi style */}
@@ -1107,7 +1009,13 @@ export default function CreateSavingsPage() {
                               style={{ minWidth: 0 }}
                             >
                               <img
-                                src={curr === '$G' ? '/$g.png' : `/${curr.toLowerCase().replace('$', '')}.png`}
+                                src={
+                                  curr === 'Gooddollar' ? '/$g.png'
+                                  : curr === 'cUSD' ? '/cusd.png'
+                                  : curr === 'USDGLO' ? '/usdglo.png'
+                                  : curr === 'USDC' ? '/usdc.png'
+                                  : `/${curr.toLowerCase().replace('$', '')}.png`
+                                }
                                 alt={curr}
                                 className="w-5 h-5 mr-2"
                               />
@@ -1305,7 +1213,7 @@ export default function CreateSavingsPage() {
                             Setting a penalty helps you stay committed to your savings goal. If you withdraw funds before the end date, this percentage will be deducted.
                           </p>
 
-                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 relative z-10">
+                          <div className="flex gap-2 relative z-10">
                             {penalties.map((p, index) => (
                               <motion.button
                                 key={p}
@@ -1314,10 +1222,10 @@ export default function CreateSavingsPage() {
                                 transition={{ delay: 0.5 + (index * 0.1) }}
                                 type="button"
                                 onClick={() => setPenalty(p)}
-                                className={`py-3 rounded-xl border ${penalty === p
+                                className={`flex-1 py-3 rounded-xl border ${penalty === p
                                   ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_10px_rgba(129,215,180,0.15)]'
                                   : 'bg-white border-gray-200/50 text-gray-700 hover:bg-gray-50'
-                                  } transition-all font-medium`}
+                                  } transition-all font-medium text-center`}
                               >
                                 {p}
                               </motion.button>
@@ -1409,7 +1317,17 @@ export default function CreateSavingsPage() {
                           </div>
                           <div className="mt-3 sm:mt-0 flex items-center bg-white/70 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white/60 shadow-sm">
                             <div className="bg-white rounded-full p-1 mr-2 shadow-sm">
-                              <img src={`/${currency.toLowerCase()}.png`} alt={currency} className="w-4 h-4" />
+                              <img
+                                src={
+                                  currency === 'Gooddollar' ? '/$g.png'
+                                  : currency === 'cUSD' ? '/cusd.png'
+                                  : currency === 'USDGLO' ? '/usdglo.png'
+                                  : currency === 'USDC' ? '/usdc.png'
+                                  : `/${currency.toLowerCase().replace('$', '')}.png`
+                                }
+                                alt={currency}
+                                className="w-4 h-4"
+                              />
                             </div>
                             <span className="text-sm font-medium text-gray-700">{currency}</span>
                             <span className="mx-2 text-gray-300">|</span>
@@ -1471,11 +1389,11 @@ export default function CreateSavingsPage() {
 
                           <div className="flex flex-col sm:flex-row sm:items-center py-3 px-4 sm:px-6">
                             <span className="text-sm font-medium text-gray-500 sm:w-1/3">Early Withdrawal Penalty</span>
-                            <span className="text-sm text-gray-800 font-medium mt-1 sm:mt-0 flex items-center">
-                              <span className="inline-block bg-amber-50 text-amber-700 rounded-md px-2 py-0.5 mr-2">
+                            <span className="flex flex-wrap items-center gap-2 mt-1 sm:mt-0">
+                              <span className="inline-flex items-center bg-amber-50 text-amber-700 rounded-md px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
                                 {penalty}
                               </span>
-                              <span className="text-gray-500 text-xs">
+                              <span className="text-gray-500 text-xs sm:text-sm truncate">
                                 (${(Number(amount || '0') * parseFloat(penalty) / 100).toFixed(2)} fee on early withdrawal)
                               </span>
                             </span>

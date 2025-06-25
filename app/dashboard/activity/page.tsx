@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Space_Grotesk } from 'next/font/google'
 import Image from 'next/image'
+import Link from 'next/link'
 
 // Initialize the Space Grotesk font
 const spaceGrotesk = Space_Grotesk({ 
@@ -202,7 +203,7 @@ export default function ActivityPage() {
                     <span className="block text-base sm:text-lg font-bold text-[#163239] mb-0.5 sm:mb-1 truncate">Refer a Friend</span>
                     <span className="block text-xs sm:text-sm text-[#555] truncate">Invite friends to BitSave and earn points for each successful referral.</span>
                   </div>
-                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+100 pts</span>
+                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+5 pts</span>
                 </li>
                 <li className="flex items-center gap-3 sm:gap-4 bg-white/95 backdrop-blur-xl rounded-xl border border-[#81D7B4]/20 shadow-[0_2px_12px_rgba(129,215,180,0.10)] px-4 sm:px-6 py-4 sm:py-6 hover:shadow-[0_4px_16px_rgba(129,215,180,0.14)] transition-all duration-300 group relative overflow-hidden">
                   <div className="w-1 h-10 sm:w-1.5 sm:h-12 rounded-full bg-[#81D7B4] mr-2 sm:mr-3"></div>
@@ -216,7 +217,7 @@ export default function ActivityPage() {
                     <span className="block text-base sm:text-lg font-bold text-[#163239] mb-0.5 sm:mb-1 truncate">Connect Farcaster</span>
                     <span className="block text-xs sm:text-sm text-[#555] truncate">Link your Farcaster account to unlock social rewards and onchain perks.</span>
                   </div>
-                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+50 pts</span>
+                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+1 pt</span>
                 </li>
                 <li className="flex items-center gap-3 sm:gap-4 bg-white/95 backdrop-blur-xl rounded-xl border border-[#81D7B4]/20 shadow-[0_2px_12px_rgba(129,215,180,0.10)] px-4 sm:px-6 py-4 sm:py-6 hover:shadow-[0_4px_16px_rgba(129,215,180,0.14)] transition-all duration-300 group relative overflow-hidden">
                   <div className="w-1 h-10 sm:w-1.5 sm:h-12 rounded-full bg-[#81D7B4] mr-2 sm:mr-3"></div>
@@ -229,7 +230,7 @@ export default function ActivityPage() {
                     <span className="block text-base sm:text-lg font-bold text-[#163239] mb-0.5 sm:mb-1 truncate">Connect Email</span>
                     <span className="block text-xs sm:text-sm text-[#555] truncate">Add your email to receive updates, rewards, and important notifications.</span>
                   </div>
-                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+30 pts</span>
+                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+1 pt</span>
                 </li>
                 <li className="flex items-center gap-3 sm:gap-4 bg-white/95 backdrop-blur-xl rounded-xl border border-[#81D7B4]/20 shadow-[0_2px_12px_rgba(129,215,180,0.10)] px-4 sm:px-6 py-4 sm:py-6 hover:shadow-[0_4px_16px_rgba(129,215,180,0.14)] transition-all duration-300 group relative overflow-hidden">
                   <div className="w-1 h-10 sm:w-1.5 sm:h-12 rounded-full bg-[#81D7B4] mr-2 sm:mr-3"></div>
@@ -243,11 +244,13 @@ export default function ActivityPage() {
                     <span className="block text-base sm:text-lg font-bold text-[#163239] mb-0.5 sm:mb-1 truncate">Connect X (Twitter)</span>
                     <span className="block text-xs sm:text-sm text-[#555] truncate">Connect your X (Twitter) account for social bonuses and campaign rewards.</span>
                   </div>
-                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+30 pts</span>
+                  <span className="text-sm sm:text-base font-bold text-[#163239] bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 shadow-sm">+1 pt</span>
                 </li>
               </ul>
               <div className="mt-6 sm:mt-10 flex justify-end">
-                <button className="bg-[#81D7B4] text-white font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-lg hover:bg-[#6bc4a1] transition-all duration-300 text-base sm:text-lg">View All Tasks</button>
+                <Link href="/dashboard/social" className="bg-[#81D7B4] text-white font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-lg hover:bg-[#6bc4a1] transition-all duration-300 text-base sm:text-lg">
+                  View All Tasks
+                </Link>
               </div>
             </div>
           </motion.div>

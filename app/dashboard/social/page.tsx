@@ -1,165 +1,381 @@
 "use client"
-import { motion } from 'framer-motion';
+import { useState, useEffect, ReactNode, useRef } from 'react'
+import { motion } from 'framer-motion'
+import { Space_Grotesk } from 'next/font/google'
+import Link from 'next/link'
+import Image from 'next/image'
 
-export default function SocialActivityPage() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-[#f8fafa] relative overflow-x-hidden">
-      {/* Decorative gradients and mesh */}
-      <div className="fixed -top-40 -right-40 w-96 h-96 bg-[#8A63D2]/10 rounded-full blur-3xl z-0"></div>
-      <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-[#81D7B4]/10 rounded-full blur-3xl z-0"></div>
-      <div className="fixed top-1/3 right-1/4 w-64 h-64 bg-[#8A63D2]/5 rounded-full blur-3xl z-0"></div>
-      <div className="fixed inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none z-0"></div>
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  display: 'swap',
+})
 
-      <div className="container mx-auto px-4 py-12 relative z-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: 'easeOut' }}
-          className="text-center mb-16"
-        >
-          <div className="inline-flex items-center gap-3 px-7 py-3 rounded-full bg-[#8A63D2]/10 border border-[#8A63D2]/30 backdrop-blur-sm shadow-[0_0_15px_rgba(138,99,210,0.10)] mx-auto relative overflow-hidden group mb-6">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#8A63D2]/0 via-[#8A63D2]/20 to-[#8A63D2]/0 animate-shimmer"></div>
-            <div className="w-4 h-4 rounded-full bg-[#8A63D2] animate-pulse relative z-10"></div>
-            <span className="text-base font-semibold text-[#8A63D2] uppercase tracking-wider relative z-10">Social Activity</span>
+// Mock data for demonstration
+const MOCK_USER_DATA = {
+  hasSavingsPlan: true,
+  hasConnectedX: true,
+  hasConnectedFarcaster: true,
+  hasEmail: true,
+  userPoints: 0,
+  referralLink: 'https://bitsave.com/ref/123xyz',
+}
+
+const testimonials = [
+  {
+    quote: "Bitsave has completely changed how I approach my savings in Web3. It's simple, secure, and the rewards are a great bonus!",
+    name: 'Glory',
+    handle: '@glory.eth',
+    avatar: '/images/glory.jpg',
+  },
+  {
+    quote: "Finally, a DeFi protocol that prioritizes savings. The child-parent contract structure gives me peace of mind. Highly recommend!",
+    name: 'Nissi',
+    handle: '@nissi.eth',
+    avatar: '/images/nissi.jpg',
+  },
+  {
+    quote: "As someone who's been rugged before, security is my top priority. Bitsave's transparent and audited contracts make it a no-brainer for me.",
+    name: 'Karlagod',
+    handle: '@karlagod',
+    avatar: '/images/karlagod.jpg',
+  },
+  {
+    quote: "The goal-based savings plans are a game-changer. I'm actually motivated to save regularly now. Plus, earning $BTS tokens is awesome.",
+    name: 'Xpan',
+    handle: '@xpan',
+    avatar: '/images/xpan.jpg',
+  },
+  {
+    quote: "I love the UI/UX. It doesn't feel like a complicated DeFi app. It's as easy as using my traditional banking app, but with all the benefits of web3.",
+    name: 'Primidac',
+    handle: '@primidac',
+    avatar: '/images/primidac.png',
+  },
+]
+
+const communityVideos = [
+  {
+    id: 1,
+    title: 'How to Setup Your First Bitsave Plan',
+    creator: 'CryptoSavvy',
+    thumbnail: '/bitsavedashboard.png',
+    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  },
+  {
+    id: 2,
+    title: 'Maximizing Your $BTS Rewards on Bitsave',
+    creator: 'DeFi Don',
+    thumbnail: '/dashboard-preview.svg',
+    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  },
+  {
+    id: 3,
+    title: "A Deep Dive into Bitsave's Security",
+    creator: 'Onchain Analyst',
+    thumbnail: '/bitsave-dashboard.svg',
+    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  },
+  {
+    id: 4,
+    title: "A Deep Dive into Bitsave's Security",
+    creator: 'Onchain Analyst',
+    thumbnail: '/bitsave-dashboard-new.svg',
+    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  },
+]
+
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  isCompleted: boolean;
+  href: string;
+  icon: string;
+}
+
+export default function SavvySpacePage() {
+  const [userData] = useState(MOCK_USER_DATA)
+
+  const tasks: Task[] = [
+    {
+      id: 'tweet_after_saving',
+      title: 'Tweet after Saving',
+      description: 'Get 1 point for the tweet you send after creating a new savings plan.',
+      points: 1,
+      isCompleted: false, // This would be tracked via backend
+      href: '/dashboard/create-savings',
+      icon: 'tweet',
+    },
+    {
+      id: 'connect_x',
+      title: 'Connect X (Twitter)',
+      description: 'Link your X account to earn points and unlock social features.',
+      points: 1,
+      isCompleted: userData.hasConnectedX,
+      href: '/dashboard/settings',
+      icon: 'twitter',
+    },
+    {
+      id: 'connect_farcaster',
+      title: 'Connect Farcaster',
+      description: 'Link your Farcaster account for onchain perks and rewards.',
+      points: 1,
+      isCompleted: userData.hasConnectedFarcaster,
+      href: '/dashboard/settings',
+      icon: 'farcaster',
+    },
+    {
+      id: 'add_email',
+      title: 'Add Email Address',
+      description: 'Secure your account and get important notifications.',
+      points: 1,
+      isCompleted: userData.hasEmail,
+      href: '/dashboard/settings',
+      icon: 'email',
+    },
+    {
+      id: 'tweet_about_bitsave',
+      title: 'Tweet about BitSave',
+      description: 'Share your experience with BitSave on X.',
+      points: 5,
+      isCompleted: false, // This would be tracked via backend
+      href: `https://twitter.com/intent/tweet?text=Exploring%20the%20world%20of%20DeFi%20savings%20with%20@bitsaveprotocol!%20%23SaveFi%20%23Web3&url=${userData.referralLink}`,
+      icon: 'tweet',
+    },
+    {
+      id: 'cast_about_bitsave',
+      title: 'Cast about BitSave',
+      description: 'Post about BitSave on Farcaster.',
+      points: 5,
+      isCompleted: false, // This would be tracked via backend
+      href: `https://warpcast.com/~/compose?text=Exploring%20the%20world%20of%20DeFi%20savings%20with%20@bitsave!%20&embeds[]=${userData.referralLink}`,
+      icon: 'cast',
+    },
+    {
+      id: 'referral_signup',
+      title: 'Refer a Friend',
+      description: 'Earn points for every friend who signs up using your link.',
+      points: 5,
+      isCompleted: false, // This is an ongoing task
+      href: '/dashboard/settings', // a dedicated referral page could be better
+      icon: 'referral',
+    },
+    {
+      id: 'complete_plan',
+      title: 'Complete a Savings Plan',
+      description: 'Reach your savings goal to earn a streak bonus.',
+      points: 10,
+      isCompleted: false, // Depends on plan completion
+      href: '/dashboard/plans',
+      icon: 'streak',
+    },
+    {
+      id: 'weekly_saving',
+      title: '4-Week Saving Streak',
+      description: 'Save consistently every week for a month.',
+      points: 10,
+      isCompleted: false, // Depends on saving history
+      href: '/dashboard/plans',
+      icon: 'calendar',
+    },
+  ]
+
+  const TaskIcon = ({ icon }: { icon: string }) => {
+    const icons: { [key: string]: ReactNode } = {
+      twitter: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>,
+      farcaster: <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.5 10.5C21.5 9.67157 20.8284 9 20 9H12C11.1716 9 10.5 9.67157 10.5 10.5V21.5C10.5 22.3284 11.1716 23 12 23H20C20.8284 23 21.5 22.3284 21.5 21.5V10.5Z" fill="currentColor"/><path d="M16 13.5C17.3807 13.5 18.5 14.6193 18.5 16C18.5 17.3807 17.3807 18.5 16 18.5C14.6193 18.5 13.5 17.3807 13.5 16C13.5 14.6193 14.6193 13.5 16 13.5Z" fill="white"/></svg>,
+      email: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" /></svg>,
+      tweet: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
+      cast: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+      referral: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.5a9 9 0 0118 0" /></svg>,
+      streak: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>,
+      calendar: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+    }
+    return icons[icon] || null
+  }
+
+  const TestimonialCard = ({ quote, name, handle, avatar }: { quote: string, name: string, handle: string, avatar: string }) => (
+    <div className="flex-shrink-0 w-[300px] md:w-[350px] bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg p-6 relative overflow-hidden">
+      <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
+      <div className="relative z-10">
+        <p className="text-gray-600 mb-4 h-24 line-clamp-4">&quot;{quote}&quot;</p>
+        <div className="flex items-center">
+          <Image src={avatar} alt={name} width={40} height={40} className="w-10 h-10 rounded-full mr-3 border-2 border-white shadow-md" />
+          <div>
+            <p className="font-bold text-gray-800">{name}</p>
+            <p className="text-sm text-gray-500">{handle}</p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900 gradient-text">Community & Socials</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">See the latest from BitSave on Farcaster, Twitter, Telegram, and more. Join the conversation and stay up to date with our vibrant onchain community.</p>
-        </motion.div>
-
-        {/* Social Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-          {/* Farcaster Card */}
-          <motion.a
-            href="https://warpcast.com/bitsave"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-[#8A63D2]/20 shadow-[0_8px_32px_rgba(138,99,210,0.10)] p-8 flex flex-col items-center text-center transition-all duration-300 group overflow-hidden hover:shadow-[0_12px_40px_rgba(138,99,210,0.15)]"
-          >
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#8A63D2]/10 rounded-full blur-2xl"></div>
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
-            <svg className="w-12 h-12 mb-4" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="16" cy="16" r="16" fill="#8A63D2"/>
-              <path d="M21.5 10.5C21.5 9.67157 20.8284 9 20 9H12C11.1716 9 10.5 9.67157 10.5 10.5V21.5C10.5 22.3284 11.1716 23 12 23H20C20.8284 23 21.5 22.3284 21.5 21.5V10.5Z" fill="white"/>
-              <path d="M16 13.5C17.3807 13.5 18.5 14.6193 18.5 16C18.5 17.3807 17.3807 18.5 16 18.5C14.6193 18.5 13.5 17.3807 13.5 16C13.5 14.6193 14.6193 13.5 16 13.5Z" fill="#8A63D2"/>
-            </svg>
-            <h2 className="text-xl font-bold text-[#8A63D2] mb-2">Farcaster</h2>
-            <p className="text-gray-700 mb-4">Follow us on Farcaster for the latest onchain updates, community threads, and announcements.</p>
-            <span className="inline-block bg-[#8A63D2]/10 text-[#8A63D2] px-4 py-1.5 rounded-full font-medium text-sm border border-[#8A63D2]/20">@bitsave</span>
-          </motion.a>
-
-          {/* Twitter Card */}
-          <motion.a
-            href="https://twitter.com/bitsave"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-[#81D7B4]/20 shadow-[0_8px_32px_rgba(129,215,180,0.10)] p-8 flex flex-col items-center text-center transition-all duration-300 group overflow-hidden hover:shadow-[0_12px_40px_rgba(129,215,180,0.15)]"
-          >
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#8A63D2]/10 rounded-full blur-2xl"></div>
-            <svg className="w-12 h-12 mb-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-            </svg>
-            <h2 className="text-xl font-bold text-[#81D7B4] mb-2">Twitter</h2>
-            <p className="text-gray-700 mb-4">Join the conversation on Twitter for news, product updates, and community highlights.</p>
-            <span className="inline-block bg-[#81D7B4]/10 text-[#81D7B4] px-4 py-1.5 rounded-full font-medium text-sm border border-[#81D7B4]/20">@bitsave</span>
-          </motion.a>
-
-          {/* Telegram Card */}
-          <motion.a
-            href="https://t.me/bitsave"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-[#229ED9]/20 shadow-[0_8px_32px_rgba(34,158,217,0.10)] p-8 flex flex-col items-center text-center transition-all duration-300 group overflow-hidden hover:shadow-[0_12px_40px_rgba(34,158,217,0.15)]"
-          >
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#229ED9]/10 rounded-full blur-2xl"></div>
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#8A63D2]/10 rounded-full blur-2xl"></div>
-            <svg className="w-12 h-12 mb-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-            </svg>
-            <h2 className="text-xl font-bold text-[#229ED9] mb-2">Telegram</h2>
-            <p className="text-gray-700 mb-4">Join our Telegram for support, discussions, and real-time updates from the BitSave team.</p>
-            <span className="inline-block bg-[#229ED9]/10 text-[#229ED9] px-4 py-1.5 rounded-full font-medium text-sm border border-[#229ED9]/20">@bitsave</span>
-          </motion.a>
         </div>
-
-        {/* Community Reviews Section - Carousel, No Avatars */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
-          className="mb-20"
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center drop-shadow-sm">Community Reviews</h2>
-          <div className="relative overflow-x-hidden">
-            <div
-              className="flex gap-8 w-max animate-carousel"
-              style={{
-                animation: 'carousel 30s linear infinite',
-              }}
-            >
-              {/* Repeat reviews for seamless loop */}
-              {[
-                { name: 'Alice', review: 'BitSave made saving so easy and fun! The rewards system keeps me motivated.' },
-                { name: 'Bob', review: 'I love the glassy UI and the social features. It feels like DeFi for everyone.' },
-                { name: 'Carol', review: 'The best way to save onchain. I earned $BTS just for sticking to my goals!' },
-                { name: 'David', review: 'BitSave is the future of onchain savings. Super smooth experience.' },
-                { name: 'Eve', review: 'I never thought saving could be this fun and social. Love the rewards!' },
-              ].concat([
-                { name: 'Alice', review: 'BitSave made saving so easy and fun! The rewards system keeps me motivated.' },
-                { name: 'Bob', review: 'I love the glassy UI and the social features. It feels like DeFi for everyone.' },
-                { name: 'Carol', review: 'The best way to save onchain. I earned $BTS just for sticking to my goals!' },
-                { name: 'David', review: 'BitSave is the future of onchain savings. Super smooth experience.' },
-                { name: 'Eve', review: 'I never thought saving could be this fun and social. Love the rewards!' },
-              ]).map((r, i) => (
-                <div
-                  key={i}
-                  className="min-w-[320px] max-w-xs bg-white/80 backdrop-blur-xl rounded-2xl border border-[#81D7B4]/20 shadow-[0_8px_32px_rgba(129,215,180,0.10)] px-8 py-7 flex flex-col items-center text-center transition-all duration-300 group overflow-hidden hover:shadow-[0_12px_40px_rgba(129,215,180,0.15)] mx-2"
-                >
-                  <h3 className="text-lg font-bold text-[#229ED9] mb-2">{r.name}</h3>
-                  <p className="text-gray-700 mb-2">&quot;{r.review}&quot;</p>
-                  <span className="inline-block bg-[#81D7B4]/10 text-[#81D7B4] px-4 py-1.5 rounded-full font-medium text-xs border border-[#81D7B4]/20 mt-2">Verified User</span>
-                </div>
-              ))}
-            </div>
-            {/* Carousel animation keyframes */}
-            <style jsx>{`
-              @keyframes carousel {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(-50%); }
-              }
-            `}</style>
-          </div>
-        </motion.div>
-
-        {/* Video Content Section - Only Provided Link */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: 'easeOut', delay: 0.2 }}
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center drop-shadow-sm">BitSave Video Content</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1,2,3].map((_, i) => (
-              <div key={i} className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-[#229ED9]/20 shadow-[0_8px_32px_rgba(34,158,217,0.10)] p-4 flex flex-col items-center text-center transition-all duration-300 group overflow-hidden hover:shadow-[0_12px_40px_rgba(34,158,217,0.15)]">
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#229ED9]/10 rounded-full blur-2xl"></div>
-                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
-                <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 border-2 border-[#229ED9]/20 shadow">
-                  <iframe width="100%" height="100%" src="https://www.youtube.com/embed/CWRQ7rgtHzU?si=923dVxvEH1N2QYQw" title="BitSave Video" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-                </div>
-                <h3 className="text-lg font-bold text-[#229ED9] mb-2">BitSave Community Video</h3>
-                <p className="text-gray-700">Watch the latest BitSave content and community highlights.</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </div>
   );
+
+  const Testimonials = () => {
+    const scrollerRef = useRef<HTMLDivElement>(null);
+    const [isHovered, setIsHovered] = useState(false);
+
+    useEffect(() => {
+      const scroller = scrollerRef.current;
+      if (!scroller) return;
+
+      let animationFrameId: number;
+      const scroll = () => {
+        if (!isHovered) {
+          scroller.scrollLeft += 1;
+          if (scroller.scrollLeft >= scroller.scrollWidth / 2) {
+            scroller.scrollLeft = 0;
+          }
+        }
+        animationFrameId = requestAnimationFrame(scroll);
+      };
+
+      animationFrameId = requestAnimationFrame(scroll);
+
+      return () => {
+        cancelAnimationFrame(animationFrameId);
+      };
+    }, [isHovered]);
+
+    const duplicatedTestimonials = [...testimonials, ...testimonials];
+
+    return (
+      <div
+        ref={scrollerRef}
+        className="relative w-full overflow-x-auto scrollbar-hide [mask-image:_linear_gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="flex w-max gap-6 pb-4">
+          {duplicatedTestimonials.map((testimonial, index) => (
+            <TestimonialCard key={index} {...testimonial} />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const CommunityVideos = () => (
+    <div className="relative">
+      <div className="flex space-x-6 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-thin scrollbar-thumb-[#81D7B4]/50 scrollbar-track-transparent">
+        {communityVideos.map((video) => (
+          <a href={video.url} key={video.id} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 w-[280px] group">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg overflow-hidden transition-all duration-300 group-hover:shadow-2xl group-hover:-translate-y-1">
+              <Image src={video.thumbnail} alt={video.title} width={280} height={158} className="w-full h-40 object-cover" />
+              <div className="p-4">
+                <h4 className="font-bold text-gray-800 truncate">{video.title}</h4>
+                <p className="text-sm text-gray-500">by {video.creator}</p>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+
+  const SavvySpace = () => (
+    <div className="space-y-12">
+      {/* User points and referral link section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg p-6 flex-1 relative overflow-hidden">
+          <div className="absolute -top-10 -left-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Your Points</h3>
+            <p className="text-4xl font-bold text-gray-800 tracking-tight">{userData.userPoints.toLocaleString()}</p>
+            <p className="text-sm text-[#81D7B4] font-medium mt-1">≈ ${(userData.userPoints * 0.1).toFixed(2)} USD</p>
+          </div>
+        </div>
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg p-6 flex-1 relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Your Referral Link</h3>
+            <div className="flex items-center mt-2">
+              <input
+                type="text"
+                readOnly
+                value={userData.referralLink}
+                className="w-full bg-gray-100/50 rounded-l-lg px-3 py-2 border-y border-l border-gray-200/50 text-sm focus:outline-none"
+              />
+              <button
+                onClick={() => navigator.clipboard.writeText(userData.referralLink)}
+                className="bg-[#81D7B4] text-white px-3 py-2 rounded-r-lg hover:bg-[#6bc4a1] transition-colors"
+              >
+                Copy
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Share this link to earn 5 points for every sign-up!</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Community Videos */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Community Videos</h2>
+        <CommunityVideos />
+      </div>
+
+      {/* Earn Points section */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Earn More Points</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tasks.map((task) => (
+            <motion.div
+              key={task.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="group"
+            >
+              <Link href={task.href} target={task.href.startsWith('http') ? '_blank' : '_self'}>
+                <div className="relative bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg p-6 h-full flex flex-col justify-between transition-all duration-300 group-hover:shadow-2xl group-hover:-translate-y-1">
+                  <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
+                  <div className="relative z-10">
+                    <div className="flex justify-between items-start">
+                      <div className="bg-[#81D7B4]/20 rounded-full p-3 border border-[#81D7B4]/30">
+                        <TaskIcon icon={task.icon} />
+                      </div>
+                      <span className="text-xs font-semibold text-gray-400 ml-auto">To Do</span>
+                    </div>
+                    <h3 className="font-bold text-gray-800 text-lg mt-4">{task.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1 flex-grow">{task.description}</p>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-200/50 flex justify-between items-center relative z-10">
+                    <span className="text-sm font-bold text-[#81D7B4]">+{task.points} {task.points > 1 ? 'Points' : 'Point'}</span>
+                    <div className="text-gray-400 group-hover:text-[#81D7B4] transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+      
+      {/* User Reviews */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">What Our Community Says</h2>
+        <Testimonials />
+      </div>
+    </div>
+  )
+
+  return (
+    <div className={`${spaceGrotesk.className} min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800`}>
+      <div className="fixed inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
+      <div className="fixed top-0 -left-1/4 w-full h-full bg-gradient-to-br from-[#81D7B4]/20 via-transparent to-transparent -z-10 blur-3xl"></div>
+      <div className="fixed top-0 -right-1/4 w-full h-full bg-gradient-to-tl from-blue-500/10 via-transparent to-transparent -z-10 blur-3xl"></div>
+
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        <header className="mb-10">
+          <h1 className="text-4xl font-bold text-gray-800 tracking-tight">Savvy Space</h1>
+          <p className="text-gray-600 mt-2 max-w-2xl">Engage with the community, complete tasks to earn points, and climb the leaderboard!</p>
+        </header>
+
+        <SavvySpace />
+      </div>
+    </div>
+  )
 } 

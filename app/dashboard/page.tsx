@@ -26,6 +26,12 @@ const BASE_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
 const CELO_CONTRACT_ADDRESS = "0x7d839923Eb2DAc3A0d1cABb270102E481A208F33";
 const BitSaveABI = contractABI;
 
+// Token address mapping for Celo
+const CELO_TOKEN_MAP: { [address: string]: { name: string; decimals: number; logo: string } } = {
+  '0x765de816845861e75a25fca122bb6898b8b1282a': { name: 'cUSD', decimals: 18, logo: '/cusd.png' },
+  '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3': { name: 'USDGLO', decimals: 6, logo: '/usdglo.png' },
+  '0x62b8b11039fcfe5ab0c56e502b1c372a3d2a9c7a': { name: 'Gooddollar', decimals: 18, logo: '/$g.png' },
+};
 
 export default function Dashboard() {
   const [, setCurrentNetwork] = useState<{ chainId: bigint, name: string } | null>(null);
@@ -187,6 +193,7 @@ export default function Dashboard() {
       maturityTime?: number;
       penaltyPercentage: number;
       tokenName: string; // Add this property
+      tokenLogo?: string; // Add this property
     }>,
     completedPlans: [] as Array<{
       id: string;
@@ -199,6 +206,7 @@ export default function Dashboard() {
       maturityTime?: number;
       penaltyPercentage: number;
       tokenName: string; // Add this property
+      tokenLogo?: string; // Add this property
     }>
   });
 
@@ -473,20 +481,27 @@ export default function Dashboard() {
   
           let tokenName = "USDC";
           let decimals = 6;
-  
+          let tokenLogo = '/usdc.png';
           if (isEth) {
             tokenName = "ETH";
             decimals = 18;
+            tokenLogo = '/eth.png';
           } else if (network.chainId === CELO_CHAIN_ID) {
-            if (tokenId.toLowerCase() === "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A".toLowerCase()) {
-              tokenName = "$G";
-              decimals = 18;
+            const tokenInfo = CELO_TOKEN_MAP[(tokenId as string).toLowerCase()];
+            if (tokenInfo) {
+              tokenName = tokenInfo.name;
+              decimals = tokenInfo.decimals;
+              tokenLogo = tokenInfo.logo;
             } else {
-              tokenName = "USDGLO";
+              tokenName = 'USDGLO';
+              decimals = 6;
+              tokenLogo = '/usdglo.png';
             }
           } else if (network.chainId === BASE_CHAIN_ID) {
-            if (tokenId.toLowerCase() === "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".toLowerCase()) {
+            if (tokenId.toLowerCase() === "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913") {
               tokenName = "USDC";
+              decimals = 6;
+              tokenLogo = '/usdc.png';
             }
           }
           console.log('Savings Name Array:', savingsNamesArray)
@@ -505,6 +520,13 @@ export default function Dashboard() {
           if (isEth) {
             const ethAmount = parseFloat(currentFormatted);
             totalUsdValue += ethAmount * currentEthPrice;
+          } else if (tokenName === 'Gooddollar') {
+            // GoodDollar: format using 18 decimals, then multiply by live price
+            totalUsdValue += parseFloat(currentFormatted) * goodDollarPrice;
+          } else if (tokenName === 'USDGLO') {
+            totalUsdValue += parseFloat(currentFormatted); // USDGLO is 6 decimals, already USD
+          } else if (tokenName === 'cUSD') {
+            totalUsdValue += parseFloat(currentFormatted); // cUSD is 18 decimals, already USD
           } else {
             totalUsdValue += parseFloat(currentFormatted);
           }
@@ -522,7 +544,8 @@ export default function Dashboard() {
             startTime: startTime / 1000,
             maturityTime: maturityTime / 1000,
             penaltyPercentage,
-            tokenName
+            tokenName,
+            tokenLogo
           };
   
           if (progress >= 100 || now >= maturityTime) {
@@ -657,6 +680,26 @@ export default function Dashboard() {
     }
   }, [isConnected, mounted, router]);
 
+  // Add state for GoodDollar price
+  const [goodDollarPrice, setGoodDollarPrice] = useState<number>(0.001);
+
+  // Fetch GoodDollar price from Coingecko
+  const fetchGoodDollarPrice = async () => {
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=gooddollar&vs_currencies=usd');
+      const data = await response.json();
+      return data.gooddollar.usd;
+    } catch (error) {
+      console.error('Error fetching GoodDollar price:', error);
+      return 0.001; // fallback
+    }
+  };
+
+  // Fetch GoodDollar price on mount
+  useEffect(() => {
+    fetchGoodDollarPrice().then(setGoodDollarPrice);
+  }, []);
+
   if (!mounted) {
     return (
       <div className={`${spaceGrotesk.variable} min-h-screen flex items-center justify-center bg-[#f2f2f2]`}>
@@ -710,6 +753,23 @@ export default function Dashboard() {
       </div>
     </motion.div>
   );
+
+  // Helper to get decimals for a token
+  // const getTokenDecimals = (tokenName: string) => {
+  //   if (tokenName === 'cUSD' || tokenName === '$G' || tokenName === 'Gooddollar') return 18;
+  //   if (tokenName === 'USDGLO') return 6;
+  //   return 6; // Default to 6 for USDC, etc.
+  // };
+
+  // Helper to get logo for a token
+  const getTokenLogo = (tokenName: string, tokenLogo?: string) => {
+    if (tokenLogo) return tokenLogo;
+    if (tokenName === 'cUSD') return '/cusd.png';
+    if (tokenName === 'USDGLO') return '/usdglo.png';
+    if (tokenName === '$G' || tokenName === 'Gooddollar') return '/$g.png';
+    if (tokenName === 'USDC') return '/usdc.png';
+    return `/${tokenName.toLowerCase()}.png`;
+  };
 
   return (
     <div className={`${spaceGrotesk.variable} font-sans p-4 sm:p-6 md:p-8 bg-[#f2f2f2] text-gray-800 relative min-h-screen pb-8 overflow-x-hidden`}>
@@ -1068,13 +1128,13 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between relative z-10">
                       <div className="flex items-center gap-3">
                         <div className="bg-[#81D7B4]/20 p-2 rounded-xl border border-[#81D7B4]/30 shadow-sm">
-                          <img src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-6 h-6" />
+                          <img src={plan.isEth ? '/eth.png' : getTokenLogo(plan.tokenName, plan.tokenLogo)} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-6 h-6" />
                         </div>
                         <div>
                           <h3 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight mb-0.5 truncate max-w-[180px] sm:max-w-[220px] md:max-w-[300px]">{plan.name}</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/20 text-[#163239] text-xs font-medium shadow-sm">
-                              <img src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-4 h-4 mr-1" />
+                              <img src={plan.isEth ? '/eth.png' : getTokenLogo(plan.tokenName, plan.tokenLogo)} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-4 h-4 mr-1" />
                               {plan.isEth ? 'ETH' : plan.tokenName}
                               <span className="mx-1 text-gray-300">|</span>
                               <img src={isBaseNetwork ? '/base.svg' : '/celo.png'} alt={isBaseNetwork ? 'Base' : 'Celo'} className="w-4 h-4 mr-1" />
@@ -1101,10 +1161,10 @@ export default function Dashboard() {
                             <span className="ml-1 text-gray-400" title="How close you are to your savings goal">(to completion)</span>
                           </span>
                           <span className="font-bold text-gray-900">{Math.round(plan.progress)}%</span>
-                        </div>
+                      </div>
                         <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
                           <div className="h-full bg-gradient-to-r from-[#81D7B4] to-green-400 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]" style={{ width: `${plan.progress}%` }}></div>
-                        </div>
+                      </div>
                       </div>
                       {/* $BTS Rewards */}
                       <div className="flex-1">
@@ -1128,6 +1188,12 @@ export default function Dashboard() {
                         <span className="text-base font-bold text-gray-900">
                           {plan.isEth ? (
                             <>{parseFloat(plan.currentAmount).toFixed(4)} <span className="text-xs font-medium text-gray-500 ml-1">ETH</span></>
+                          ) : plan.tokenName === 'Gooddollar' ? (
+                            <>{parseFloat(plan.currentAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} <span className="text-xs font-medium text-gray-500 ml-1">$G</span> <span className="text-xs text-gray-400 ml-2">(${(parseFloat(plan.currentAmount) * goodDollarPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD)</span></>
+                          ) : plan.tokenName === 'USDGLO' ? (
+                            <>${parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">USDGLO</span></>
+                          ) : plan.tokenName === 'cUSD' ? (
+                            <>${parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">cUSD</span></>
                           ) : (
                             <>{parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">{plan.tokenName}</span></>
                           )}
@@ -1207,18 +1273,18 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between relative z-10">
                       <div className="flex items-center gap-3">
                         <div className="bg-[#81D7B4]/20 p-2 rounded-xl border border-[#81D7B4]/30 shadow-sm">
-                          <img src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-6 h-6" />
+                          <img src={plan.isEth ? '/eth.png' : getTokenLogo(plan.tokenName, plan.tokenLogo)} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-6 h-6" />
                         </div>
-                        <div>
+                      <div>
                           <h3 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight mb-0.5 truncate max-w-[180px] sm:max-w-[220px] md:max-w-[300px]">{plan.name}</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/20 text-[#163239] text-xs font-medium shadow-sm">
-                              <img src={plan.isEth ? '/eth.png' : `/${plan.tokenName.toLowerCase()}.png`} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-4 h-4 mr-1" />
+                              <img src={plan.isEth ? '/eth.png' : getTokenLogo(plan.tokenName, plan.tokenLogo)} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-4 h-4 mr-1" />
                               {plan.isEth ? 'ETH' : plan.tokenName}
                               <span className="mx-1 text-gray-300">|</span>
                               <img src={isBaseNetwork ? '/base.svg' : '/celo.png'} alt={isBaseNetwork ? 'Base' : 'Celo'} className="w-4 h-4 mr-1" />
                               {isBaseNetwork ? 'Base' : 'Celo'}
-                            </span>
+                          </span>
                           </div>
                         </div>
                       </div>
@@ -1240,7 +1306,7 @@ export default function Dashboard() {
                             <span className="ml-1 text-gray-400" title="How close you are to your savings goal">(to completion)</span>
                           </span>
                           <span className="font-bold text-gray-900">{Math.round(plan.progress)}%</span>
-                        </div>
+                      </div>
                         <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
                           <div className="h-full bg-gradient-to-r from-[#81D7B4] to-green-400 rounded-full shadow-[0_0_12px_rgba(129,215,180,0.6)]" style={{ width: `${plan.progress}%` }}></div>
                         </div>
@@ -1267,6 +1333,12 @@ export default function Dashboard() {
                         <span className="text-base font-bold text-gray-900">
                           {plan.isEth ? (
                             <>{parseFloat(plan.currentAmount).toFixed(4)} <span className="text-xs font-medium text-gray-500 ml-1">ETH</span></>
+                          ) : plan.tokenName === 'Gooddollar' ? (
+                            <>{parseFloat(plan.currentAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} <span className="text-xs font-medium text-gray-500 ml-1">$G</span> <span className="text-xs text-gray-400 ml-2">(${(parseFloat(plan.currentAmount) * goodDollarPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD)</span></>
+                          ) : plan.tokenName === 'USDGLO' ? (
+                            <>${parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">USDGLO</span></>
+                          ) : plan.tokenName === 'cUSD' ? (
+                            <>${parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">cUSD</span></>
                           ) : (
                             <>{parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">{plan.tokenName}</span></>
                           )}

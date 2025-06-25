@@ -398,3 +398,25 @@ body {
   animation: pulse-slow-delayed 4s ease-in-out infinite;
   animation-delay: 2s;
 }
+
+.shimmer-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 1.25rem; /* Corresponds to rounded-2xl */
+  background: conic-gradient(from var(--angle), transparent 20%, #81D7B4, #229ED9, transparent 80%);
+  animation: spin 5s linear infinite;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Add this utility class to hide scrollbars */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

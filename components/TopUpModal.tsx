@@ -29,9 +29,10 @@ interface TopUpModalProps {
   planName: string
   planId: string
   isEth?: boolean
+  tokenName?: string
 }
 
-export default function TopUpModal({ isOpen, onClose, planName, isEth = false }: TopUpModalProps) {
+export default function TopUpModal({ isOpen, onClose, planName, isEth = false, tokenName }: TopUpModalProps) {
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
   const [txHash, setTxHash] = useState<string | null>(null)
@@ -99,12 +100,27 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
       
       const network = await provider.getNetwork();
       const BASE_CHAIN_ID = BigInt(8453);
-      // const CELO_CHAIN_ID = BigInt(42220);
       const isBase = network.chainId === BASE_CHAIN_ID;
       
       const contractAddress = isBase ? BASE_CONTRACT_ADDRESS : CELO_CONTRACT_ADDRESS;
-      const tokenAddress = isBase ? USDC_BASE_ADDRESS : USDGLO_CELO_ADDRESS;
-      const tokenName = isBase ? "USDC" : "USDGLO";
+      let tokenAddress = isBase ? USDC_BASE_ADDRESS : USDGLO_CELO_ADDRESS;
+      let decimals = 6;
+      let tokenNameToUse = isBase ? "USDC" : "USDGLO";
+      if (!isBase && tokenName) {
+        if (tokenName === 'cUSD') {
+          tokenAddress = "0x765DE816845861e75A25fCA122bb6898B8B1282a";
+          decimals = 18;
+          tokenNameToUse = 'cUSD';
+        } else if (tokenName === 'Gooddollar' || tokenName === '$G') {
+          tokenAddress = "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A";
+          decimals = 18;
+          tokenNameToUse = 'Gooddollar';
+        } else if (tokenName === 'USDGLO') {
+          tokenAddress = "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3";
+          decimals = 6;
+          tokenNameToUse = 'USDGLO';
+        }
+      }
 
       const code = await provider.getCode(contractAddress);
       if (code === "0x") {
@@ -118,8 +134,7 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
         throw new Error("You must join Bitsave before topping up.");
       }
 
-     
-      const tokenAmount = ethers.parseUnits(userEnteredAmount.toString(), 6);
+      const tokenAmount = ethers.parseUnits(userEnteredAmount.toString(), decimals);
 
       console.log("Data being sent to incrementSaving:");
       console.log("Savings Name:", savingsPlanName);
@@ -157,7 +172,7 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
             savingsname: savingsPlanName,
             useraddress: address,
             transaction_type: "deposit",
-            currency: tokenName
+            currency: tokenNameToUse
           },
           {
             headers: {
@@ -470,7 +485,7 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false }:
                       </>
                     ) : (
                       <>
-                        <img src={`/${getTokenName().toLowerCase()}.png`} alt={getTokenName()} className="w-4 h-4 mr-2" />
+                        <img src={isBaseNetwork ? "/base.svg" : "/celo.png"} alt={getNetworkName()} className="w-4 h-4 mr-2" />
                         <span className="text-xs font-medium text-gray-700">{getTokenName()} on {getNetworkName()}</span>
                       </>
                     )}

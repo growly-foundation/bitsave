@@ -34,6 +34,8 @@ interface Plan {
   startTime: number;
   maturityTime: number;
   penaltyPercentage: number;
+  tokenName?: string;
+  tokenLogo?: string;
 }
 
 interface SavingsData {
@@ -44,6 +46,16 @@ interface SavingsData {
   completedPlans: Plan[];
 }
 
+// Helper to get logo for a token
+function getTokenLogo(tokenName: string, tokenLogo?: string) {
+  if (tokenLogo) return tokenLogo;
+  if (tokenName === 'cUSD') return '/cusd.png';
+  if (tokenName === 'USDGLO') return '/usdglo.png';
+  if (tokenName === 'Gooddollar' || tokenName === '$G') return '/$g.png';
+  if (tokenName === 'USDC') return '/usdc.png';
+  return `/${tokenName.toLowerCase()}.png`;
+}
+
 export default function PlansPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -52,6 +64,7 @@ export default function PlansPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCorrectNetwork, setIsCorrectNetwork] = useState(true)
   const [ethPrice, setEthPrice] = useState(3500) // Default ETH price
+  const [goodDollarPrice, setGoodDollarPrice] = useState(0.0001);
   const [savingsData, setSavingsData] = useState<SavingsData>({
     totalLocked: "0.00",
     deposits: 0,
@@ -71,6 +84,18 @@ export default function PlansPage() {
     } catch (error) {
       console.error("Error fetching ETH price:", error);
       return null;
+    }
+  };
+
+  // Fetch GoodDollar price from Coingecko
+  const fetchGoodDollarPrice = async () => {
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=gooddollar&vs_currencies=usd');
+      const data = await response.json();
+      return data.gooddollar.usd;
+    } catch (error) {
+      console.error("Error fetching GoodDollar price:", error);
+      return 0.0001; // fallback
     }
   };
 
@@ -163,9 +188,10 @@ export default function PlansPage() {
             // Check if it's ETH or token based
             const tokenId = savingData.tokenId;
             const isEth = tokenId === "0x0000000000000000000000000000000000000000";
-
             // Check if this is a $G token plan
             const isGToken = tokenId.toLowerCase() === "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A".toLowerCase();
+            // Check if this is a USDGLO token plan
+            const isUSDGLO = tokenId.toLowerCase() === "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3".toLowerCase();
 
             // Get decimals based on token type
             const decimals = isEth || isGToken ? 18 : 6;
@@ -196,20 +222,17 @@ export default function PlansPage() {
               console.log(`ETH plan: ${savingName}, amount: ${ethAmount} ETH, USD value: ${usdValue}, ethPrice: ${currentEthPrice}`);
               totalUsdValue += usdValue;
             } else if (isGToken) {
-              // For $G token, treat 1 $G as $1 USD
+              // GoodDollar: format using 18 decimals, then multiply by live price
               const gAmount = parseFloat(currentFormatted);
-              console.log(`$G plan: ${savingName}, amount: ${gAmount} $G`);
-              totalUsdValue += gAmount;
+              totalUsdValue += gAmount * goodDollarPrice;
+            } else if (isUSDGLO) {
+              totalUsdValue += parseFloat(currentFormatted); // USDGLO is 6 decimals, already USD
             } else {
-              console.log(`USDC plan: ${savingName}, amount: ${parseFloat(currentFormatted)} USD`);
+              // cUSD: format using 18 decimals, already USD
               totalUsdValue += parseFloat(currentFormatted);
             }
 
             totalDeposits++;
-
-            // Check if this is a USDGLO token plan
-            const isUSDGLO = tokenId.toLowerCase() === "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3".toLowerCase();
-
 
             const planData = {
               id: savingName,
@@ -224,6 +247,8 @@ export default function PlansPage() {
               startTime: startTimestamp,
               maturityTime: maturityTimestamp,
               penaltyPercentage: penaltyPercentage,
+              tokenName: isEth ? 'ETH' : isGToken ? '$G' : isUSDGLO ? 'USDGLO' : 'cUSD',
+              tokenLogo: isEth ? '/eth.png' : isGToken ? '/$g.png' : isUSDGLO ? '/usdglo.png' : '/cusd.png',
             };
 
             // Add to appropriate list based on completion status
@@ -252,6 +277,13 @@ export default function PlansPage() {
       });
     } catch (error) {
       console.error("Error fetching savings data:", error);
+      setSavingsData({
+        totalLocked: "0.00",
+        deposits: 0,
+        rewards: "0.00",
+        currentPlans: [],
+        completedPlans: []
+      });
     } finally {
       setIsLoading(false);
     }
@@ -260,6 +292,10 @@ export default function PlansPage() {
   useEffect(() => {
     fetchSavingsData();
   }, [isConnected, address]);
+
+  useEffect(() => {
+    fetchGoodDollarPrice().then(setGoodDollarPrice);
+  }, []);
 
   // Update the openPlanDetails function to use the Plan type
   const openPlanDetails = (plan: Plan) => {
@@ -361,18 +397,9 @@ export default function PlansPage() {
                         </div>
                       </div>
                       <div className="flex items-center bg-white/70 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/60 shadow-sm">
-                        <img
-                          src={plan.isEth ? '/eth.png' : plan.isGToken ? '/$g.png' : plan.isUSDGLO ? '/usdglo.png' : '/usdc.png'}
-                          className="w-3.5 h-3.5 mr-1.5"
-                        />
-                        <span className="text-xs font-medium text-gray-700">
-                          {plan.isEth
-                            ? 'ETH on Base'
-                            : plan.isGToken
-                              ? '$G on Celo'
-                              : plan.isUSDGLO
-                                ? 'USDGLO on Celo'
-                                : 'USDC on Base'}
+                        <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/20 text-[#163239] text-xs font-medium shadow-sm">
+                          <img src={plan.isEth ? '/eth.png' : getTokenLogo(plan.tokenName || '', plan.tokenLogo || '')} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-4 h-4 mr-1" />
+                          {plan.isEth ? 'ETH' : plan.tokenName === 'cUSD' ? 'cUSD' : plan.tokenName === 'Gooddollar' ? '$G' : plan.tokenName}
                         </span>
                       </div>
                     </div>
@@ -381,13 +408,21 @@ export default function PlansPage() {
                       <div className="flex justify-between items-end mb-1.5">
                         <div>
                           <p className="text-xs text-gray-500 mb-0.5">Current Amount</p>
-                          <p className="text-2xl font-bold text-gray-800">
-                            {plan.isEth
-                              ? `${parseFloat(plan.currentAmount).toFixed(4)} ETH`
-                              : plan.isGToken
-                                ? `$${parseFloat(plan.currentAmount).toFixed(2)}`
-                                : `$${parseFloat(plan.currentAmount).toFixed(2)}`}
-                          </p>
+                          <span className="text-base font-bold text-gray-900">
+                            {plan.isEth ? (
+                              <>{parseFloat(plan.currentAmount).toFixed(4)} <span className="text-xs font-medium text-gray-500 ml-1">ETH</span></>
+                            ) : plan.isGToken ? (
+                              <>{parseFloat(plan.currentAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} <span className="text-xs font-medium text-gray-500 ml-1">$G</span> <span className="text-xs text-gray-400 ml-2">(${(parseFloat(plan.currentAmount) * goodDollarPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD)</span></>
+                            ) : plan.isUSDGLO ? (
+                              <>${Number(ethers.formatUnits(plan.currentAmount.split('.')[0], 6)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs font-medium text-gray-500 ml-1">USDGLO</span></>
+                            ) : plan.tokenName === 'cUSD' ? (
+                              <>
+                                ${Number(ethers.formatUnits(plan.currentAmount.split('.')[0], 18)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs font-medium text-gray-500 ml-1">cUSD</span>
+                              </>
+                            ) : (
+                              <>${parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">{plan.tokenName}</span></>
+                            )}
+                          </span>
                           {plan.isEth && (
                             <p className="text-xs text-gray-500">
                               ≈ ${(parseFloat(plan.currentAmount) * ethPrice).toFixed(2)}
@@ -658,6 +693,7 @@ export default function PlansPage() {
           planName={topUpPlan.name}
           planId={topUpPlan.address}
           isEth={topUpPlan.isEth}
+          tokenName={topUpPlan.tokenName}
         />
       )}
     </div>
