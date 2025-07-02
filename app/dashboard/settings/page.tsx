@@ -152,7 +152,7 @@ export default function Settings() {
       />
       
       {/* Main Content Container */}
-      <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+      <div className="relative z-10 px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-10">
       
       {/* Copy notification banner */}
       <AnimatePresence>
@@ -178,7 +178,7 @@ export default function Settings() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="mb-16 text-center relative"
+        className="mb-8 sm:mb-12 lg:mb-16 text-center relative"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/8 via-transparent to-[#81D7B4]/8 rounded-3xl blur-3xl"></div>
         <div className="relative z-10">
@@ -186,22 +186,22 @@ export default function Settings() {
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-xl px-8 py-4 rounded-2xl border border-[#81D7B4]/20 shadow-[0_8px_32px_-12px_rgba(129,215,180,0.3)] mb-8"
+            className="inline-flex items-center gap-2 sm:gap-3 bg-white/80 backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl border border-[#81D7B4]/20 shadow-[0_8px_32px_-12px_rgba(129,215,180,0.3)] mb-6 sm:mb-8"
           >
-            <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-3 rounded-xl shadow-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-white">
+            <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6 text-white">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <span className="text-xl font-semibold text-gray-700">Account Settings</span>
+            <span className="text-lg sm:text-xl font-semibold text-gray-700">Account Settings</span>
           </motion.div>
           
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-[#81D7B4] to-gray-900 tracking-tight mb-6 leading-tight"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-[#81D7B4] to-gray-900 tracking-tight mb-4 sm:mb-6 leading-tight"
           >
             Settings
           </motion.h1>
@@ -210,18 +210,18 @@ export default function Settings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-medium"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-medium px-2 sm:px-0"
           >
             Customize your <span className="text-[#81D7B4] font-bold">BitSave</span> experience, connect social accounts, and manage your preferences with our modern, intuitive interface.
           </motion.p>
         </div>
       </motion.div>
       
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto px-2 sm:px-0">
         {/* Modern Layout */}
-        <div className="space-y-8 lg:space-y-10">
+        <div className="space-y-6 sm:space-y-8 lg:space-y-10">
           {/* Profile Settings Card - Full Width */}
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-10 lg:p-12 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500">
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 xl:p-12 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500">
           <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
           <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#81D7B4]/8 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[#81D7B4]/5 rounded-full blur-2xl"></div>
@@ -229,22 +229,22 @@ export default function Settings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-10"
+            className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 sm:mb-8 lg:mb-10"
           >
             <div className="flex items-center mb-4 lg:mb-0">
-              <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-5 rounded-2xl mr-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8 text-white">
+              <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-3 sm:p-4 lg:p-5 rounded-xl sm:rounded-2xl mr-4 sm:mr-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-2">Profile Settings</h2>
-                <p className="text-gray-600 text-base lg:text-lg">Manage your identity and social connections</p>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 mb-1 sm:mb-2">Profile Settings</h2>
+                <p className="text-gray-600 text-sm sm:text-base lg:text-lg">Manage your identity and social connections</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 bg-[#81D7B4]/10 px-5 py-3 rounded-xl border border-[#81D7B4]/20">
-              <div className="w-3 h-3 bg-[#81D7B4] rounded-full animate-pulse"></div>
-              <span className="text-base font-semibold text-[#81D7B4]">Live</span>
+            <div className="flex items-center gap-2 sm:gap-3 bg-[#81D7B4]/10 px-3 sm:px-4 lg:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-[#81D7B4]/20">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-[#81D7B4] rounded-full animate-pulse"></div>
+              <span className="text-sm sm:text-base font-semibold text-[#81D7B4]">Live</span>
             </div>
           </motion.div>
           
@@ -255,61 +255,61 @@ export default function Settings() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-10"
           >
-            <div className="flex items-center mb-6">
-              <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-2 rounded-lg mr-3">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 text-white">
+            <div className="flex items-center mb-4 sm:mb-6">
+              <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-1.5 sm:p-2 rounded-lg mr-2 sm:mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-white">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-800">Display Name</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800">Display Name</h3>
             </div>
             
-            <div className="bg-gradient-to-br from-[#81D7B4]/8 to-[#6BC5A0]/8 backdrop-blur-sm p-6 md:p-8 rounded-2xl border border-[#81D7B4]/20 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#81D7B4]/8 to-[#6BC5A0]/8 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border border-[#81D7B4]/20 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
               
               <div className="relative">
-                <p className="text-gray-700 mb-6 text-base leading-relaxed">
+                <p className="text-gray-700 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
                   Your display name is automatically pulled from your connected social accounts. 
                   <span className="font-semibold text-[#81D7B4]">Connect your social accounts below</span> to set your display name.
                 </p>
                 
                 {/* Social Account Integration Status */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   {/* X (Twitter) Status */}
                   <motion.div 
                     whileHover={{ scale: 1.02, y: -2 }}
-                    className="bg-white/80 backdrop-blur-sm p-6 rounded-xl border border-gray-200/50 flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-lg sm:rounded-xl border border-gray-200/50 flex flex-col sm:flex-row sm:items-center sm:justify-between shadow-lg hover:shadow-xl transition-all duration-300 gap-3 sm:gap-0"
                   >
                     <div className="flex items-center">
-                      <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-black rounded-xl flex items-center justify-center mr-4 shadow-lg">
-                        <span className="text-white font-bold text-lg">𝕏</span>
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-gray-800 to-black rounded-lg sm:rounded-xl flex items-center justify-center mr-3 sm:mr-4 shadow-lg">
+                        <span className="text-white font-bold text-base sm:text-lg">𝕏</span>
                       </div>
                       <div>
-                        <span className="font-semibold text-gray-800 text-lg">X (Twitter)</span>
-                        <p className="text-gray-500 text-sm">Social platform</p>
+                        <span className="font-semibold text-gray-800 text-base sm:text-lg">X (Twitter)</span>
+                        <p className="text-gray-500 text-xs sm:text-sm">Social platform</p>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-full font-medium border border-red-200">Not Connected</span>
+                    <div className="flex flex-col items-start sm:items-end">
+                      <span className="text-xs sm:text-sm text-red-600 bg-red-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-medium border border-red-200">Not Connected</span>
                     </div>
                   </motion.div>
                   
                   {/* Farcaster Status */}
                   <motion.div 
                     whileHover={{ scale: 1.02, y: -2 }}
-                    className="bg-white/80 backdrop-blur-sm p-6 rounded-xl border border-gray-200/50 flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-lg sm:rounded-xl border border-gray-200/50 flex flex-col sm:flex-row sm:items-center sm:justify-between shadow-lg hover:shadow-xl transition-all duration-300 gap-3 sm:gap-0"
                   >
                     <div className="flex items-center">
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] rounded-xl flex items-center justify-center mr-4 shadow-lg">
-                        <span className="text-white font-bold text-sm">FC</span>
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] rounded-lg sm:rounded-xl flex items-center justify-center mr-3 sm:mr-4 shadow-lg">
+                        <span className="text-white font-bold text-xs sm:text-sm">FC</span>
                       </div>
                       <div>
-                        <span className="font-semibold text-gray-800 text-lg">Farcaster</span>
-                        <p className="text-gray-500 text-sm">Decentralized social</p>
+                        <span className="font-semibold text-gray-800 text-base sm:text-lg">Farcaster</span>
+                        <p className="text-gray-500 text-xs sm:text-sm">Decentralized social</p>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-full font-medium border border-red-200">Not Connected</span>
+                    <div className="flex flex-col items-start sm:items-end">
+                      <span className="text-xs sm:text-sm text-red-600 bg-red-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-medium border border-red-200">Not Connected</span>
                     </div>
                   </motion.div>
                 </div>
@@ -318,17 +318,17 @@ export default function Settings() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-4 md:p-6 rounded-xl border border-[#81D7B4]/20 backdrop-blur-sm"
+                  className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl border border-[#81D7B4]/20 backdrop-blur-sm"
                 >
                   <div className="flex items-start">
-                    <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-2 rounded-lg mr-4 mt-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 text-white">
+                    <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-1.5 sm:p-2 rounded-lg mr-3 sm:mr-4 mt-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-white">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">💡 Pro Tip</h4>
-                  <p className="text-gray-700 text-sm leading-relaxed">
+                      <h4 className="font-semibold text-gray-800 mb-1 sm:mb-2 text-sm sm:text-base">💡 Pro Tip</h4>
+                  <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">
                         Connect your social accounts to automatically set your display name and enhance your profile with verified social presence.
                       </p>
                     </div>
@@ -345,28 +345,30 @@ export default function Settings() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-10"
           >
-            <div className="flex items-center mb-6">
-              <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-2 rounded-lg mr-3">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 text-white">
+            <div className="flex flex-col sm:flex-row sm:items-center mb-4 sm:mb-6 gap-2 sm:gap-0">
+              <div className="flex items-center">
+                <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-1.5 sm:p-2 rounded-lg mr-2 sm:mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-white">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-800">ENS Domain</h3>
-              <span className="ml-3 bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] text-white text-xs font-bold px-3 py-1 rounded-full">COMING SOON</span>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">ENS Domain</h3>
+              </div>
+              <span className="ml-0 sm:ml-3 bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] text-white text-xs font-bold px-2 sm:px-3 py-1 rounded-full w-fit">COMING SOON</span>
             </div>
             
-            <div className="bg-gradient-to-br from-[#81D7B4]/8 to-[#6BC5A0]/8 backdrop-blur-sm p-6 md:p-8 rounded-2xl border border-[#81D7B4]/20 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#81D7B4]/8 to-[#6BC5A0]/8 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border border-[#81D7B4]/20 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
             
             <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0">
-              <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-4 rounded-2xl mr-0 sm:mr-6 shadow-lg w-fit">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8 text-white">
+              <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-3 sm:p-4 rounded-xl sm:rounded-2xl mr-0 sm:mr-6 shadow-lg w-fit">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-800 mb-2">Ethereum Name Service Integration</h4>
-                  <p className="text-gray-600 leading-relaxed mb-4">
+                  <h4 className="text-base sm:text-lg font-bold text-gray-800 mb-2">Ethereum Name Service Integration</h4>
+                  <p className="text-gray-600 leading-relaxed mb-4 text-sm sm:text-base">
                     Soon you&apos;ll be able to use your <span className="font-semibold text-[#81D7B4]">.eth domain</span> as your display name, 
                     making your identity more memorable and professional across the decentralized web.
                   </p>
@@ -384,49 +386,51 @@ export default function Settings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="lg:col-span-3 bg-white/95 backdrop-blur-xl rounded-3xl p-10 lg:p-12 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
+            className="lg:col-span-3 bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 xl:p-12 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
           >
             <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
             <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#81D7B4]/8 rounded-full blur-3xl"></div>
             <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[#81D7B4]/5 rounded-full blur-2xl"></div>
             
-            <div className="flex items-center mb-8">
-              <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-3 rounded-xl mr-4 shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-white">
+            <div className="flex items-center mb-6 sm:mb-8">
+              <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-2 sm:p-3 rounded-lg sm:rounded-xl mr-3 sm:mr-4 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6 text-white">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                   <circle cx="12" cy="16" r="1"></circle>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-800">Wallet Address</h3>
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Wallet Address</h3>
             </div>
             
             <motion.div 
               whileHover={{ scale: 1.01 }}
-              className="bg-gradient-to-br from-[#81D7B4]/5 to-[#6BC5A0]/5 backdrop-blur-sm p-8 rounded-2xl border border-[#81D7B4]/20 relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-gradient-to-br from-[#81D7B4]/5 to-[#6BC5A0]/5 backdrop-blur-sm p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl border border-[#81D7B4]/20 relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
               
-              <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div className="flex items-center flex-1">
-                  <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-5 rounded-2xl mr-6 shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8 text-white">
+              <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
+                <div className="flex flex-col sm:flex-row sm:items-center flex-1 gap-3 sm:gap-0">
+                  <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-3 sm:p-4 lg:p-5 rounded-xl sm:rounded-2xl mr-0 sm:mr-4 lg:mr-6 shadow-lg w-fit">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                       <circle cx="12" cy="16" r="1"></circle>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center mb-3">
-                      <p className="font-mono text-xl font-bold text-gray-800 mr-4 mb-2 sm:mb-0">
-                        {address ? `${address.slice(0, 8)}...${address.slice(-6)}` : 'Not connected'}
-                      </p>
-                      <div className="flex items-center bg-[#81D7B4]/10 px-4 py-2 rounded-full border border-[#81D7B4]/20">
-                        <div className="w-2 h-2 bg-[#81D7B4] rounded-full mr-2 animate-pulse"></div>
-                        <span className="text-sm font-semibold text-[#81D7B4]">Connected</span>
+                    <div className="flex flex-col gap-2 sm:gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <p className="font-mono text-base sm:text-lg lg:text-xl font-bold text-gray-800 break-all sm:break-normal">
+                          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not connected'}
+                        </p>
+                        <div className="flex items-center bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 w-fit">
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#81D7B4] rounded-full mr-1.5 sm:mr-2 animate-pulse"></div>
+                          <span className="text-xs sm:text-sm font-semibold text-[#81D7B4]">Connected</span>
+                        </div>
                       </div>
+                      <p className="text-gray-600 text-sm sm:text-base lg:text-lg">Your primary wallet address</p>
                     </div>
-                    <p className="text-gray-600 text-lg">Your primary wallet address</p>
                   </div>
                 </div>
                 
@@ -434,13 +438,14 @@ export default function Settings() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={copyToClipboard}
-                  className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] hover:from-[#6BC5A0] hover:to-[#81D7B4] text-white px-8 py-4 rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl flex items-center justify-center gap-3 min-w-[140px]"
+                  className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] hover:from-[#6BC5A0] hover:to-[#81D7B4] text-white px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 min-w-[120px] sm:min-w-[140px] text-sm sm:text-base"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                     <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
                   </svg>
-                  Copy Address
+                  <span className="hidden sm:inline">Copy Address</span>
+                  <span className="sm:hidden">Copy</span>
                 </motion.button>
               </div>
             </motion.div>
@@ -448,45 +453,45 @@ export default function Settings() {
         </div>
         
         {/* Secondary Grid Layout for Additional Settings */}
-        <div className="space-y-8 lg:space-y-10 mt-12">
+        <div className="space-y-6 sm:space-y-8 lg:space-y-10 mt-8 sm:mt-10 lg:mt-12">
           {/* Email Connect Card */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
+          className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
         >
           <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
           <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gradient-to-tr from-[#81D7B4]/8 to-[#6BC5A0]/8 rounded-full blur-2xl"></div>
           
           <div className="relative z-10">
-            <div className="flex items-center mb-8">
-              <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-4 rounded-2xl mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-7 h-7 text-white">
+            <div className="flex items-center mb-6 sm:mb-8">
+              <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-3 sm:p-4 rounded-xl sm:rounded-2xl mr-3 sm:mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7 text-white">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-1">Email Connect</h2>
-                <p className="text-gray-600 text-base">Secure notifications & updates</p>
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">Email Connect</h2>
+                <p className="text-gray-600 text-sm sm:text-base">Secure notifications & updates</p>
               </div>
             </div>
             
-            <div className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-6 rounded-xl border border-[#81D7B4]/20 mb-8">
-              <p className="text-gray-700 font-medium leading-relaxed">
+            <div className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-[#81D7B4]/20 mb-6 sm:mb-8">
+              <p className="text-gray-700 font-medium leading-relaxed text-sm sm:text-base">
                 Connect your email to receive updates, rewards, and important notifications about your savings and DeFi activities.
               </p>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <div className="flex flex-col gap-3 sm:gap-4 mb-4">
               <div className="flex-1">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
-                  className="w-full bg-white/80 border-2 border-[#81D7B4]/30 focus:border-[#81D7B4] focus:ring-2 focus:ring-[#81D7B4]/20 rounded-xl px-5 py-4 text-gray-900 shadow-lg transition-all placeholder:text-gray-400 font-medium text-base outline-none"
+                  className="w-full bg-white/80 border-2 border-[#81D7B4]/30 focus:border-[#81D7B4] focus:ring-2 focus:ring-[#81D7B4]/20 rounded-lg sm:rounded-xl px-4 sm:px-5 py-3 sm:py-4 text-gray-900 shadow-lg transition-all placeholder:text-gray-400 font-medium text-sm sm:text-base outline-none"
                 />
               </div>
               <motion.button
@@ -494,9 +499,9 @@ export default function Settings() {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleConnectEmail}
                 disabled={!email.trim()}
-                className="w-full sm:w-auto bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] hover:from-[#6BC5A0] hover:to-[#81D7B4] disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:cursor-not-allowed flex items-center justify-center gap-3 min-w-[140px]"
+                className="w-full bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] hover:from-[#6BC5A0] hover:to-[#81D7B4] disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 rounded-lg sm:rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:cursor-not-allowed flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>
                 Connect Email
@@ -510,39 +515,39 @@ export default function Settings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
+            className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
           >
             <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
             <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
             <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gradient-to-tr from-[#81D7B4]/8 to-[#6BC5A0]/8 rounded-full blur-2xl"></div>
             
             <div className="relative z-10">
-              <div className="flex items-center mb-8">
-                <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-4 rounded-2xl mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-7 h-7 text-white">
+              <div className="flex items-center mb-6 sm:mb-8">
+                <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-3 sm:p-4 rounded-xl sm:rounded-2xl mr-3 sm:mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7 text-white">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-1">Social Connect</h2>
-                  <p className="text-gray-600 text-base">Link your social accounts</p>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">Social Connect</h2>
+                  <p className="text-gray-600 text-sm sm:text-base">Link your social accounts</p>
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-6 rounded-xl border border-[#81D7B4]/20 mb-8">
-                <p className="text-gray-700 font-medium leading-relaxed">
+              <div className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-4 sm:p-6 rounded-lg sm:rounded-xl border border-[#81D7B4]/20 mb-6 sm:mb-8">
+                <p className="text-gray-700 font-medium leading-relaxed text-sm sm:text-base">
                   Connect your social accounts to enhance your profile and unlock exclusive features.
                 </p>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <motion.button 
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] hover:from-[#6BC5A0] hover:to-[#81D7B4] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+                  className="w-full bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] hover:from-[#6BC5A0] hover:to-[#81D7B4] text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
                 >
-                  <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">FC</span>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-lg flex items-center justify-center">
+                    <span className="text-[#81D7B4] font-bold text-xs sm:text-sm">FC</span>
                   </div>
                   Connect Farcaster
                 </motion.button>
@@ -550,10 +555,10 @@ export default function Settings() {
                 <motion.button 
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+                  className="w-full bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
                 >
-                  <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center">
-                    <span className="text-black font-bold text-lg">𝕏</span>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-lg flex items-center justify-center">
+                    <span className="text-black font-bold text-sm sm:text-lg">𝕏</span>
                   </div>
                   Connect X/Twitter
                 </motion.button>
@@ -588,8 +593,8 @@ export default function Settings() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-1">Appearance</h2>
-                  <p className="text-gray-600 text-base">Customize your visual experience</p>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">Appearance</h2>
+                <p className="text-gray-600 text-sm sm:text-base">Customize your visual experience</p>
                 </div>
               </div>
               
@@ -599,16 +604,16 @@ export default function Settings() {
                 </p>
               </div>
               
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-5 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors duration-200 gap-3 sm:gap-0">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-5 bg-gray-50/80 rounded-lg sm:rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors duration-200 gap-3 sm:gap-0">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 text-base">Dark Mode</h3>
-                    <p className="text-sm text-gray-600 mt-1">Switch to dark theme for better viewing in low light</p>
+                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Dark Mode</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">Switch to dark theme for better viewing in low light</p>
                   </div>
                   <div className="relative">
                     <input type="checkbox" className="sr-only" />
-                    <div className="w-12 h-6 bg-gray-300 rounded-full shadow-inner cursor-pointer transition-colors duration-300 hover:bg-gray-400">
-                      <div className="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-0.5 translate-y-0.5"></div>
+                    <div className="w-10 h-5 sm:w-12 sm:h-6 bg-gray-300 rounded-full shadow-inner cursor-pointer transition-colors duration-300 hover:bg-gray-400">
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-0.5 translate-y-0.5"></div>
                     </div>
                   </div>
                 </div>
@@ -637,8 +642,8 @@ export default function Settings() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-1">Notifications</h2>
-                  <p className="text-gray-600 text-base">Manage your alert preferences</p>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">Notifications</h2>
+                <p className="text-gray-600 text-sm sm:text-base">Manage your alert preferences</p>
                 </div>
               </div>
               
@@ -648,29 +653,29 @@ export default function Settings() {
                 </p>
               </div>
               
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-5 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors duration-200">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-5 bg-gray-50/80 rounded-lg sm:rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors duration-200 gap-3 sm:gap-0">
                   <div>
-                    <h3 className="font-semibold text-gray-800 text-base">Email Notifications</h3>
-                    <p className="text-sm text-gray-600">Receive updates via email</p>
+                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Email Notifications</h3>
+                    <p className="text-xs sm:text-sm text-gray-600">Receive updates via email</p>
                   </div>
                   <div className="relative">
                     <input type="checkbox" className="sr-only" defaultChecked />
-                    <div className="w-12 h-6 bg-[#81D7B4] rounded-full shadow-inner cursor-pointer transition-colors duration-300">
-                      <div className="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-6 translate-y-0.5"></div>
+                    <div className="w-10 h-5 sm:w-12 sm:h-6 bg-[#81D7B4] rounded-full shadow-inner cursor-pointer transition-colors duration-300">
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-5 sm:translate-x-6 translate-y-0.5"></div>
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between p-5 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors duration-200">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-5 bg-gray-50/80 rounded-lg sm:rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors duration-200 gap-3 sm:gap-0">
                   <div>
-                    <h3 className="font-semibold text-gray-800 text-base">Push Notifications</h3>
-                    <p className="text-sm text-gray-600">Browser notifications</p>
+                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Push Notifications</h3>
+                    <p className="text-xs sm:text-sm text-gray-600">Browser notifications</p>
                   </div>
                   <div className="relative">
                     <input type="checkbox" className="sr-only" />
-                    <div className="w-12 h-6 bg-gray-300 rounded-full shadow-inner cursor-pointer transition-colors duration-300 hover:bg-gray-400">
-                      <div className="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-0.5 translate-y-0.5"></div>
+                    <div className="w-10 h-5 sm:w-12 sm:h-6 bg-gray-300 rounded-full shadow-inner cursor-pointer transition-colors duration-300 hover:bg-gray-400">
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-0.5 translate-y-0.5"></div>
                     </div>
                   </div>
                 </div>
@@ -688,26 +693,26 @@ export default function Settings() {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 border border-[#81D7B4]/30 shadow-[0_20px_50px_-15px_rgba(129,215,180,0.3)] max-w-md w-full relative overflow-hidden"
+            className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-[#81D7B4]/30 shadow-[0_20px_50px_-15px_rgba(129,215,180,0.3)] max-w-md w-full relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#81D7B4]/5 rounded-full blur-2xl"></div>
             
             <div className="relative z-10">
-              <div className="text-center mb-8">
-                <div className="bg-[#81D7B4]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8 text-[#81D7B4]">
+              <div className="text-center mb-6 sm:mb-8">
+                <div className="bg-[#81D7B4]/10 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 sm:w-8 sm:h-8 text-[#81D7B4]">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">Verify Your Email</h3>
-                <p className="text-gray-600 text-sm">We&apos;ve sent a 6-digit verification code to</p>
-                <p className="text-[#81D7B4] font-semibold text-sm">{email}</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Verify Your Email</h3>
+                <p className="text-gray-600 text-xs sm:text-sm">We&apos;ve sent a 6-digit verification code to</p>
+                <p className="text-[#81D7B4] font-semibold text-xs sm:text-sm">{email}</p>
               </div>
 
-              <div className="mb-8">
-                <div className="flex justify-center space-x-3 mb-6">
+              <div className="mb-6 sm:mb-8">
+                <div className="flex justify-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
                   {otp.map((digit, index) => (
                     <input
                       key={index}
@@ -716,23 +721,23 @@ export default function Settings() {
                       value={digit}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      className="w-12 h-12 text-center text-xl font-bold bg-white/80 border-2 border-[#81D7B4]/30 focus:border-[#81D7B4] focus:ring-2 focus:ring-[#81D7B4]/20 rounded-xl shadow-[inset_2px_2px_8px_rgba(129,215,180,0.08)] transition-all outline-none"
+                      className="w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-bold bg-white/80 border-2 border-[#81D7B4]/30 focus:border-[#81D7B4] focus:ring-2 focus:ring-[#81D7B4]/20 rounded-lg sm:rounded-xl shadow-[inset_2px_2px_8px_rgba(129,215,180,0.08)] transition-all outline-none"
                       maxLength={1}
                     />
                   ))}
                 </div>
                 
-                <div className="flex space-x-3">
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
                   <button
                     onClick={() => setShowOtpModal(false)}
-                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300"
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300 text-sm sm:text-base"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleVerifyOtp}
                     disabled={otp.some(digit => !digit) || isVerifying}
-                    className="flex-1 bg-gradient-to-r from-[#81D7B4] to-[#6bc4a1] text-white py-3 rounded-xl font-semibold shadow-[0_4px_15px_rgba(129,215,180,0.3)] hover:shadow-[0_6px_20px_rgba(129,215,180,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    className="flex-1 bg-gradient-to-r from-[#81D7B4] to-[#6bc4a1] text-white py-3 rounded-lg sm:rounded-xl font-semibold shadow-[0_4px_15px_rgba(129,215,180,0.3)] hover:shadow-[0_6px_20px_rgba(129,215,180,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
                   >
                     {isVerifying ? (
                       <div className="flex items-center space-x-2">
@@ -747,8 +752,8 @@ export default function Settings() {
               </div>
 
               <div className="text-center">
-                <p className="text-xs text-gray-500 mb-2">Didn&apos;t receive the code?</p>
-                <button className="text-[#81D7B4] text-sm font-semibold hover:underline">
+                <p className="text-xs sm:text-sm text-gray-500 mb-2">Didn&apos;t receive the code?</p>
+                <button className="text-[#81D7B4] text-xs sm:text-sm font-semibold hover:underline">
                   Resend Code
                 </button>
               </div>
