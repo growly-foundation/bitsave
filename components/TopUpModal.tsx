@@ -353,6 +353,11 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
   
   const getTokenName = () => {
     if (isEth) return "ETH";
+    if (tokenName) {
+      // Handle GoodDollar display name
+      if (tokenName === 'Gooddollar' || tokenName === '$G') return '$G';
+      return tokenName;
+    }
     return isBaseNetwork ? "USDC" : "USDGLO";
   }
   

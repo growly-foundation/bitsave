@@ -15,6 +15,7 @@ interface WithdrawModalProps {
   planId: string;
   isEth: boolean;
   penaltyPercentage?: number;
+  tokenName?: string;
 }
 
 export default function WithdrawModal({ 
@@ -23,7 +24,8 @@ export default function WithdrawModal({
   planName, 
   planId, 
   isEth,
-  penaltyPercentage 
+  penaltyPercentage,
+  tokenName 
 }: WithdrawModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,6 +46,13 @@ export default function WithdrawModal({
         
         if (isEth) {
           setCurrentTokenName('ETH');
+        } else if (tokenName) {
+          // Handle GoodDollar display name
+          if (tokenName === 'Gooddollar' || tokenName === '$G') {
+            setCurrentTokenName('$G');
+          } else {
+            setCurrentTokenName(tokenName);
+          }
         } else {
           setCurrentTokenName(isBase ? 'USDC' : 'USDGLO');
         }

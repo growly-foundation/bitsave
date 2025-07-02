@@ -46,7 +46,8 @@ export default function Dashboard() {
     planName: '',
     planId: '',
     isEth: false,
-    isGToken: false
+    isGToken: false,
+    tokenName: ''
   });
   const [displayName, setDisplayName] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -212,6 +213,28 @@ export default function Dashboard() {
 
   const [isLoading, setIsLoading] = useState(true);
 
+  // Add state for GoodDollar price
+  const [goodDollarPrice, setGoodDollarPrice] = useState<number>(0.00009189);
+
+  // Fetch GoodDollar price from Coingecko
+  const fetchGoodDollarPrice = async () => {
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=gooddollar&vs_currencies=usd');
+      const data = await response.json();
+      console.log('GoodDollar API response:', data);
+      const price = data.gooddollar?.usd;
+      if (price && price > 0) {
+        console.log('Fetched GoodDollar price:', price);
+        return price;
+      } else {
+        console.log('Invalid price from API, using fallback');
+        return 0.00009189; // Updated fallback to current market price
+      }
+    } catch (error) {
+      console.error('Error fetching GoodDollar price:', error);
+      return 0.00009189; // Updated fallback to current market price
+    }
+  };
 
   const openUpdateModal = (update: Update) => {
     setSelectedUpdate(update);
@@ -229,6 +252,11 @@ export default function Dashboard() {
       fetchAllUpdates();
     }
   }, [mounted, address]);
+
+  // Fetch GoodDollar price on mount
+  useEffect(() => {
+    fetchGoodDollarPrice().then(setGoodDollarPrice);
+  }, []);
 
   // Function to close update modal
   const closeUpdateModal = () => {
@@ -517,18 +545,31 @@ export default function Dashboard() {
           const progress = Math.min(Math.floor(((now - startTime) / (maturityTime - startTime)) * 100), 100);
           const penaltyPercentage = Number(savingData.penaltyPercentage);
   
+          console.log(`Processing token: ${tokenName}, amount: ${currentFormatted}, goodDollarPrice: ${goodDollarPrice}`);
+          
           if (isEth) {
             const ethAmount = parseFloat(currentFormatted);
-            totalUsdValue += ethAmount * currentEthPrice;
+            const ethUsdValue = ethAmount * currentEthPrice;
+            console.log(`ETH: ${ethAmount} * ${currentEthPrice} = ${ethUsdValue}`);
+            totalUsdValue += ethUsdValue;
           } else if (tokenName === 'Gooddollar') {
             // GoodDollar: format using 18 decimals, then multiply by live price
-            totalUsdValue += parseFloat(currentFormatted) * goodDollarPrice;
+            const gAmount = parseFloat(currentFormatted);
+            const gUsdValue = gAmount * goodDollarPrice;
+            console.log(`GoodDollar: ${gAmount} * ${goodDollarPrice} = ${gUsdValue}`);
+            totalUsdValue += gUsdValue;
           } else if (tokenName === 'USDGLO') {
-            totalUsdValue += parseFloat(currentFormatted); // USDGLO is 6 decimals, already USD
+            const usdgloValue = parseFloat(currentFormatted);
+            console.log(`USDGLO: ${usdgloValue}`);
+            totalUsdValue += usdgloValue; // USDGLO is 6 decimals, already USD
           } else if (tokenName === 'cUSD') {
-            totalUsdValue += parseFloat(currentFormatted); // cUSD is 18 decimals, already USD
+            const cusdValue = parseFloat(currentFormatted);
+            console.log(`cUSD: ${cusdValue}`);
+            totalUsdValue += cusdValue; // cUSD is 18 decimals, already USD
           } else {
-            totalUsdValue += parseFloat(currentFormatted);
+            const otherValue = parseFloat(currentFormatted);
+            console.log(`Other token (${tokenName}): ${otherValue}`);
+            totalUsdValue += otherValue;
           }
   
           totalDeposits++;
@@ -564,10 +605,13 @@ export default function Dashboard() {
       currentPlans.sort((a, b) => b.startTime - a.startTime);
       completedPlans.sort((a, b) => b.startTime - a.startTime);
   
+      // Calculate total BTS rewards (1% of total USD value)
+      const totalBtsRewards = (totalUsdValue * 0.01).toFixed(2);
+      
       setSavingsData({
         totalLocked: totalUsdValue.toFixed(2),
         deposits: totalDeposits,
-        rewards: "0.00",
+        rewards: totalBtsRewards,
         currentPlans,
         completedPlans
       });
@@ -586,34 +630,37 @@ export default function Dashboard() {
       planName, 
       planId, 
       isEth,
-      isGToken: tokenName === '$G'
+      isGToken: tokenName === '$G',
+      tokenName
     });
   };
 
   const closeTopUpModal = () => {
-    setTopUpModal({ isOpen: false, planName: '', planId: '', isEth: false, isGToken: false });
+    setTopUpModal({ isOpen: false, planName: '', planId: '', isEth: false, isGToken: false, tokenName: '' });
   };
 
   const [withdrawModal, setWithdrawModal] = useState({
     isOpen: false,
-    planName: '',
     planId: '',
+    planName: '',
     isEth: false,
-    penaltyPercentage: 0
+    penaltyPercentage: 0,
+    tokenName: ''
   });
 
-  const openWithdrawModal = (planId: string, planName: string, isEth: boolean, penaltyPercentage: number = 5) => {
+  const openWithdrawModal = (planId: string, planName: string, isEth: boolean, penaltyPercentage: number = 5, tokenName: string = '') => {
     setWithdrawModal({
       isOpen: true,
-      planName,
       planId,
+      planName,
       isEth,
-      penaltyPercentage
+      penaltyPercentage,
+      tokenName
     });
   };
 
   const closeWithdrawModal = () => {
-    setWithdrawModal({ isOpen: false, planId: '', planName: '', isEth: false, penaltyPercentage: 0 });
+    setWithdrawModal({ isOpen: false, planId: '', planName: '', isEth: false, penaltyPercentage: 0, tokenName: '' });
   };
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
@@ -680,25 +727,7 @@ export default function Dashboard() {
     }
   }, [isConnected, mounted, router]);
 
-  // Add state for GoodDollar price
-  const [goodDollarPrice, setGoodDollarPrice] = useState<number>(0.001);
 
-  // Fetch GoodDollar price from Coingecko
-  const fetchGoodDollarPrice = async () => {
-    try {
-      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=gooddollar&vs_currencies=usd');
-      const data = await response.json();
-      return data.gooddollar.usd;
-    } catch (error) {
-      console.error('Error fetching GoodDollar price:', error);
-      return 0.001; // fallback
-    }
-  };
-
-  // Fetch GoodDollar price on mount
-  useEffect(() => {
-    fetchGoodDollarPrice().then(setGoodDollarPrice);
-  }, []);
 
   if (!mounted) {
     return (
@@ -808,6 +837,7 @@ export default function Dashboard() {
         planName={topUpModal.planName}
         planId={topUpModal.planId}
         isEth={topUpModal.isEth}
+        tokenName={topUpModal.tokenName}
       />
 
       {/* Withdraw Modal */}
@@ -818,6 +848,7 @@ export default function Dashboard() {
         planId={withdrawModal.planId}
         isEth={withdrawModal.isEth}
         penaltyPercentage={withdrawModal.penaltyPercentage}
+        tokenName={withdrawModal.tokenName}
       />
 
       {/* Update Modal */}
@@ -1003,7 +1034,7 @@ export default function Dashboard() {
           <div className="relative mb-6 md:mb-8">
             <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-1 h-10 md:h-12 bg-gradient-to-b from-[#81D7B4] to-green-400 rounded-full"></div>
             <div className="pl-4">
-              <span className="block text-gray-500 text-xs md:text-sm mb-1">Total Value Locked</span>
+              <span className="block text-gray-500 text-xs md:text-sm mb-1">Total Value Saved</span>
               <h2 className="text-4xl md:text-6xl font-bold text-gray-800 tracking-tight flex items-baseline">
                 ${parseFloat(savingsData.totalLocked).toFixed(2)}
                 <span className="text-xs md:text-sm font-medium text-gray-500 ml-2">USD</span>
@@ -1020,7 +1051,7 @@ export default function Dashboard() {
 
             <div className="bg-gray-100/80 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-gray-200/50 flex flex-col">
               <span className="text-xs text-gray-500 mb-1">Rewards</span>
-              <span className="text-base md:text-lg font-semibold text-gray-800">${savingsData.rewards}</span>
+              <span className="text-base md:text-lg font-semibold text-gray-800">{savingsData.rewards} $BTS</span>
             </div>
           </div>
         </div>
@@ -1144,7 +1175,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <button
-                        onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth)}
+                        onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth, plan.tokenName)}
                         className="bg-[#81D7B4] text-white text-xs font-semibold px-4 py-2 rounded-full border border-[#81D7B4]/20 shadow-sm hover:shadow-md transition-all duration-300"
                       >
                         Top Up
@@ -1173,7 +1204,7 @@ export default function Dashboard() {
                             $BTS Rewards
                             <span className="ml-1 text-gray-400" title="Earned only when you complete your savings">(on completion)</span>
                           </span>
-                          <span className="font-bold text-gray-900">{(parseFloat(plan.currentAmount) * 1000).toLocaleString()} $BTS</span>
+                          <span className="font-bold text-gray-900">{plan.tokenName === 'Gooddollar' ? ((parseFloat(plan.currentAmount) * goodDollarPrice) * 0.01).toFixed(2) : (parseFloat(plan.currentAmount) * 0.01).toFixed(2)} $BTS</span>
                         </div>
                         <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
                           <div className="h-full bg-gradient-to-r from-[#229ED9] to-[#81D7B4] rounded-full shadow-[0_0_12px_rgba(34,158,217,0.3)]" style={{ width: `${plan.progress}%` }}></div>
@@ -1234,7 +1265,7 @@ export default function Dashboard() {
 
                     {/* Withdraw Button */}
                     <button
-                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage)}
+                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage, plan.tokenName)}
                       className="w-full py-3 text-center text-sm font-bold text-white bg-[#81D7B4] rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.15)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.18)] transition-all duration-300 transform hover:scale-[1.02] relative overflow-hidden group mt-2"
                     >
                       <span className="flex items-center justify-center gap-2">
@@ -1289,7 +1320,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <button
-                        onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth)}
+                        onClick={() => openTopUpModal(plan.name, plan.id, plan.isEth, plan.tokenName)}
                         className="bg-[#81D7B4] text-white text-xs font-semibold px-4 py-2 rounded-full border border-[#81D7B4]/20 shadow-sm hover:shadow-md transition-all duration-300"
                       >
                         Top Up
@@ -1318,7 +1349,7 @@ export default function Dashboard() {
                             $BTS Rewards
                             <span className="ml-1 text-gray-400" title="Earned only when you complete your savings">(on completion)</span>
                           </span>
-                          <span className="font-bold text-gray-900">{(parseFloat(plan.currentAmount) * 1000).toLocaleString()} $BTS</span>
+                          <span className="font-bold text-gray-900">{plan.tokenName === 'Gooddollar' ? ((parseFloat(plan.currentAmount) * goodDollarPrice) * 0.01).toFixed(2) : (parseFloat(plan.currentAmount) * 0.01).toFixed(2)} $BTS</span>
                         </div>
                         <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
                           <div className="h-full bg-gradient-to-r from-[#229ED9] to-[#81D7B4] rounded-full shadow-[0_0_12px_rgba(34,158,217,0.3)]" style={{ width: `${plan.progress}%` }}></div>
@@ -1379,7 +1410,7 @@ export default function Dashboard() {
 
                     {/* Withdraw Button */}
                     <button
-                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage)}
+                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage, plan.tokenName)}
                       className="w-full py-3 text-center text-sm font-bold text-white bg-[#81D7B4] rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.15)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.18)] transition-all duration-300 transform hover:scale-[1.02] relative overflow-hidden group mt-2"
                     >
                       <span className="flex items-center justify-center gap-2">

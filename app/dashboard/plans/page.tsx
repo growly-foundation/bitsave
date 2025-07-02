@@ -36,6 +36,7 @@ interface Plan {
   penaltyPercentage: number;
   tokenName?: string;
   tokenLogo?: string;
+  network?: string; // Add network field
 }
 
 interface SavingsData {
@@ -194,7 +195,8 @@ export default function PlansPage() {
             const isUSDGLO = tokenId.toLowerCase() === "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3".toLowerCase();
 
             // Get decimals based on token type
-            const decimals = isEth || isGToken ? 18 : 6;
+            // cUSD uses 18 decimals, USDGLO uses 6 decimals
+            const decimals = isEth || isGToken || (!isUSDGLO) ? 18 : 6;
 
             // Extract penalty percentage from saving data
             const penaltyPercentage = Number(savingData.penaltyPercentage);
@@ -249,6 +251,7 @@ export default function PlansPage() {
               penaltyPercentage: penaltyPercentage,
               tokenName: isEth ? 'ETH' : isGToken ? '$G' : isUSDGLO ? 'USDGLO' : 'cUSD',
               tokenLogo: isEth ? '/eth.png' : isGToken ? '/$g.png' : isUSDGLO ? '/usdglo.png' : '/cusd.png',
+              network: network.chainId === BASE_CHAIN_ID ? 'Base' : 'Celo',
             };
 
             // Add to appropriate list based on completion status
@@ -400,6 +403,9 @@ export default function PlansPage() {
                         <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/20 text-[#163239] text-xs font-medium shadow-sm">
                           <img src={plan.isEth ? '/eth.png' : getTokenLogo(plan.tokenName || '', plan.tokenLogo || '')} alt={plan.isEth ? 'ETH' : plan.tokenName} className="w-4 h-4 mr-1" />
                           {plan.isEth ? 'ETH' : plan.tokenName === 'cUSD' ? 'cUSD' : plan.tokenName === 'Gooddollar' ? '$G' : plan.tokenName}
+                          <span className="mx-1 text-gray-400">|</span>
+                          <img src={plan.network === 'Base' ? '/base.svg' : '/celo.png'} alt={plan.network} className="w-4 h-4 mr-1" />
+                          {plan.network}
                         </span>
                       </div>
                     </div>
@@ -417,7 +423,7 @@ export default function PlansPage() {
                               <>${Number(ethers.formatUnits(plan.currentAmount.split('.')[0], 6)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs font-medium text-gray-500 ml-1">USDGLO</span></>
                             ) : plan.tokenName === 'cUSD' ? (
                               <>
-                                ${Number(ethers.formatUnits(plan.currentAmount.split('.')[0], 18)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs font-medium text-gray-500 ml-1">cUSD</span>
+                                ${parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">cUSD</span>
                               </>
                             ) : (
                               <>${parseFloat(plan.currentAmount).toFixed(2)} <span className="text-xs font-medium text-gray-500 ml-1">{plan.tokenName}</span></>
@@ -679,9 +685,10 @@ export default function PlansPage() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           planName={selectedPlan.name}
-          planId={selectedPlan.address}
-          isEth={selectedPlan.isEth}
-          penaltyPercentage={selectedPlan.penaltyPercentage}
+        planId={selectedPlan.address}
+        isEth={selectedPlan.isEth}
+        penaltyPercentage={selectedPlan.penaltyPercentage}
+        tokenName={selectedPlan.tokenName}
         />
       )}
 

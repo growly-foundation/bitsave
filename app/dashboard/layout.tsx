@@ -82,7 +82,7 @@ export default function DashboardLayout({
               ? 'bg-[#81D7B4]/20 text-[#81D7B4]' 
               : 'hover:bg-gray-100/60 text-gray-600 hover:text-gray-800 transition-colors'
           }`}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 22V12h6v10" />
             </svg>
@@ -117,7 +117,9 @@ export default function DashboardLayout({
               : 'hover:bg-gray-100/60 text-gray-600 hover:text-[#81D7B4]/80 transition-colors'
           }`}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              <circle cx="12" cy="12" r="4" strokeWidth="1.5"/>
+              <ellipse cx="12" cy="12" rx="8" ry="2" strokeWidth="1.5" opacity="0.7"/>
+              <ellipse cx="12" cy="12" rx="6.5" ry="1.5" strokeWidth="1" opacity="0.5"/>
             </svg>
             {!sidebarCollapsed && <span className="ml-3">Savvy Space</span>}
           </Link>

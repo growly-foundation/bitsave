@@ -14,37 +14,18 @@ const spaceGrotesk = Space_Grotesk({
 
 export default function Settings() {
   const { address } = useAccount();
-  const [displayName, setDisplayName] = useState('');
   const [mounted, setMounted] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [showCopyNotification, setShowCopyNotification] = useState(false);
 
-  // Load display name from localStorage on component mount
+  const [showCopyNotification, setShowCopyNotification] = useState(false);
+  const [email, setEmail] = useState('');
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Component mount effect
   useEffect(() => {
     setMounted(true);
-    const savedName = localStorage.getItem(`bitsave_displayname_${address}`);
-    if (savedName) {
-      setDisplayName(savedName);
-    }
   }, [address]);
-
-  // Save display name to localStorage
-  const saveDisplayName = () => {
-    if (displayName.trim()) {
-      localStorage.setItem(`bitsave_displayname_${address}`, displayName);
-      setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 3000);
-    }
-  };
-
-  // Delete display name from localStorage
-  const deleteDisplayName = () => {
-    localStorage.removeItem(`bitsave_displayname_${address}`);
-    setDisplayName('');
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
-  };
 
   // Add a function to copy wallet address with feedback
   const copyToClipboard = async () => {
@@ -59,6 +40,47 @@ export default function Settings() {
     }
   };
 
+  const handleConnectEmail = () => {
+    if (email.trim()) {
+      setShowOtpModal(true);
+      // Here you would typically send OTP to the email
+      console.log('Sending OTP to:', email);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length <= 1 && /^[0-9]*$/.test(value)) {
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
+      
+      // Auto-focus next input
+      if (value && index < 5) {
+        const nextInput = document.getElementById(`otp-${index + 1}`);
+        nextInput?.focus();
+      }
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setIsVerifying(true);
+    // Simulate verification process
+    setTimeout(() => {
+      setIsVerifying(false);
+      setShowOtpModal(false);
+      setOtp(['', '', '', '', '', '']);
+      // Show success message or update UI
+      console.log('Email verified successfully!');
+    }, 2000);
+  };
+
   if (!mounted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -68,12 +90,70 @@ export default function Settings() {
   }
 
   return (
-    <div className={`${spaceGrotesk.variable} font-sans p-4 sm:p-6 md:p-8 bg-gradient-to-b from-white to-gray-50 text-gray-800 relative min-h-screen pb-20`}>
-      {/* Decorative elements */}
-      <div className="fixed inset-0 z-0 opacity-30 pointer-events-none bg-[url('/noise.jpg')] mix-blend-overlay"></div>
-      <div className="absolute top-20 right-10 md:right-20 w-40 md:w-64 h-40 md:h-64 bg-[#81D7B4]/20 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-20 left-10 md:left-20 w-40 md:w-80 h-40 md:h-80 bg-blue-500/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute top-1/3 left-1/4 w-40 md:w-60 h-40 md:h-60 bg-purple-500/5 rounded-full blur-3xl -z-10"></div>
+    <div className={`${spaceGrotesk.variable} font-sans relative min-h-screen bg-gradient-to-br from-gray-50 via-[#81D7B4]/5 to-white overflow-hidden`}>
+      {/* Enhanced Background Elements */}
+      <div className="fixed inset-0 z-0 opacity-[0.08] pointer-events-none bg-[url('/noise.jpg')] mix-blend-overlay"></div>
+      
+      {/* Modern Grid Pattern */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(rgba(129, 215, 180, 0.15) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(129, 215, 180, 0.15) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px'
+        }}></div>
+      </div>
+      
+      {/* Floating Orbs with Enhanced Animation */}
+      <motion.div 
+        animate={{ 
+          x: [0, 30, 0],
+          y: [0, -25, 0],
+          scale: [1, 1.1, 1],
+          rotate: [0, 180, 360]
+        }}
+        transition={{ 
+          duration: 15,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        className="absolute top-20 right-8 lg:right-16 w-80 lg:w-96 h-80 lg:h-96 bg-gradient-to-br from-[#81D7B4]/20 to-[#6BC5A0]/10 rounded-full blur-3xl -z-10"
+      />
+      
+      <motion.div 
+        animate={{ 
+          x: [0, -25, 0],
+          y: [0, 20, 0],
+          scale: [1, 0.9, 1],
+          rotate: [360, 180, 0]
+        }}
+        transition={{ 
+          duration: 18,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 2
+        }}
+        className="absolute bottom-32 left-8 lg:left-16 w-72 lg:w-80 h-72 lg:h-80 bg-gradient-to-tr from-[#81D7B4]/15 to-[#6BC5A0]/8 rounded-full blur-3xl -z-10"
+      />
+      
+      <motion.div 
+        animate={{ 
+          x: [0, 20, 0],
+          y: [0, -30, 0],
+          scale: [1, 1.2, 1]
+        }}
+        transition={{ 
+          duration: 20,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1
+        }}
+        className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-48 lg:w-64 h-48 lg:h-64 bg-gradient-to-bl from-[#81D7B4]/12 to-[#6BC5A0]/6 rounded-full blur-2xl -z-10"
+      />
+      
+      {/* Main Content Container */}
+      <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
       
       {/* Copy notification banner */}
       <AnimatePresence>
@@ -94,258 +174,589 @@ export default function Settings() {
         )}
       </AnimatePresence>
       
-      {/* Header */}
-      <div className="mb-10 text-center">
-        <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-2 drop-shadow-sm">Settings</h1>
-        <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto">Customize your BitSave experience and connect your social accounts for more rewards.</p>
-      </div>
-      
-      <div className="max-w-3xl mx-auto flex flex-col gap-8">
-        {/* Profile Settings Card */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-8 border border-white/60 shadow-[0_10px_25px_-15px_rgba(129,215,180,0.10)] relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
-          <div className="flex items-center mb-6">
-            <div className="bg-[#81D7B4]/10 p-3 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-[#81D7B4]">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      {/* Enhanced Header */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="mb-16 text-center relative"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/8 via-transparent to-[#81D7B4]/8 rounded-3xl blur-3xl"></div>
+        <div className="relative z-10">
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-xl px-8 py-4 rounded-2xl border border-[#81D7B4]/20 shadow-[0_8px_32px_-12px_rgba(129,215,180,0.3)] mb-8"
+          >
+            <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-3 rounded-xl shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-white">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-gray-800">Profile Settings</h2>
-          </div>
+            <span className="text-xl font-semibold text-gray-700">Account Settings</span>
+          </motion.div>
           
-          <div className="mb-6">
-            <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-2">
-              Display Name
-            </label>
-            <div className="flex gap-3">
-              <input
-                type="text"
-                id="displayName"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Enter your display name"
-                className="flex-1 bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#81D7B4]/50 focus:border-[#81D7B4] transition-all"
-              />
-              <button
-                onClick={saveDisplayName}
-                disabled={!displayName.trim()}
-                className="bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/90 text-white px-4 py-2 rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.3)] hover:shadow-[0_6px_15px_rgba(129,215,180,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Save
-              </button>
-              {displayName && (
-                <button
-                  onClick={deleteDisplayName}
-                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-200 transition-all duration-300"
-                >
-                  Clear
-                </button>
-              )}
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-[#81D7B4] to-gray-900 tracking-tight mb-6 leading-tight"
+          >
+            Settings
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-medium"
+          >
+            Customize your <span className="text-[#81D7B4] font-bold">BitSave</span> experience, connect social accounts, and manage your preferences with our modern, intuitive interface.
+          </motion.p>
+        </div>
+      </motion.div>
+      
+      <div className="max-w-6xl mx-auto">
+        {/* Modern Layout */}
+        <div className="space-y-8 lg:space-y-10">
+          {/* Profile Settings Card - Full Width */}
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-10 lg:p-12 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500">
+          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
+          <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#81D7B4]/8 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[#81D7B4]/5 rounded-full blur-2xl"></div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-10"
+          >
+            <div className="flex items-center mb-4 lg:mb-0">
+              <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-5 rounded-2xl mr-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8 text-white">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-2">Profile Settings</h2>
+                <p className="text-gray-600 text-base lg:text-lg">Manage your identity and social connections</p>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Your display name will be shown instead of your wallet address
-            </p>
-            {isSaved && (
-              <p className="text-sm text-[#81D7B4] mt-2 animate-pulse">
-                Settings saved successfully!
-              </p>
-            )}
-          </div>
+            <div className="flex items-center gap-3 bg-[#81D7B4]/10 px-5 py-3 rounded-xl border border-[#81D7B4]/20">
+              <div className="w-3 h-3 bg-[#81D7B4] rounded-full animate-pulse"></div>
+              <span className="text-base font-semibold text-[#81D7B4]">Live</span>
+            </div>
+          </motion.div>
+          
+          {/* Display Name from Social Connections */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-10"
+          >
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-2 rounded-lg mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 text-white">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800">Display Name</h3>
+            </div>
+            
+            <div className="bg-gradient-to-br from-[#81D7B4]/8 to-[#6BC5A0]/8 backdrop-blur-sm p-6 md:p-8 rounded-2xl border border-[#81D7B4]/20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
+              
+              <div className="relative">
+                <p className="text-gray-700 mb-6 text-base leading-relaxed">
+                  Your display name is automatically pulled from your connected social accounts. 
+                  <span className="font-semibold text-[#81D7B4]">Connect your social accounts below</span> to set your display name.
+                </p>
+                
+                {/* Social Account Integration Status */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* X (Twitter) Status */}
+                  <motion.div 
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    className="bg-white/80 backdrop-blur-sm p-6 rounded-xl border border-gray-200/50 flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-black rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                        <span className="text-white font-bold text-lg">𝕏</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-800 text-lg">X (Twitter)</span>
+                        <p className="text-gray-500 text-sm">Social platform</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-full font-medium border border-red-200">Not Connected</span>
+                    </div>
+                  </motion.div>
+                  
+                  {/* Farcaster Status */}
+                  <motion.div 
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    className="bg-white/80 backdrop-blur-sm p-6 rounded-xl border border-gray-200/50 flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                        <span className="text-white font-bold text-sm">FC</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-800 text-lg">Farcaster</span>
+                        <p className="text-gray-500 text-sm">Decentralized social</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-full font-medium border border-red-200">Not Connected</span>
+                    </div>
+                  </motion.div>
+                </div>
+                
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-4 md:p-6 rounded-xl border border-[#81D7B4]/20 backdrop-blur-sm"
+                >
+                  <div className="flex items-start">
+                    <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-2 rounded-lg mr-4 mt-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 text-white">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-2">💡 Pro Tip</h4>
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                        Connect your social accounts to automatically set your display name and enhance your profile with verified social presence.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
           
           {/* ENS Option - Coming Soon */}
-          <div className="mb-6 border-t border-gray-100 pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-gray-800">Use ENS Name</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  Display your ENS name instead of wallet address
-                </p>
-              </div>
-              <div className="relative">
-                <div className="opacity-50 pointer-events-none">
-                  <label className="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" value="" className="sr-only peer" />
-                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#81D7B4]/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#81D7B4]"></div>
-                  </label>
-                </div>
-                <div className="absolute top-0 right-0 bg-gray-100/80 text-gray-600 text-[10px] px-1.5 py-0.5 rounded-md border border-gray-200/50">
-                  Coming Soon
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-100 pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-gray-800">Wallet Address</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not connected'}
-                </p>
-              </div>
-              <button
-                onClick={copyToClipboard}
-                className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-200 transition-all duration-300 flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-3.5 h-3.5 mr-1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mb-10"
+          >
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-2 rounded-lg mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 text-white">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                 </svg>
-                Copy
-              </button>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800">ENS Domain</h3>
+              <span className="ml-3 bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] text-white text-xs font-bold px-3 py-1 rounded-full">COMING SOON</span>
             </div>
-          </div>
+            
+            <div className="bg-gradient-to-br from-[#81D7B4]/8 to-[#6BC5A0]/8 backdrop-blur-sm p-6 md:p-8 rounded-2xl border border-[#81D7B4]/20 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
+            
+            <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0">
+              <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-4 rounded-2xl mr-0 sm:mr-6 shadow-lg w-fit">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8 text-white">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-gray-800 mb-2">Ethereum Name Service Integration</h4>
+                  <p className="text-gray-600 leading-relaxed mb-4">
+                    Soon you&apos;ll be able to use your <span className="font-semibold text-[#81D7B4]">.eth domain</span> as your display name, 
+                    making your identity more memorable and professional across the decentralized web.
+                  </p>
+                  <div className="flex items-center text-sm text-[#81D7B4]">
+                   
+                    
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Wallet Address */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="lg:col-span-3 bg-white/95 backdrop-blur-xl rounded-3xl p-10 lg:p-12 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
+          >
+            <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
+            <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#81D7B4]/8 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[#81D7B4]/5 rounded-full blur-2xl"></div>
+            
+            <div className="flex items-center mb-8">
+              <div className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] p-3 rounded-xl mr-4 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-white">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <circle cx="12" cy="16" r="1"></circle>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800">Wallet Address</h3>
+            </div>
+            
+            <motion.div 
+              whileHover={{ scale: 1.01 }}
+              className="bg-gradient-to-br from-[#81D7B4]/5 to-[#6BC5A0]/5 backdrop-blur-sm p-8 rounded-2xl border border-[#81D7B4]/20 relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
+              
+              <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div className="flex items-center flex-1">
+                  <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-5 rounded-2xl mr-6 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8 text-white">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <circle cx="12" cy="16" r="1"></circle>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center mb-3">
+                      <p className="font-mono text-xl font-bold text-gray-800 mr-4 mb-2 sm:mb-0">
+                        {address ? `${address.slice(0, 8)}...${address.slice(-6)}` : 'Not connected'}
+                      </p>
+                      <div className="flex items-center bg-[#81D7B4]/10 px-4 py-2 rounded-full border border-[#81D7B4]/20">
+                        <div className="w-2 h-2 bg-[#81D7B4] rounded-full mr-2 animate-pulse"></div>
+                        <span className="text-sm font-semibold text-[#81D7B4]">Connected</span>
+                      </div>
+                    </div>
+                    <p className="text-gray-600 text-lg">Your primary wallet address</p>
+                  </div>
+                </div>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={copyToClipboard}
+                  className="bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] hover:from-[#6BC5A0] hover:to-[#81D7B4] text-white px-8 py-4 rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl flex items-center justify-center gap-3 min-w-[140px]"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                  </svg>
+                  Copy Address
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
         
-        {/* Email Connect Card - DeFi Neomorphic, Techy Web3 Style */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-8 border border-[#81D7B4]/30 shadow-[0_8px_32px_-12px_rgba(129,215,180,0.13),0_1.5px_8px_rgba(129,215,180,0.10)] relative overflow-hidden neomorphic-card">
-          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
-          <div className="absolute -top-10 -left-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
-          <div className="flex items-center mb-6">
-            <div className="bg-[#81D7B4]/10 p-3 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-[#81D7B4]">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 12H8m8 0a4 4 0 11-8 0 4 4 0 018 0zm-8 0v4a4 4 0 008 0v-4" />
-              </svg>
+        {/* Secondary Grid Layout for Additional Settings */}
+        <div className="space-y-8 lg:space-y-10 mt-12">
+          {/* Email Connect Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
+        >
+          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
+          <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gradient-to-tr from-[#81D7B4]/8 to-[#6BC5A0]/8 rounded-full blur-2xl"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center mb-8">
+              <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-4 rounded-2xl mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-7 h-7 text-white">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-1">Email Connect</h2>
+                <p className="text-gray-600 text-base">Secure notifications & updates</p>
+              </div>
             </div>
-            <h2 className="text-xl font-bold text-[#81D7B4]">Connect Email</h2>
+            
+            <div className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-6 rounded-xl border border-[#81D7B4]/20 mb-8">
+              <p className="text-gray-700 font-medium leading-relaxed">
+                Connect your email to receive updates, rewards, and important notifications about your savings and DeFi activities.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <div className="flex-1">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  className="w-full bg-white/80 border-2 border-[#81D7B4]/30 focus:border-[#81D7B4] focus:ring-2 focus:ring-[#81D7B4]/20 rounded-xl px-5 py-4 text-gray-900 shadow-lg transition-all placeholder:text-gray-400 font-medium text-base outline-none"
+                />
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleConnectEmail}
+                disabled={!email.trim()}
+                className="w-full sm:w-auto bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] hover:from-[#6BC5A0] hover:to-[#81D7B4] disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:cursor-not-allowed flex items-center justify-center gap-3 min-w-[140px]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                Connect Email
+              </motion.button>
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <input
-              type="email"
-              placeholder="Enter your email address"
-              className="flex-1 bg-white/80 border-2 border-[#81D7B4] focus:border-[#81D7B4] focus:ring-2 focus:ring-[#81D7B4]/40 rounded-lg px-5 py-3 text-gray-900 shadow-[inset_2px_2px_8px_rgba(129,215,180,0.08),0_1.5px_8px_rgba(129,215,180,0.10)] transition-all placeholder:text-[#81D7B4]/60 font-medium text-base outline-none"
-            />
-            <button className="bg-[#81D7B4] text-white px-8 py-3 rounded-lg shadow-[0_2px_8px_rgba(129,215,180,0.13)] hover:bg-[#6bc4a1] transition-all duration-300 font-bold text-base tracking-wide border-2 border-[#81D7B4]/60">
-              Connect
-            </button>
-          </div>
-          <p className="text-xs text-[#229ED9] mt-2 font-medium">Connect your email to receive updates, rewards, and important notifications.</p>
-        </div>
+        </motion.div>
 
-        {/* Social Connect Card */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-8 border border-[#8A63D2]/20 shadow-[0_10px_25px_-15px_rgba(138,99,210,0.10)] relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#8A63D2]/10 rounded-full blur-2xl"></div>
-          <div className="flex items-center mb-6">
-            <div className="bg-[#8A63D2]/10 p-3 rounded-full mr-4">
-              <svg className="w-6 h-6 text-[#8A63D2]" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="16" cy="16" r="16" fill="#8A63D2"/>
-                <path d="M21.5 10.5C21.5 9.67157 20.8284 9 20 9H12C11.1716 9 10.5 9.67157 10.5 10.5V21.5C10.5 22.3284 11.1716 23 12 23H20C20.8284 23 21.5 22.3284 21.5 21.5V10.5Z" fill="white"/>
-                <path d="M16 13.5C17.3807 13.5 18.5 14.6193 18.5 16C18.5 17.3807 17.3807 18.5 16 18.5C14.6193 18.5 13.5 17.3807 13.5 16C13.5 14.6193 14.6193 13.5 16 13.5Z" fill="#8A63D2"/>
-              </svg>
+          {/* Social Connect Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
+          >
+            <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
+            <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gradient-to-tr from-[#81D7B4]/8 to-[#6BC5A0]/8 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center mb-8">
+                <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-4 rounded-2xl mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-7 h-7 text-white">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-1">Social Connect</h2>
+                  <p className="text-gray-600 text-base">Link your social accounts</p>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-6 rounded-xl border border-[#81D7B4]/20 mb-8">
+                <p className="text-gray-700 font-medium leading-relaxed">
+                  Connect your social accounts to enhance your profile and unlock exclusive features.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <motion.button 
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full bg-gradient-to-r from-[#81D7B4] to-[#6BC5A0] hover:from-[#6BC5A0] hover:to-[#81D7B4] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+                >
+                  <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">FC</span>
+                  </div>
+                  Connect Farcaster
+                </motion.button>
+                
+                <motion.button 
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+                >
+                  <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center">
+                    <span className="text-black font-bold text-lg">𝕏</span>
+                  </div>
+                  Connect X/Twitter
+                </motion.button>
+              </div>
             </div>
-            <h2 className="text-xl font-bold text-[#8A63D2]">Connect Social Accounts</h2>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <button className="flex-1 flex items-center justify-center gap-3 bg-[#8A63D2]/10 border border-[#8A63D2]/20 text-[#8A63D2] px-6 py-3 rounded-xl font-semibold shadow-sm hover:bg-[#8A63D2]/20 transition-all duration-300">
-              <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="16" cy="16" r="16" fill="#8A63D2"/>
-                <path d="M21.5 10.5C21.5 9.67157 20.8284 9 20 9H12C11.1716 9 10.5 9.67157 10.5 10.5V21.5C10.5 22.3284 11.1716 23 12 23H20C20.8284 23 21.5 22.3284 21.5 21.5V10.5Z" fill="white"/>
-                <path d="M16 13.5C17.3807 13.5 18.5 14.6193 18.5 16C18.5 17.3807 17.3807 18.5 16 18.5C14.6193 18.5 13.5 17.3807 13.5 16C13.5 14.6193 14.6193 13.5 16 13.5Z" fill="#8A63D2"/>
-              </svg>
-              Connect Farcaster
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-3 bg-[#229ED9]/10 border border-[#229ED9]/20 text-[#229ED9] px-6 py-3 rounded-xl font-semibold shadow-sm hover:bg-[#229ED9]/20 transition-all duration-300">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-              </svg>
-              Connect X (Twitter)
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 mt-2">Connect your social accounts to unlock exclusive rewards and onchain perks.</p>
+          </motion.div>
+        
+          {/* Appearance Settings */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
+          >
+            <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
+            <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gradient-to-tr from-[#81D7B4]/8 to-[#6BC5A0]/8 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center mb-8">
+                <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-4 rounded-2xl mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-7 h-7 text-white">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-1">Appearance</h2>
+                  <p className="text-gray-600 text-base">Customize your visual experience</p>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-6 rounded-xl border border-[#81D7B4]/20 mb-8">
+                <p className="text-gray-700 font-medium leading-relaxed">
+                  Choose your preferred theme and customize the look of your dashboard.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-5 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors duration-200 gap-3 sm:gap-0">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-800 text-base">Dark Mode</h3>
+                    <p className="text-sm text-gray-600 mt-1">Switch to dark theme for better viewing in low light</p>
+                  </div>
+                  <div className="relative">
+                    <input type="checkbox" className="sr-only" />
+                    <div className="w-12 h-6 bg-gray-300 rounded-full shadow-inner cursor-pointer transition-colors duration-300 hover:bg-gray-400">
+                      <div className="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-0.5 translate-y-0.5"></div>
+                    </div>
+                  </div>
+                </div>
+                
+              
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Notifications Settings */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 border border-[#81D7B4]/20 shadow-[0_20px_40px_-15px_rgba(129,215,180,0.2)] relative overflow-hidden group hover:shadow-[0_30px_60px_-12px_rgba(129,215,180,0.3)] transition-all duration-500"
+          >
+            <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
+            <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-bl from-[#81D7B4]/10 to-[#6BC5A0]/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gradient-to-tr from-[#81D7B4]/8 to-[#6BC5A0]/8 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center mb-8">
+                <div className="bg-gradient-to-br from-[#81D7B4] to-[#6BC5A0] p-4 rounded-2xl mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-7 h-7 text-white">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-1">Notifications</h2>
+                  <p className="text-gray-600 text-base">Manage your alert preferences</p>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-[#81D7B4]/8 to-[#6BC5A0]/8 p-6 rounded-xl border border-[#81D7B4]/20 mb-8">
+                <p className="text-gray-700 font-medium leading-relaxed">
+                  Stay updated with important account activities and transaction alerts.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-5 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors duration-200">
+                  <div>
+                    <h3 className="font-semibold text-gray-800 text-base">Email Notifications</h3>
+                    <p className="text-sm text-gray-600">Receive updates via email</p>
+                  </div>
+                  <div className="relative">
+                    <input type="checkbox" className="sr-only" defaultChecked />
+                    <div className="w-12 h-6 bg-[#81D7B4] rounded-full shadow-inner cursor-pointer transition-colors duration-300">
+                      <div className="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-6 translate-y-0.5"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between p-5 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors duration-200">
+                  <div>
+                    <h3 className="font-semibold text-gray-800 text-base">Push Notifications</h3>
+                    <p className="text-sm text-gray-600">Browser notifications</p>
+                  </div>
+                  <div className="relative">
+                    <input type="checkbox" className="sr-only" />
+                    <div className="w-12 h-6 bg-gray-300 rounded-full shadow-inner cursor-pointer transition-colors duration-300 hover:bg-gray-400">
+                      <div className="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-0.5 translate-y-0.5"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/60 shadow-[0_10px_25px_-15px_rgba(0,0,0,0.1)]"
-        >
-          <div className="flex items-center mb-6">
-            <div className="bg-[#81D7B4]/10 p-3 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-[#81D7B4]">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-gray-800">Appearance</h2>
-          </div>
-          
-          <div className="flex items-center justify-between py-3 border-b border-gray-100">
-            <div>
-              <h3 className="font-medium text-gray-800">Dark Mode</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Switch between light and dark theme
-              </p>
-            </div>
-            <div className="relative">
-              <div className="opacity-50 pointer-events-none">
-                <label className="inline-flex items-center cursor-pointer">
-                  <input type="checkbox" value="" className="sr-only peer" checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
-                  <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#81D7B4]/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#81D7B4]"></div>
-                </label>
+      </div>
+      </div>
+
+      {/* OTP Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 border border-[#81D7B4]/30 shadow-[0_20px_50px_-15px_rgba(129,215,180,0.3)] max-w-md w-full relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#81D7B4]/5 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10">
+              <div className="text-center mb-8">
+                <div className="bg-[#81D7B4]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8 text-[#81D7B4]">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Verify Your Email</h3>
+                <p className="text-gray-600 text-sm">We&apos;ve sent a 6-digit verification code to</p>
+                <p className="text-[#81D7B4] font-semibold text-sm">{email}</p>
               </div>
-              <div className="absolute top-0 right-0 bg-gray-100/80 text-gray-600 text-[10px] px-1.5 py-0.5 rounded-md border border-gray-200/50">
-                Coming Soon
+
+              <div className="mb-8">
+                <div className="flex justify-center space-x-3 mb-6">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`otp-${index}`}
+                      type="text"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className="w-12 h-12 text-center text-xl font-bold bg-white/80 border-2 border-[#81D7B4]/30 focus:border-[#81D7B4] focus:ring-2 focus:ring-[#81D7B4]/20 rounded-xl shadow-[inset_2px_2px_8px_rgba(129,215,180,0.08)] transition-all outline-none"
+                      maxLength={1}
+                    />
+                  ))}
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowOtpModal(false)}
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleVerifyOtp}
+                    disabled={otp.some(digit => !digit) || isVerifying}
+                    className="flex-1 bg-gradient-to-r from-[#81D7B4] to-[#6bc4a1] text-white py-3 rounded-xl font-semibold shadow-[0_4px_15px_rgba(129,215,180,0.3)] hover:shadow-[0_6px_20px_rgba(129,215,180,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isVerifying ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Verifying...</span>
+                      </div>
+                    ) : (
+                      'Verify Email'
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        </motion.div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/60 shadow-[0_10px_25px_-15px_rgba(0,0,0,0.1)]"
-        >
-          <div className="flex items-center mb-6">
-            <div className="bg-[#81D7B4]/10 p-3 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-[#81D7B4]">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-gray-800">Notifications</h2>
-          </div>
-          
-          <div className="flex items-center justify-between py-3 border-b border-gray-100">
-            <div>
-              <h3 className="font-medium text-gray-800">Email Notifications</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Receive updates via email
-              </p>
-            </div>
-            <div className="relative">
-              <div className="opacity-50 pointer-events-none">
-                <label className="inline-flex items-center cursor-pointer">
-                  <input type="checkbox" value="" className="sr-only peer" />
-                  <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#81D7B4]/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#81D7B4]"></div>
-                </label>
-              </div>
-              <div className="absolute top-0 right-0 bg-gray-100/80 text-gray-600 text-[10px] px-1.5 py-0.5 rounded-md border border-gray-200/50">
-                Coming Soon
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <h3 className="font-medium text-gray-800">Push Notifications</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Get notified about important updates
-              </p>
-            </div>
-            <div className="relative">
-              <div className="opacity-50 pointer-events-none">
-                <label className="inline-flex items-center cursor-pointer">
-                  <input type="checkbox" value="" className="sr-only peer" />
-                  <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#81D7B4]/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#81D7B4]"></div>
-                </label>
-              </div>
-              <div className="absolute top-0 right-0 bg-gray-100/80 text-gray-600 text-[10px] px-1.5 py-0.5 rounded-md border border-gray-200/50">
-                Coming Soon
+
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-2">Didn&apos;t receive the code?</p>
+                <button className="text-[#81D7B4] text-sm font-semibold hover:underline">
+                  Resend Code
+                </button>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
+      )}
       </div>
     </div>
   );

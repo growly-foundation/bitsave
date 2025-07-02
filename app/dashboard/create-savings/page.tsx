@@ -117,6 +117,66 @@ export default function CreateSavingsPage() {
 
   const currencies = networkCurrencies[chain];
 
+  // Function to switch network
+  const switchToNetwork = async (networkName: string) => {
+    try {
+      if (typeof window.ethereum !== 'undefined') {
+        if (networkName === 'base') {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x2105' }], // Base chainId in hex (8453)
+            });
+          } catch (switchError: unknown) {
+        // This error code indicates that the chain has not been added to MetaMask
+        if ((switchError as { code: number }).code === 4902) {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x2105',
+                  chainName: 'Base',
+                  nativeCurrency: {
+                    name: 'ETH',
+                    symbol: 'ETH',
+                    decimals: 18,
+                  },
+                  rpcUrls: ['https://mainnet.base.org'],
+                  blockExplorerUrls: ['https://basescan.org'],
+                }],
+              });
+            }
+          }
+        } else if (networkName === 'celo') {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0xA4EC' }], // Celo chainId in hex (42220)
+            });
+          } catch (switchError: unknown) {
+        if ((switchError as { code: number }).code === 4902) {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0xA4EC',
+                  chainName: 'Celo',
+                  nativeCurrency: {
+                    name: 'CELO',
+                    symbol: 'CELO',
+                    decimals: 18,
+                  },
+                  rpcUrls: ['https://forno.celo.org'],
+                  blockExplorerUrls: ['https://explorer.celo.org'],
+                }],
+              });
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Error switching to ${networkName} network:`, error);
+    }
+  };
+
   const chains = [
     { id: 'base', name: 'Base', logo: '/base.svg', color: 'bg-blue-900/10', textColor: 'text-blue-800' },
     { id: 'celo', name: 'Celo', logo: '/celo.png', color: 'bg-green-100', textColor: 'text-green-600', active: true }
@@ -978,18 +1038,7 @@ export default function CreateSavingsPage() {
                           </div>
                         </div>
                         {errors.amount && <p className="mt-1 text-sm text-red-500">{errors.amount}</p>}
-                        {chain === 'celo' && currency === 'Gooddollar' && amount && !isNaN(Number(amount)) && (
-                          <div className="mt-2 text-xs text-[#81D7B4] font-medium">
-                            {goodDollarPrice > 0 ? (
-                              <>
-                                {Number(amount) / goodDollarPrice} G$<br />
-                                <span className="text-gray-600 font-normal">1 $G = ${goodDollarPrice}</span>
-                              </>
-                            ) : (
-                              'Loading $G price...'
-                            )}
-                          </div>
-                        )}
+
                       </motion.div>
 
                       {/* Currency - enhanced, responsive, DeFi style */}
@@ -1034,7 +1083,10 @@ export default function CreateSavingsPage() {
                           {/* Main network (Base) */}
                           <button
                             type="button"
-                            onClick={() => setChain('base')}
+                            onClick={async () => {
+                              await switchToNetwork('base');
+                              setChain('base');
+                            }}
                             className={`flex items-center justify-center px-5 py-3 rounded-2xl border transition-all duration-300 flex-1 text-base sm:text-sm ${chain === 'base'
                               ? 'bg-gradient-to-r from-[#81D7B4]/20 to-[#81D7B4]/5 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_4px_16px_rgba(129,215,180,0.18)] scale-105'
                               : 'bg-white/80 border-gray-200/50 text-gray-700 hover:bg-gray-50 shadow-[0_2px_8px_rgba(129,215,180,0.06)]'} font-medium`}
@@ -1068,7 +1120,11 @@ export default function CreateSavingsPage() {
                                 <button
                                   key={c.id}
                                   type="button"
-                                  onClick={() => { setChain(c.id); document.getElementById('network-dropdown')?.classList.add('hidden'); }}
+                                  onClick={async () => {
+                                    await switchToNetwork(c.id);
+                                    setChain(c.id);
+                                    document.getElementById('network-dropdown')?.classList.add('hidden');
+                                  }}
                                   className={`flex items-center w-full px-4 py-2 rounded-xl border-b border-gray-100 last:border-b-0 text-base sm:text-sm ${chain === c.id ? 'bg-[#81D7B4]/10 text-[#81D7B4]' : 'hover:bg-gray-100/80 text-gray-700'} font-medium`}
                                 >
                                   <img src={c.logo} alt={c.name} className="w-5 h-5 mr-2" />

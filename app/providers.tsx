@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider, createConfig, http } from 'wagmi';
 import { mainnet, sepolia, base } from 'wagmi/chains';
-import { RainbowKitProvider, lightTheme } from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider, lightTheme, darkTheme } from '@rainbow-me/rainbowkit';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import { 
   metaMaskWallet,
@@ -19,6 +19,7 @@ import {
   walletConnectWallet,
   injectedWallet
 } from '@rainbow-me/rainbowkit/wallets';
+import { useTheme } from 'next-themes';
 
 // Import Rainbow Kit styles
 import '@rainbow-me/rainbowkit/styles.css';
@@ -30,8 +31,7 @@ const projectId = 'dfffb9bb51c39516580c01f134de2345';
 const chains = [mainnet, sepolia, base] as const;
 
 // Create wallet groups with connectorsForWallets
-const connectors = connectorsForWallets(
-  [
+const connectors = connectorsForWallets([
     {
       groupName: 'Popular',
       wallets: [
@@ -53,13 +53,10 @@ const connectors = connectorsForWallets(
         injectedWallet,
       ],
     },
-  ],
-  {
+], {
     appName: 'BitSave',
     projectId,
-    // chains,
-  }
-);
+});
 
 const config = createConfig({
   chains,
@@ -74,12 +71,18 @@ const config = createConfig({
 const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: ReactNode }) {
+  const { theme } = useTheme();
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider 
           modalSize="compact"
-          theme={lightTheme({
+          theme={theme === 'dark' ? darkTheme({
+            accentColor: '#66C4A3',
+            accentColorForeground: 'white',
+            borderRadius: 'large',
+          }) : lightTheme({
             accentColor: '#81D7B4',
             accentColorForeground: 'white',
             borderRadius: 'large',

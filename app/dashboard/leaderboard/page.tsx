@@ -242,11 +242,13 @@ export default function LeaderboardPage() {
         <div className="absolute inset-0 bg-[url('/noise.jpg')] opacity-[0.03] mix-blend-overlay pointer-events-none"></div>
         
         {/* Table Header */}
-        <div className="bg-white/80 backdrop-blur-sm p-4 border-b border-gray-200/50 hidden md:grid md:grid-cols-5 text-sm font-medium text-gray-500">
+        <div className="bg-white/80 backdrop-blur-sm p-4 border-b border-gray-200/50 hidden md:grid md:grid-cols-7 text-sm font-medium text-gray-500">
           <div className="col-span-1">Rank</div>
           <div className="col-span-2">User</div>
-          <div className="col-span-1">Amount</div>
-          <div className="col-span-1">Details</div>
+          <div className="col-span-1">Total Saved</div>
+          <div className="col-span-1">Points</div>
+          <div className="col-span-1">$BTS</div>
+          <div className="col-span-1">Actions</div>
         </div>
         
         {isLoading ? (
@@ -274,7 +276,7 @@ export default function LeaderboardPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                className="p-4 md:grid md:grid-cols-5 flex flex-wrap items-center hover:bg-white/50 transition-colors duration-200"
+                className="p-4 md:grid md:grid-cols-7 flex flex-wrap items-center hover:bg-white/50 transition-colors duration-200"
               >
                 {/* Rank */}
                 <div className="col-span-1 flex items-center mb-2 md:mb-0">
@@ -292,13 +294,23 @@ export default function LeaderboardPage() {
                   </div>
                 </div>
                 
-                {/* Amount */}
+                {/* Total Saved */}
                 <div className="col-span-1 mb-2 md:mb-0 w-1/2 md:w-auto">
                   <p className="text-sm text-gray-500">Amount</p>
                   <p className="font-bold text-gray-800">${user.totalamount.toFixed(2)}</p>
                 </div>
                 
-                {/* Removed Rewards column */}
+                {/* Points */}
+                <div className="col-span-1 mb-2 md:mb-0">
+                  <p className="text-xs text-gray-500 md:hidden">Points</p>
+                  <p className="font-bold text-gray-800">{Math.floor(user.totalamount * 0.01)}</p>
+                </div>
+                
+                {/* $BTS */}
+                <div className="col-span-1 mb-2 md:mb-0">
+                  <p className="text-xs text-gray-500 md:hidden">$BTS</p>
+                  <p className="font-bold text-gray-800">{(user.totalamount * 0.01).toFixed(2)}</p>
+                </div>
                 
                 {/* Details Button */}
                 <div className="col-span-1 flex justify-end w-full md:w-auto">
@@ -338,6 +350,24 @@ export default function LeaderboardPage() {
               <p className="text-xs text-gray-500 mb-1">Current Rank</p>
               <p className="font-bold text-2xl text-gray-800 flex items-center">
                 {currentUserPosition ? `#${currentUserPosition.rank}` : "-"}
+              </p>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-white/60 shadow-sm mr-4">
+              <p className="text-xs text-gray-500 mb-1">Points</p>
+              <p className="font-bold text-2xl text-gray-800">
+                {currentUserPosition 
+                  ? Math.floor(currentUserPosition.totalamount * 0.01)
+                  : "0"}
+              </p>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-white/60 shadow-sm mr-4">
+              <p className="text-xs text-gray-500 mb-1">$BTS</p>
+              <p className="font-bold text-2xl text-gray-800">
+                {currentUserPosition 
+                  ? (currentUserPosition.totalamount * 0.01).toFixed(2)
+                  : "0.00"}
               </p>
             </div>
             
@@ -390,19 +420,7 @@ export default function LeaderboardPage() {
                     </div>
                   </div>
                   
-                  <div>
-                    <h3 className="font-bold text-gray-800 text-lg">
-                      {selectedUser.useraddress.slice(0, 6)}...{selectedUser.useraddress.slice(-4)}
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 mr-1">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                        </svg>
-                        Chain: {selectedUser.chain}
-                      </span>
-                    </div>
-                  </div>
+
                   
                   <button 
                     onClick={() => setIsDetailsOpen(false)}
