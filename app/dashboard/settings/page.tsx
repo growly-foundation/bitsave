@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { Space_Grotesk } from 'next/font/google';
