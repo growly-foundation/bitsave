@@ -1,9 +1,25 @@
 "use client"
-import { useState, useEffect, ReactNode, useRef } from 'react'
+import { useState, ReactNode, lazy, Suspense, memo, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Space_Grotesk } from 'next/font/google'
 import Link from 'next/link'
-import Image from 'next/image'
+
+// Lazy load heavy components
+const TwitterFeed = lazy(() => import('./components/TwitterFeed'))
+const SavvyFinanceVideos = lazy(() => import('./components/SavvyFinanceVideos'))
+const LoadingSpinner = lazy(() => import('./components/LoadingSpinner'))
+
+// Declare Twitter widgets for TypeScript
+declare global {
+  interface Window {
+    twttr: {
+      widgets: {
+        load: () => void;
+        createTweet: (tweetId: string, container: HTMLElement, options?: object) => Promise<HTMLElement>;
+      };
+    };
+  }
+}
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -17,66 +33,44 @@ const MOCK_USER_DATA = {
   hasConnectedFarcaster: true,
   hasEmail: true,
   userPoints: 0,
-  referralLink: 'https://bitsave.com/ref/123xyz',
+  referralLink: 'https://bitsave.io/ref/123xyz',
 }
 
-const testimonials = [
-  {
-    quote: "Bitsave has completely changed how I approach my savings in Web3. It's simple, secure, and the rewards are a great bonus!",
-    name: 'Glory',
-    handle: '@glory.eth',
-    avatar: '/images/glory.jpg',
-  },
-  {
-    quote: "Finally, a DeFi protocol that prioritizes savings. The child-parent contract structure gives me peace of mind. Highly recommend!",
-    name: 'Nissi',
-    handle: '@nissi.eth',
-    avatar: '/images/nissi.jpg',
-  },
-  {
-    quote: "As someone who's been rugged before, security is my top priority. Bitsave's transparent and audited contracts make it a no-brainer for me.",
-    name: 'Karlagod',
-    handle: '@karlagod',
-    avatar: '/images/karlagod.jpg',
-  },
-  {
-    quote: "The goal-based savings plans are a game-changer. I'm actually motivated to save regularly now. Plus, earning $BTS tokens is awesome.",
-    name: 'Xpan',
-    handle: '@xpan',
-    avatar: '/images/xpan.jpg',
-  },
-  {
-    quote: "I love the UI/UX. It doesn't feel like a complicated DeFi app. It's as easy as using my traditional banking app, but with all the benefits of web3.",
-    name: 'Primidac',
-    handle: '@primidac',
-    avatar: '/images/primidac.png',
-  },
+const twitterLinks = [
+  'https://x.com/bitsaveprotocol/status/1937769440806076921?s=46',
+  'https://x.com/benedictfrank_/status/1923176035505344973?s=46',
+  'https://x.com/mamin_xyz/status/1933100118766416048?s=46',
+  'https://x.com/thedesign_dr/status/1928114921230803107?s=46',
+  'https://x.com/lighter_defi/status/1935946790240489699?s=46',
+  'https://x.com/sapphsparkles/status/1934659049544667648?s=46',
+  'https://x.com/mamin_xyz/status/1904884465320472905?s=46',
+  'https://x.com/alamzy001/status/1922675320861212679?s=46',
 ]
 
 const savvyFinanceVideos = [
   {
-    id: 1,
+    id: 'PdwOltnBznE',
     title: 'Savvy Finance Video 1',
     creator: 'Savvy Finance',
     embedUrl: 'https://www.youtube.com/embed/PdwOltnBznE',
     url: 'https://youtu.be/PdwOltnBznE?si=UK15zqZUVEid9qt4',
   },
   {
-    id: 2,
+    id: 'z1zvOmhfA0k',
     title: 'Savvy Finance Video 2',
     creator: 'Savvy Finance',
     embedUrl: 'https://www.youtube.com/embed/z1zvOmhfA0k',
     url: 'https://youtube.com/shorts/z1zvOmhfA0k?feature=share',
   },
   {
-    id: 3,
+    id: 'CWRQ7rgtHzU',
     title: 'Savvy Finance Video 3',
     creator: 'Savvy Finance',
     embedUrl: 'https://www.youtube.com/embed/CWRQ7rgtHzU',
     url: 'https://youtube.com/shorts/CWRQ7rgtHzU?feature=share',
   },
   {
-    id: 4,
+    id: '2QzgDb-27BQ',
     title: 'Savvy Finance Video 4',
     creator: 'Savvy Finance',
     embedUrl: 'https://www.youtube.com/embed/2QzgDb-27BQ',
@@ -97,7 +91,7 @@ interface Task {
 export default function SavvySpacePage() {
   const [userData] = useState(MOCK_USER_DATA)
 
-  const tasks: Task[] = [
+  const tasks: Task[] = useMemo(() => [
     {
       id: 'tweet_after_saving',
       title: 'Tweet after Saving',
@@ -179,9 +173,9 @@ export default function SavvySpacePage() {
       href: '/dashboard/plans',
       icon: 'calendar',
     },
-  ]
+  ], [userData.referralLink])
 
-  const TaskIcon = ({ icon }: { icon: string }) => {
+  const TaskIcon = memo(({ icon }: { icon: string }) => {
     const icons: { [key: string]: ReactNode } = {
       twitter: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>,
       farcaster: <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.5 10.5C21.5 9.67157 20.8284 9 20 9H12C11.1716 9 10.5 9.67157 10.5 10.5V21.5C10.5 22.3284 11.1716 23 12 23H20C20.8284 23 21.5 22.3284 21.5 21.5V10.5Z" fill="currentColor"/><path d="M16 13.5C17.3807 13.5 18.5 14.6193 18.5 16C18.5 17.3807 17.3807 18.5 16 18.5C14.6193 18.5 13.5 17.3807 13.5 16C13.5 14.6193 14.6193 13.5 16 13.5Z" fill="white"/></svg>,
@@ -194,97 +188,15 @@ export default function SavvySpacePage() {
       saturn: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="4" strokeWidth={2}/><ellipse cx="12" cy="12" rx="8" ry="2" strokeWidth={1.5}/><ellipse cx="12" cy="12" rx="10" ry="3" strokeWidth={1} opacity="0.6"/></svg>,
     }
     return icons[icon] || null
-  }
+  })
 
-  const TestimonialCard = ({ quote, name, handle, avatar }: { quote: string, name: string, handle: string, avatar: string }) => (
-    <div className="flex-shrink-0 w-[300px] md:w-[350px] bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg p-6 relative overflow-hidden">
-      <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#81D7B4]/10 rounded-full blur-2xl"></div>
-      <div className="relative z-10">
-        <p className="text-gray-600 mb-4 h-24 line-clamp-4">&quot;{quote}&quot;</p>
-        <div className="flex items-center">
-          <Image src={avatar} alt={name} width={40} height={40} className="w-10 h-10 rounded-full mr-3 border-2 border-white shadow-md" />
-          <div>
-            <p className="font-bold text-gray-800">{name}</p>
-            <p className="text-sm text-gray-500">{handle}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  TaskIcon.displayName = 'TaskIcon'
 
-  const Testimonials = () => {
-    const scrollerRef = useRef<HTMLDivElement>(null);
-    const [isHovered, setIsHovered] = useState(false);
+  // TwitterCard component moved to separate file for lazy loading
 
-    useEffect(() => {
-      const scroller = scrollerRef.current;
-      if (!scroller) return;
+  // TwitterFeed component moved to separate file for lazy loading
 
-      let animationFrameId: number;
-      const scroll = () => {
-        if (!isHovered) {
-          scroller.scrollLeft += 1;
-          if (scroller.scrollLeft >= scroller.scrollWidth / 2) {
-            scroller.scrollLeft = 0;
-          }
-        }
-        animationFrameId = requestAnimationFrame(scroll);
-      };
-
-      animationFrameId = requestAnimationFrame(scroll);
-
-      return () => {
-        cancelAnimationFrame(animationFrameId);
-      };
-    }, [isHovered]);
-
-    const duplicatedTestimonials = [...testimonials, ...testimonials];
-
-    return (
-      <div
-        ref={scrollerRef}
-        className="relative w-full overflow-x-auto scrollbar-hide [mask-image:_linear_gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <div className="flex w-max gap-6 pb-4">
-          {duplicatedTestimonials.map((testimonial, index) => (
-            <TestimonialCard key={index} {...testimonial} />
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const SavvyFinanceVideos = () => (
-    <div className="relative">
-      <div className="flex space-x-6 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-thin scrollbar-thumb-[#81D7B4]/50 scrollbar-track-transparent">
-        {savvyFinanceVideos.map((video) => (
-          <div key={video.id} className="flex-shrink-0 w-[280px] group">
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg overflow-hidden transition-all duration-300 group-hover:shadow-2xl group-hover:-translate-y-1">
-              <div className="relative w-full h-40">
-                <iframe
-                  src={video.embedUrl}
-                  title={video.title}
-                  className="w-full h-full rounded-t-2xl"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                ></iframe>
-              </div>
-              <div className="p-4">
-                <h4 className="font-bold text-gray-800 truncate">{video.title}</h4>
-                <p className="text-sm text-gray-500">by {video.creator}</p>
-                <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#81D7B4] hover:text-[#6BC5A0] transition-colors mt-1 inline-block">
-                  Watch on YouTube →
-                </a>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  // SavvyFinanceVideos component moved to separate file for lazy loading
 
   const SavvySpace = () => (
     <div className="space-y-12">
@@ -324,7 +236,9 @@ export default function SavvySpacePage() {
       {/* Savvy Finance Videos */}
       <div>
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Savvy Finance Videos</h2>
-        <SavvyFinanceVideos />
+        <Suspense fallback={<LoadingSpinner />}>
+           <SavvyFinanceVideos videos={savvyFinanceVideos} />
+         </Suspense>
       </div>
 
       {/* Earn More Points Section */}
@@ -429,10 +343,12 @@ export default function SavvySpacePage() {
         </div>
       </motion.div>
       
-      {/* User Reviews */}
+      {/* Savvy Talks - Twitter Feed */}
       <div>
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Savvy Talks</h2>
-        <Testimonials />
+        <Suspense fallback={<LoadingSpinner />}>
+           <TwitterFeed links={twitterLinks} />
+         </Suspense>
       </div>
     </div>
   )

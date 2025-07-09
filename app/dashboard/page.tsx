@@ -98,12 +98,19 @@ export default function Dashboard() {
   // Function to fetch all updates
   const fetchAllUpdates = async () => {
     try {
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      
       const response = await fetch('https://bitsaveapi.vercel.app/updates/', {
         method: 'GET',
         headers: {
           'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
-        }
+        },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error('Failed to fetch updates');
@@ -111,32 +118,43 @@ export default function Dashboard() {
 
       const allUpdates = await response.json();
 
-      // If user is connected, fetch read status
+      // If user is connected, fetch read status with timeout
       if (address) {
-        const userResponse = await fetch(`https://bitsaveapi.vercel.app/updates/user/${address}`, {
-          method: 'GET',
-          headers: {
-            'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
-          }
-        });
-
-        if (userResponse.ok) {
-          const userReadUpdates = await userResponse.json() as ReadUpdate[];
-
-          // Mark updates as read or unread based on user data
-          const processedUpdates = allUpdates.map((update: Update) => {
-            const isRead = userReadUpdates.some((readUpdate: ReadUpdate) =>
-              readUpdate.id === update.id && !readUpdate.isNew
-            );
-            return {
-              ...update,
-              isNew: !isRead
-            };
+        try {
+          const userController = new AbortController();
+          const userTimeoutId = setTimeout(() => userController.abort(), 4000);
+          
+          const userResponse = await fetch(`https://bitsaveapi.vercel.app/updates/user/${address}`, {
+            method: 'GET',
+            headers: {
+              'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
+            },
+            signal: userController.signal
           });
+          
+          clearTimeout(userTimeoutId);
 
-          setUpdates(processedUpdates);
-        } else {
-          // If user endpoint fails, assume all updates are new
+          if (userResponse.ok) {
+            const userReadUpdates = await userResponse.json() as ReadUpdate[];
+
+            // Mark updates as read or unread based on user data
+            const processedUpdates = allUpdates.map((update: Update) => {
+              const isRead = userReadUpdates.some((readUpdate: ReadUpdate) =>
+                readUpdate.id === update.id && !readUpdate.isNew
+              );
+              return {
+                ...update,
+                isNew: !isRead
+              };
+            });
+
+            setUpdates(processedUpdates);
+          } else {
+            // If user endpoint fails, assume all updates are new
+            setUpdates(allUpdates.map((update: Update) => ({ ...update, isNew: true })));
+          }
+        } catch {
+          console.log('User updates fetch failed, using default state');
           setUpdates(allUpdates.map((update: Update) => ({ ...update, isNew: true })));
         }
       } else {
@@ -144,7 +162,11 @@ export default function Dashboard() {
         setUpdates(allUpdates.map((update: Update) => ({ ...update, isNew: true })));
       }
     } catch (error) {
-      console.error('Error fetching updates:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Updates fetch was aborted due to timeout');
+      } else {
+        console.error('Error fetching updates:', error);
+      }
       setUpdates([]);
     }
   };
@@ -212,6 +234,8 @@ export default function Dashboard() {
   });
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isCorrectNetwork, setIsCorrectNetwork] = useState(true);
+  const [switchingNetwork, setSwitchingNetwork] = useState(false);
 
   // Add state for GoodDollar price
   const [goodDollarPrice, setGoodDollarPrice] = useState<number>(0.00009189);
@@ -249,14 +273,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (mounted) {
+      // Fetch updates in parallel with other data
       fetchAllUpdates();
     }
   }, [mounted, address]);
 
-  // Fetch GoodDollar price on mount
+  // Fetch GoodDollar price on mount - run in parallel
   useEffect(() => {
-    fetchGoodDollarPrice().then(setGoodDollarPrice);
-  }, []);
+    if (mounted) {
+      fetchGoodDollarPrice().then(setGoodDollarPrice);
+    }
+  }, [mounted]);
 
   // Function to close update modal
   const closeUpdateModal = () => {
@@ -416,17 +443,23 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
   
-      const currentEthPrice = await fetchEthPrice();
-      console.log(`Current ETH price: ${currentEthPrice}`);
-      setEthPrice(currentEthPrice || 3500);
+      // Fetch ETH price in parallel with wallet setup
+      const ethPricePromise = fetchEthPrice();
   
       if (!window.ethereum) {
         throw new Error("No Ethereum wallet detected. Please install MetaMask.");
       }
   
       const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const network = await provider.getNetwork();
+      
+      // Get network and ETH price in parallel
+      const [network, currentEthPrice] = await Promise.all([
+        provider.getNetwork(),
+        ethPricePromise
+      ]);
+      
+      console.log(`Current ETH price: ${currentEthPrice}`);
+      setEthPrice(currentEthPrice || 3500);
   
       const BASE_CHAIN_ID = BigInt(8453);
       const CELO_CHAIN_ID = BigInt(42220);
@@ -436,10 +469,12 @@ export default function Dashboard() {
   
       if (network.chainId !== BASE_CHAIN_ID && network.chainId !== CELO_CHAIN_ID) {
         setIsCorrectNetwork(false);
+        setIsLoading(false);
         return;
       }
   
       setIsCorrectNetwork(true);
+      const signer = await provider.getSigner();
   
       const contractAddress = (network.chainId === BASE_CHAIN_ID)
         ? BASE_CONTRACT_ADDRESS
@@ -447,10 +482,16 @@ export default function Dashboard() {
   
       const contract = new ethers.Contract(contractAddress, BitSaveABI, signer);
   
-      // Get user's child contract
+      // Get user's child contract with timeout
       let userChildContractAddress;
       try {
-        userChildContractAddress = await contract.getUserChildContractAddress();
+        // Add timeout to prevent hanging
+        const contractPromise = contract.getUserChildContractAddress();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Contract call timeout')), 10000)
+        );
+        
+        userChildContractAddress = await Promise.race([contractPromise, timeoutPromise]);
         console.log("User child contract address:", userChildContractAddress);
   
         if (!userChildContractAddress || userChildContractAddress === ethers.ZeroAddress) {
@@ -462,6 +503,7 @@ export default function Dashboard() {
             currentPlans: [],
             completedPlans: []
           });
+          setIsLoading(false);
           return;
         }
       } catch (error) {
@@ -473,6 +515,7 @@ export default function Dashboard() {
           currentPlans: [],
           completedPlans: []
         });
+        setIsLoading(false);
         return;
       }
   
@@ -482,7 +525,13 @@ export default function Dashboard() {
         signer
       );
   
-      const savingsNamesObj = await childContract.getSavingsNames();
+      // Get savings names with timeout
+      const savingsNamesPromise = childContract.getSavingsNames();
+      const savingsTimeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Savings names timeout')), 8000)
+      );
+      
+      const savingsNamesObj = await Promise.race([savingsNamesPromise, savingsTimeoutPromise]);
       const savingsNamesArray = savingsNamesObj?.savingsNames || [];
       
       const currentPlans = [];
@@ -490,19 +539,47 @@ export default function Dashboard() {
       let totalDeposits = 0;
       let totalUsdValue = 0;
       const processedPlanNames = new Set();
+      
+      // Limit concurrent processing to prevent overwhelming the RPC
+      const BATCH_SIZE = 3;
+      const validSavingNames = savingsNamesArray.filter((savingName: string) => 
+        savingName && typeof savingName === "string" && savingName.trim() !== "" && !processedPlanNames.has(savingName)
+      );
+      
+      for (let i = 0; i < validSavingNames.length; i += BATCH_SIZE) {
+        const batch = validSavingNames.slice(i, i + BATCH_SIZE);
+        
+        // Process batch in parallel
+        const batchPromises = batch.map(async (savingName: string) => {
+          try {
+            processedPlanNames.add(savingName);
+            console.log("Fetching data for:", savingName);
+            
+            // Add timeout for individual saving data calls
+            const savingDataPromise = childContract.getSaving(savingName);
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error(`Timeout for ${savingName}`)), 5000)
+            );
+            
+            const savingData = await Promise.race([savingDataPromise, timeoutPromise]);
+            console.log(savingData);
+            
+            return { savingName, savingData };
+          } catch (err) {
+            console.error(`Failed to fetch data for "${savingName}":`, err);
+            return null;
+          }
+        });
+        
+        const batchResults = await Promise.allSettled(batchPromises);
+        
+        // Process successful results
+        for (const result of batchResults) {
+          if (result.status === 'fulfilled' && result.value) {
+            const { savingName, savingData } = result.value;
   
-      for (const savingName of savingsNamesArray) {
-        try {
-          // Basic validation
-          if (!savingName || typeof savingName !== "string" || savingName.trim() === "") continue;
-          if (processedPlanNames.has(savingName)) continue;
-          processedPlanNames.add(savingName);
-  
-          console.log("Fetching data for:", savingName);
-          const savingData = await childContract.getSaving(savingName);
-          console.log(savingData)
-  
-          if (!savingData?.isValid) continue;
+            try {
+              if (!savingData?.isValid) continue;
   
           const tokenId = savingData.tokenId;
           const isEth = tokenId.toLowerCase() === ethers.ZeroAddress.toLowerCase();
@@ -536,7 +613,8 @@ export default function Dashboard() {
           console.log('Savings Name Object:', savingsNamesObj)
   
           const targetFormatted = ethers.formatUnits(savingData.amount, decimals);
-          const currentFormatted = ethers.formatUnits(savingData.amount, decimals);
+            // Use amount as the current deposited amount (not interestAccumulated)
+            const currentFormatted = ethers.formatUnits(savingData.amount, decimals);
   
           const now = Date.now();
           const startTime = Number(savingData.startTime) * 1000;
@@ -545,7 +623,7 @@ export default function Dashboard() {
           const progress = Math.min(Math.floor(((now - startTime) / (maturityTime - startTime)) * 100), 100);
           const penaltyPercentage = Number(savingData.penaltyPercentage);
   
-          console.log(`Processing token: ${tokenName}, amount: ${currentFormatted}, goodDollarPrice: ${goodDollarPrice}`);
+          console.log(`Processing token: ${tokenName}, deposited: ${currentFormatted}, goodDollarPrice: ${goodDollarPrice}`);
           
           if (isEth) {
             const ethAmount = parseFloat(currentFormatted);
@@ -594,9 +672,10 @@ export default function Dashboard() {
           } else {
             currentPlans.push(planData);
           }
-  
-        } catch (err) {
-          console.error(`Failed to process plan "${savingName}":`, err);
+            } catch (err) {
+              console.error(`Failed to process plan "${savingName}":`, err);
+            }
+          }
         }
       }
     
@@ -605,8 +684,8 @@ export default function Dashboard() {
       currentPlans.sort((a, b) => b.startTime - a.startTime);
       completedPlans.sort((a, b) => b.startTime - a.startTime);
   
-      // Calculate total BTS rewards (1% of total USD value)
-      const totalBtsRewards = (totalUsdValue * 0.01).toFixed(2);
+      // Calculate total BTS rewards (0.5% of total USD value times 1000)
+      const totalBtsRewards = (totalUsdValue * 0.005 * 1000).toFixed(2);
       
       setSavingsData({
         totalLocked: totalUsdValue.toFixed(2),
@@ -618,6 +697,14 @@ export default function Dashboard() {
   
     } catch (error) {
       console.error("Unhandled error in fetchSavingsData:", error);
+      // Set empty data on error to prevent infinite loading
+      setSavingsData({
+        totalLocked: "0.00",
+        deposits: 0,
+        rewards: "0.00",
+        currentPlans: [],
+        completedPlans: []
+      });
     } finally {
       setIsLoading(false);
     }
@@ -669,13 +756,20 @@ export default function Dashboard() {
   const fetchLeaderboardData = async () => {
     setIsLeaderboardLoading(true);
     try {
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      
       const response = await fetch('https://bitsaveapi.vercel.app/leaderboard', {
         method: 'GET',
         headers: {
           'accept': 'application/json',
           'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || ''
-        }
+        },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error('Failed to fetch leaderboard data');
@@ -694,7 +788,11 @@ export default function Dashboard() {
 
       setLeaderboardData(rankedData);
     } catch (error) {
-      console.error('Error fetching leaderboard data:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Leaderboard fetch was aborted due to timeout');
+      } else {
+        console.error('Error fetching leaderboard data:', error);
+      }
       setLeaderboardData([]);
     } finally {
       setIsLeaderboardLoading(false);
@@ -703,6 +801,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (mounted) {
+      // Fetch leaderboard data in parallel
       fetchLeaderboardData();
     }
   }, [mounted]);
@@ -712,12 +811,13 @@ export default function Dashboard() {
   }, []);
 
 
-  const [isCorrectNetwork, setIsCorrectNetwork] = useState(true);
-  const [switchingNetwork, setSwitchingNetwork] = useState(false);
-
   useEffect(() => {
     if (mounted && address) {
-      fetchSavingsData();
+      // Add a small delay to prevent immediate heavy loading
+      const timer = setTimeout(() => {
+        fetchSavingsData();
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [mounted, address]);
 
@@ -1204,7 +1304,7 @@ export default function Dashboard() {
                             $BTS Rewards
                             <span className="ml-1 text-gray-400" title="Earned only when you complete your savings">(on completion)</span>
                           </span>
-                          <span className="font-bold text-gray-900">{plan.tokenName === 'Gooddollar' ? ((parseFloat(plan.currentAmount) * goodDollarPrice) * 0.01).toFixed(2) : (parseFloat(plan.currentAmount) * 0.01).toFixed(2)} $BTS</span>
+                          <span className="font-bold text-gray-900">{plan.tokenName === 'Gooddollar' ? ((parseFloat(plan.currentAmount) * goodDollarPrice) * 0.005 * 1000).toFixed(2) : (parseFloat(plan.currentAmount) * 0.005 * 1000).toFixed(2)} $BTS</span>
                         </div>
                         <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
                           <div className="h-full bg-gradient-to-r from-[#229ED9] to-[#81D7B4] rounded-full shadow-[0_0_12px_rgba(34,158,217,0.3)]" style={{ width: `${plan.progress}%` }}></div>
@@ -1349,7 +1449,7 @@ export default function Dashboard() {
                             $BTS Rewards
                             <span className="ml-1 text-gray-400" title="Earned only when you complete your savings">(on completion)</span>
                           </span>
-                          <span className="font-bold text-gray-900">{plan.tokenName === 'Gooddollar' ? ((parseFloat(plan.currentAmount) * goodDollarPrice) * 0.01).toFixed(2) : (parseFloat(plan.currentAmount) * 0.01).toFixed(2)} $BTS</span>
+                          <span className="font-bold text-gray-900">{plan.tokenName === 'Gooddollar' ? ((parseFloat(plan.currentAmount) * goodDollarPrice) * 0.005 * 1000).toFixed(2) : (parseFloat(plan.currentAmount) * 0.005 * 1000).toFixed(2)} $BTS</span>
                         </div>
                         <div className="w-full h-2.5 bg-gray-100/80 rounded-full overflow-hidden shadow-inner">
                           <div className="h-full bg-gradient-to-r from-[#229ED9] to-[#81D7B4] rounded-full shadow-[0_0_12px_rgba(34,158,217,0.3)]" style={{ width: `${plan.progress}%` }}></div>

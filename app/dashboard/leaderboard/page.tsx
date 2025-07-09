@@ -35,7 +35,7 @@ export default function LeaderboardPage() {
         // Check if window.ethereum is available (MetaMask or other wallet)
         if (typeof window !== 'undefined' && window.ethereum) {
           // Request account access if needed
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }) as string[];
           // Get the first account
           const address = accounts[0];
           setCurrentUserAddress(address);
@@ -303,13 +303,13 @@ export default function LeaderboardPage() {
                 {/* Points */}
                 <div className="col-span-1 mb-2 md:mb-0">
                   <p className="text-xs text-gray-500 md:hidden">Points</p>
-                  <p className="font-bold text-gray-800">{Math.floor(user.totalamount * 0.01)}</p>
+                  <p className="font-bold text-gray-800">{Math.floor(user.totalamount * 0.005 * 1000)}</p>
                 </div>
                 
                 {/* $BTS */}
                 <div className="col-span-1 mb-2 md:mb-0">
                   <p className="text-xs text-gray-500 md:hidden">$BTS</p>
-                  <p className="font-bold text-gray-800">{(user.totalamount * 0.01).toFixed(2)}</p>
+                  <p className="font-bold text-gray-800">{(user.totalamount * 0.005 * 1000).toFixed(2)}</p>
                 </div>
                 
                 {/* Details Button */}
@@ -357,7 +357,7 @@ export default function LeaderboardPage() {
               <p className="text-xs text-gray-500 mb-1">Points</p>
               <p className="font-bold text-2xl text-gray-800">
                 {currentUserPosition 
-                  ? Math.floor(currentUserPosition.totalamount * 0.01)
+                  ? Math.floor(currentUserPosition.totalamount * 0.005 * 1000)
                   : "0"}
               </p>
             </div>
@@ -366,7 +366,7 @@ export default function LeaderboardPage() {
               <p className="text-xs text-gray-500 mb-1">$BTS</p>
               <p className="font-bold text-2xl text-gray-800">
                 {currentUserPosition 
-                  ? (currentUserPosition.totalamount * 0.01).toFixed(2)
+                  ? (currentUserPosition.totalamount * 0.005 * 1000).toFixed(2)
                   : "0.00"}
               </p>
             </div>
@@ -398,7 +398,7 @@ export default function LeaderboardPage() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white/60 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(_e) => _e.stopPropagation()}
             >
               {/* Header with user info */}
               <div className="p-6 border-b border-gray-200/50 relative">

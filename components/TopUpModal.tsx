@@ -7,6 +7,7 @@ import { ethers } from 'ethers'
 import axios from 'axios'
 import { useAccount } from 'wagmi'
 import { toast } from 'react-hot-toast'
+import Image from 'next/image'
 
 // Contract addresses and ABIs
 const BASE_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
@@ -485,12 +486,12 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
                   <div className="inline-flex items-center px-3.5 py-1.5 bg-gradient-to-r from-[#81D7B4]/10 to-[#81D7B4]/5 backdrop-blur-sm rounded-full border border-[#81D7B4]/20 shadow-sm">
                     {isEth ? (
                       <>
-                        <img src="/eth.png" alt="ETH" className="w-4 h-4 mr-2" />
+                        <Image src="/eth.png" alt="ETH" width={16} height={16} className="mr-2" />
                         <span className="text-xs font-medium text-gray-700">ETH on {getNetworkName()}</span>
                       </>
                     ) : (
                       <>
-                        <img src={isBaseNetwork ? "/base.svg" : "/celo.png"} alt={getNetworkName()} className="w-4 h-4 mr-2" />
+                        <Image src={isBaseNetwork ? "/base.svg" : "/celo.png"} alt={getNetworkName()} width={16} height={16} className="mr-2" />
                         <span className="text-xs font-medium text-gray-700">{getTokenName()} on {getNetworkName()}</span>
                       </>
                     )}

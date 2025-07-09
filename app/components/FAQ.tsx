@@ -147,9 +147,9 @@ export default function FAQ() {
                   {/* Contact Actions */}
                   {card.isContact && (
                     <div className="flex flex-col sm:flex-row gap-4 mt-auto">
-                      <a 
-                        href="mailto:support@bitsave.finance" 
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-[#81D7B4] text-white rounded-xl hover:bg-[#81D7B4]/90 transition-colors duration-300 group/button relative overflow-hidden flex-1"
+                      <button 
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-[#81D7B4] text-white rounded-xl hover:bg-[#81D7B4]/90 transition-colors duration-300 group/button relative overflow-hidden flex-1 cursor-not-allowed opacity-70"
+                        disabled
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover/button:translate-x-full transition-transform duration-1000"></div>
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -157,10 +157,10 @@ export default function FAQ() {
                           <polyline points="22,6 12,13 2,6"></polyline>
                         </svg>
                         <span>Email Support</span>
-                      </a>
+                      </button>
                       
                       <a 
-                        href="https://t.me/bitsave" 
+                        href="https://t.me/+YimKRR7wAkVmZGRk" 
                         className="flex items-center justify-center gap-2 px-6 py-3 bg-white/80 text-gray-800 rounded-xl border border-[#81D7B4]/20 hover:bg-white hover:border-[#81D7B4]/40 transition-all duration-300 group/button relative overflow-hidden flex-1"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/0 via-[#81D7B4]/10 to-[#81D7B4]/0 -translate-x-full group-hover/button:translate-x-full transition-transform duration-1000"></div>

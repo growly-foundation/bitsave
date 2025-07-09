@@ -195,14 +195,15 @@ export default function PlansPage() {
             const isUSDGLO = tokenId.toLowerCase() === "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3".toLowerCase();
 
             // Get decimals based on token type
-            // cUSD uses 18 decimals, USDGLO uses 6 decimals
-            const decimals = isEth || isGToken || (!isUSDGLO) ? 18 : 6;
+            // ETH and $G use 18 decimals, USDGLO and USDC use 6 decimals, cUSD uses 18 decimals
+            const decimals = isEth || isGToken || (network.chainId !== BASE_CHAIN_ID && !isUSDGLO) ? 18 : 6;
 
             // Extract penalty percentage from saving data
             const penaltyPercentage = Number(savingData.penaltyPercentage);
 
             // Format amounts
             const targetFormatted = ethers.formatUnits(savingData.amount, decimals);
+            // Use amount as the current deposited amount (not interestAccumulated)
             const currentFormatted = ethers.formatUnits(savingData.amount, decimals);
 
             const currentDate = new Date();
@@ -217,11 +218,11 @@ export default function PlansPage() {
 
 
 
-            // Add to total USD value
+            // Add to total USD value using current deposited amount
             if (isEth) {
               const ethAmount = parseFloat(currentFormatted);
               const usdValue = ethAmount * currentEthPrice;
-              console.log(`ETH plan: ${savingName}, amount: ${ethAmount} ETH, USD value: ${usdValue}, ethPrice: ${currentEthPrice}`);
+              console.log(`ETH plan: ${savingName}, deposited: ${ethAmount} ETH, USD value: ${usdValue}, ethPrice: ${currentEthPrice}`);
               totalUsdValue += usdValue;
             } else if (isGToken) {
               // GoodDollar: format using 18 decimals, then multiply by live price
@@ -249,8 +250,8 @@ export default function PlansPage() {
               startTime: startTimestamp,
               maturityTime: maturityTimestamp,
               penaltyPercentage: penaltyPercentage,
-              tokenName: isEth ? 'ETH' : isGToken ? '$G' : isUSDGLO ? 'USDGLO' : 'cUSD',
-              tokenLogo: isEth ? '/eth.png' : isGToken ? '/$g.png' : isUSDGLO ? '/usdglo.png' : '/cusd.png',
+              tokenName: isEth ? 'ETH' : isGToken ? '$G' : isUSDGLO ? 'USDGLO' : (network.chainId === BASE_CHAIN_ID ? 'USDC' : 'cUSD'),
+              tokenLogo: isEth ? '/eth.png' : isGToken ? '/$g.png' : isUSDGLO ? '/usdglo.png' : (network.chainId === BASE_CHAIN_ID ? '/usdc.png' : '/cusd.png'),
               network: network.chainId === BASE_CHAIN_ID ? 'Base' : 'Celo',
             };
 

@@ -473,8 +473,13 @@ export default function CreateSavingsPage() {
       console.log("User's Child Contract Address (Before Join):", userChildContractAddress)
 
       if (userChildContractAddress === ethers.ZeroAddress) {
+        // Get current ETH price for $1 fee
+        const ethPrice = await fetchEthPrice();
+        if (!ethPrice) throw new Error('Could not fetch ETH price for fee calculation.');
+        const feeInEth = (1 / ethPrice).toFixed(6); // $1 in ETH
+        
         const joinTx = await contract.joinBitsave({
-          value: ethers.parseEther("0.0001"), 
+          value: ethers.parseEther(feeInEth), 
         })
         await joinTx.wait()
 
@@ -497,9 +502,14 @@ export default function CreateSavingsPage() {
 
       await approveERC20(tokenToSave, usdcEquivalentAmount, signer)
 
+      // Get current ETH price for $1 fee
+      const ethPrice = await fetchEthPrice();
+      if (!ethPrice) throw new Error('Could not fetch ETH price for fee calculation.');
+      const feeInEth = (1 / ethPrice).toFixed(6); // $1 in ETH
+
       const txOptions = {
         gasLimit: 1200000,
-        value: ethers.parseEther("0.0001"), 
+        value: ethers.parseEther(feeInEth), 
       }
 
       const tx = await contract.createSaving(
@@ -545,19 +555,15 @@ export default function CreateSavingsPage() {
       console.error("Error creating savings plan:", error)
       setSuccess(false)
 
-      if (error instanceof Error) {
-        setError(error.message || "Failed to create savings plan.")
-      } else if (typeof error === 'object' && error !== null && 'code' in error) {
-        const ethError = error as { code: string; message?: string }
-        if (ethError.code === "CALL_EXCEPTION") {
-          setError("Transaction reverted. Please check the contract and inputs.")
-        } else if (ethError.code === "INSUFFICIENT_FUNDS") {
-          setError("Insufficient funds to cover the transaction.")
-        } else {
-          setError(ethError.message || "Failed to create savings plan.")
-        }
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('user rejected') ||
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('user cancelled') ||
+          errorMessage.includes('ACTION_REJECTED') ||
+          errorMessage.includes('ethers-user-denied')) {
+        setError('Error creating savings user rejected');
       } else {
-        setError("An unknown error occurred while creating the savings plan.")
+        setError('Oops 😬, the savings didn\'t create. Let\'s fix that, please post the screenshot of this error in our TG community. https://t.me/+YimKRR7wAkVmZGRk');
       }
       throw error 
     } finally {
@@ -567,7 +573,7 @@ export default function CreateSavingsPage() {
 
   // Token addresses and decimals for Celo
   const CELO_TOKENS = {
-    USDGLO: { address: '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3', decimals: 6 },
+    USDGLO: { address: '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3', decimals: 18 },
     cUSD: { address: '0x765DE816845861e75A25fCA122bb6898B8B1282a', decimals: 18 },
     Gooddollar: { address: '0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A', decimals: 18 },
   };
@@ -584,109 +590,369 @@ export default function CreateSavingsPage() {
     }
   };
 
-  // Approve and create saving for a Celo ERC20 token
-  const handleCeloTokenSavings = async (tokenKey: 'USDGLO' | 'cUSD' | 'Gooddollar') => {
+  // Helper to fetch ETH price in USD
+  const fetchEthPrice = async () => {
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+      const data = await response.json();
+      return data.ethereum.usd;
+    } catch (error) {
+      console.error('Error fetching ETH price:', error);
+      return null;
+    }
+  };
+
+  // Common helper function for Celo setup
+  const setupCeloProvider = async () => {
+    if (!window.ethereum) throw new Error("No Ethereum wallet detected. Please install MetaMask.");
+    
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = await provider.getSigner();
+    
+    const CELO_CHAIN_ID = 42220;
+    const network = await provider.getNetwork();
+    if (Number(network.chainId) !== CELO_CHAIN_ID) {
+      throw new Error("Please switch your wallet to the Celo network.");
+    }
+    
+    return { provider, signer };
+  };
+
+  // Common helper function for Bitsave contract setup
+  const setupBitsaveContract = async (signer: ethers.Signer) => {
+    const celoPrice = await fetchCeloPrice();
+    if (!celoPrice) throw new Error('Could not fetch CELO price.');
+    const joinFeeCelo = (1 / celoPrice).toFixed(4); // $1 in CELO
+    
+    const contract = new ethers.Contract(CELO_CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    let userChildContractAddress;
+    
+    try {
+      userChildContractAddress = await contract.getUserChildContractAddress();
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to interact with the Bitsave contract. Please try again.");
+    }
+    
+    if (userChildContractAddress === ethers.ZeroAddress) {
+      try {
+        const joinTx = await contract.joinBitsave({ value: ethers.parseEther(joinFeeCelo) });
+        await joinTx.wait();
+        userChildContractAddress = await contract.getUserChildContractAddress();
+      } catch (joinError) {
+        console.error(joinError);
+        throw new Error("Failed to join Bitsave. Please check your wallet has enough CELO for gas fees.");
+      }
+    }
+    
+    return contract;
+  };
+
+  // Common helper function for maturity time calculation
+  const calculateMaturityTime = () => {
+    const maturityTime = selectedDayRange.to
+      ? Math.floor(
+        new Date(
+          selectedDayRange.to.year ?? 0,
+          (selectedDayRange.to.month ?? 1) - 1,
+          selectedDayRange.to.day ?? 1
+        ).getTime() / 1000
+      )
+      : 0;
+    
+    if (maturityTime === 0) {
+      throw new Error("Please select a valid end date for your savings plan.");
+    }
+    
+    return maturityTime;
+  };
+
+  // Common helper function for API call
+  const sendTransactionToAPI = async (amount: number, txHash: string, currency: string) => {
+    try {
+      const apiResponse = await axios.post(
+        "https://bitsaveapi.vercel.app/transactions/",
+        {
+          amount,
+          txnhash: txHash,
+          chain: "celo",
+          savingsname: savingsName,
+          useraddress: walletAddress,
+          transaction_type: "deposit",
+          currency
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": process.env.NEXT_PUBLIC_API_KEY
+          }
+        }
+      );
+      console.log("API response:", apiResponse.data);
+    } catch (apiError) {
+      console.error("Error sending transaction data to API:", apiError);
+    }
+  };
+
+  // USDGLO specific savings function
+  const handleUSDGLOSavings = async () => {
     if (!isConnected) {
       setError("Please connect your wallet.");
-      return;
+      throw new Error("Please connect your wallet.");
     }
+    
     setLoading(true);
     setError(null);
     setTxHash(null);
     setSuccess(false);
+    
     try {
-      if (!window.ethereum) throw new Error("No Ethereum wallet detected. Please install MetaMask.");
-      const celoPrice = await fetchCeloPrice();
-      if (!celoPrice) throw new Error('Could not fetch CELO price.');
-      const joinFeeCelo = (1 / celoPrice).toFixed(4); // $1 in CELO
-      const userEnteredAmount = parseFloat(amount);
-      if (isNaN(userEnteredAmount) || userEnteredAmount <= 0) throw new Error("Invalid amount. Please enter an amount greater than zero.");
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = await provider.getSigner();
-      const CELO_CHAIN_ID = 42220;
-      const network = await provider.getNetwork();
-      if (Number(network.chainId) !== CELO_CHAIN_ID) throw new Error("Please switch your wallet to the Celo network.");
-      const contract = new ethers.Contract(CELO_CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      let userChildContractAddress;
-      try {
-        userChildContractAddress = await contract.getUserChildContractAddress();
-      } catch (error) {
-        console.error(error);
-        throw new Error("Failed to interact with the Bitsave contract. Please try again.");
+      // Validate amount
+      const cleanAmount = amount.replace(/[^0-9.]/g, '');
+      const parsedAmount = parseFloat(cleanAmount);
+      
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        throw new Error("Invalid amount. Please enter a valid number greater than zero.");
       }
-      if (userChildContractAddress === ethers.ZeroAddress) {
-        try {
-          const joinTx = await contract.joinBitsave({ value: ethers.parseEther(joinFeeCelo) });
-          await joinTx.wait();
-          userChildContractAddress = await contract.getUserChildContractAddress();
-        } catch (joinError) {
-          console.error(joinError);
-          throw new Error("Failed to join Bitsave. Please check your wallet has enough CELO for gas fees.");
-        }
-      }
-      const maturityTime = selectedDayRange.to
-        ? Math.floor(
-          new Date(
-            selectedDayRange.to.year ?? 0,
-            (selectedDayRange.to.month ?? 1) - 1,
-            selectedDayRange.to.day ?? 1
-          ).getTime() / 1000
-        )
-        : 0;
-      if (maturityTime === 0) throw new Error("Please select a valid end date for your savings plan.");
-      const safeMode = false;
-      const token = CELO_TOKENS[tokenKey];
-      let tokenAmount;
-      let gAmount = userEnteredAmount;
-      if (tokenKey === 'Gooddollar') {
-        // Convert USD to $G using live price
-        gAmount = userEnteredAmount / goodDollarPrice;
-        tokenAmount = ethers.parseUnits(gAmount.toFixed(token.decimals), token.decimals);
-      } else {
-        tokenAmount = ethers.parseUnits(amount.trim(), token.decimals);
-      }
-      await approveERC20(token.address, tokenAmount, signer);
-      const txOptions = { gasLimit: 1500000, value: ethers.parseEther(joinFeeCelo) };
-      const tx = await contract.createSaving(
-        savingsName,
-        maturityTime,
-        selectedPenalty,
-        safeMode,
-        token.address,
-        tokenAmount,
-        txOptions
-      );
+      
+      console.log(`USDGLO Debug - Original amount: ${amount}`);
+      console.log(`USDGLO Debug - Clean amount: ${cleanAmount}`);
+      console.log(`USDGLO Debug - Parsed amount: ${parsedAmount}`);
+      
+      // Setup provider and contract
+      const { signer } = await setupCeloProvider();
+      const contract = await setupBitsaveContract(signer);
+      const maturityTime = calculateMaturityTime();
+      
+      // USDGLO specific logic
+      const token = CELO_TOKENS.USDGLO;
+      const tokenAmount = ethers.parseUnits(parsedAmount.toString(), token.decimals);
+      
+      console.log(`USDGLO Debug - Token decimals: ${token.decimals}`);
+      console.log(`USDGLO Debug - Token amount (wei): ${tokenAmount.toString()}`);
+      console.log(`USDGLO Debug - Token amount (formatted): ${ethers.formatUnits(tokenAmount, token.decimals)}`);
+      
+      // Approve and create saving
+        await approveERC20(token.address, tokenAmount, signer);
+        
+        // Get current CELO price for $1 fee
+        const celoPrice = await fetchCeloPrice();
+        if (!celoPrice) throw new Error('Could not fetch CELO price for fee calculation.');
+        const feeInCelo = (1 / celoPrice).toFixed(6); // $1 in CELO
+        
+        const txOptions = { 
+          gasLimit: 1000000,
+          value: ethers.parseEther(feeInCelo)
+        };
+        const tx = await contract.createSaving(
+          savingsName,
+          maturityTime,
+          selectedPenalty,
+          false, // safeMode
+          token.address,
+          tokenAmount,
+          txOptions
+        );
+      
       const receipt = await tx.wait();
       setTxHash(receipt.hash);
-      try {
-        const apiResponse = await axios.post(
-          "https://bitsaveapi.vercel.app/transactions/",
-          {
-            amount: tokenKey === 'Gooddollar' ? gAmount : parseFloat(amount),
-            txnhash: receipt.hash,
-            chain: "celo",
-            savingsname: savingsName,
-            useraddress: walletAddress,
-            transaction_type: "deposit",
-            currency: tokenKey
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "X-API-Key": process.env.NEXT_PUBLIC_API_KEY
-            }
-          }
-        );
-        console.log("API response:", apiResponse.data);
-      } catch (apiError) {
-        console.error("Error sending transaction data to API:", apiError);
-      }
+      
+      // Send to API
+      await sendTransactionToAPI(parsedAmount, receipt.hash, 'USDGLO');
+      
       setSuccess(true);
     } catch (error) {
-      console.error("Error creating Celo savings plan:", error);
+      console.error("Error creating USDGLO savings plan:", error);
       setSuccess(false);
-      setError(error instanceof Error ? error.message : String(error));
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('user rejected') ||
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('user cancelled') ||
+          errorMessage.includes('ACTION_REJECTED') ||
+          errorMessage.includes('ethers-user-denied')) {
+        setError('Error creating savings user rejected');
+      } else {
+        setError('Oops 😬, the savings didn\'t create. Let\'s fix that, please post the screenshot of this error in our TG community. https://t.me/+YimKRR7wAkVmZGRk');
+      }
+      throw error; // Re-throw the error so handleSubmit can catch it
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // cUSD specific savings function
+  const handleCUSDSavings = async () => {
+    if (!isConnected) {
+      setError("Please connect your wallet.");
+      throw new Error("Please connect your wallet.");
+    }
+    
+    setLoading(true);
+    setError(null);
+    setTxHash(null);
+    setSuccess(false);
+    
+    try {
+      // Validate amount
+      const cleanAmount = amount.replace(/[^0-9.]/g, '');
+      const parsedAmount = parseFloat(cleanAmount);
+      
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        throw new Error("Invalid amount. Please enter a valid number greater than zero.");
+      }
+      
+      console.log(`cUSD Debug - Original amount: ${amount}`);
+      console.log(`cUSD Debug - Clean amount: ${cleanAmount}`);
+      console.log(`cUSD Debug - Parsed amount: ${parsedAmount}`);
+      
+      // Setup provider and contract
+      const { signer } = await setupCeloProvider();
+      const contract = await setupBitsaveContract(signer);
+      const maturityTime = calculateMaturityTime();
+      
+      // cUSD specific logic
+      const token = CELO_TOKENS.cUSD;
+      const tokenAmount = ethers.parseUnits(parsedAmount.toString(), token.decimals);
+      
+      console.log(`cUSD Debug - Token decimals: ${token.decimals}`);
+      console.log(`cUSD Debug - Token amount (wei): ${tokenAmount.toString()}`);
+      console.log(`cUSD Debug - Token amount (formatted): ${ethers.formatUnits(tokenAmount, token.decimals)}`);
+      
+      // Approve and create saving
+        await approveERC20(token.address, tokenAmount, signer);
+        
+        // Get current CELO price for $1 fee
+        const celoPrice = await fetchCeloPrice();
+        if (!celoPrice) throw new Error('Could not fetch CELO price for fee calculation.');
+        const feeInCelo = (1 / celoPrice).toFixed(6); // $1 in CELO
+        
+        const txOptions = { 
+          gasLimit: 1000000,
+          value: ethers.parseEther(feeInCelo)
+        };
+        const tx = await contract.createSaving(
+          savingsName,
+          maturityTime,
+          selectedPenalty,
+          false, // safeMode
+          token.address,
+          tokenAmount,
+          txOptions
+        );
+      
+      const receipt = await tx.wait();
+      setTxHash(receipt.hash);
+      
+      // Send to API
+      await sendTransactionToAPI(parsedAmount, receipt.hash, 'cUSD');
+      
+      setSuccess(true);
+    } catch (error) {
+      console.error("Error creating cUSD savings plan:", error);
+      setSuccess(false);
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('user rejected') ||
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('user cancelled') ||
+          errorMessage.includes('ACTION_REJECTED') ||
+          errorMessage.includes('ethers-user-denied')) {
+        setError('Error creating savings user rejected');
+      } else {
+        setError('Oops 😬, the savings didn\'t create. Let\'s fix that, please post the screenshot of this error in our TG community. https://t.me/+YimKRR7wAkVmZGRk');
+      }
+      throw error; // Re-throw the error so handleSubmit can catch it
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Gooddollar specific savings function
+  const handleGooddollarSavings = async () => {
+    if (!isConnected) {
+      setError("Please connect your wallet.");
+      throw new Error("Please connect your wallet.");
+    }
+    
+    setLoading(true);
+    setError(null);
+    setTxHash(null);
+    setSuccess(false);
+    
+    try {
+      // Validate amount
+      const cleanAmountForValidation = amount.replace(/[^0-9.]/g, '');
+      const userEnteredAmount = parseFloat(cleanAmountForValidation);
+      
+      if (isNaN(userEnteredAmount) || userEnteredAmount <= 0) {
+        throw new Error("Invalid amount. Please enter an amount greater than zero.");
+      }
+      
+      console.log(`Gooddollar Debug - Original amount: ${amount}`);
+      console.log(`Gooddollar Debug - USD amount: ${userEnteredAmount}`);
+      console.log(`Gooddollar Debug - Gooddollar price: ${goodDollarPrice}`);
+      
+      // Setup provider and contract
+      const { signer } = await setupCeloProvider();
+      const contract = await setupBitsaveContract(signer);
+      const maturityTime = calculateMaturityTime();
+      
+      // Gooddollar specific logic - Convert USD to $G using live price
+      const gAmount = userEnteredAmount / goodDollarPrice;
+      const token = CELO_TOKENS.Gooddollar;
+      const tokenAmount = ethers.parseUnits(gAmount.toFixed(token.decimals), token.decimals);
+      
+      console.log(`Gooddollar Debug - G amount: ${gAmount}`);
+      console.log(`Gooddollar Debug - Token decimals: ${token.decimals}`);
+      console.log(`Gooddollar Debug - Token amount (wei): ${tokenAmount.toString()}`);
+      console.log(`Gooddollar Debug - Token amount (formatted): ${ethers.formatUnits(tokenAmount, token.decimals)}`);
+      
+      // Approve and create saving
+        await approveERC20(token.address, tokenAmount, signer);
+        
+        // Get current CELO price for $1 fee
+        const celoPrice = await fetchCeloPrice();
+        if (!celoPrice) throw new Error('Could not fetch CELO price for fee calculation.');
+        const feeInCelo = (1 / celoPrice).toFixed(6); // $1 in CELO
+        
+        const txOptions = { 
+          gasLimit: 1000000,
+          value: ethers.parseEther(feeInCelo)
+        };
+        const tx = await contract.createSaving(
+          savingsName,
+          maturityTime,
+          selectedPenalty,
+          false, // safeMode
+          token.address,
+          tokenAmount,
+          txOptions
+        );
+      
+      const receipt = await tx.wait();
+      setTxHash(receipt.hash);
+      
+      // Send to API with G amount
+      await sendTransactionToAPI(gAmount, receipt.hash, 'Gooddollar');
+      
+      setSuccess(true);
+    } catch (error) {
+      console.error("Error creating Gooddollar savings plan:", error);
+      setSuccess(false);
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('user rejected') ||
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('user cancelled') ||
+          errorMessage.includes('ACTION_REJECTED') ||
+          errorMessage.includes('ethers-user-denied')) {
+        setError('Error creating savings user rejected');
+      } else {
+        setError('Oops 😬, the savings didn\'t create. Let\'s fix that, please post the screenshot of this error in our TG community. https://t.me/+YimKRR7wAkVmZGRk');
+      }
+      throw error; // Re-throw the error so handleSubmit can catch it
     } finally {
       setLoading(false);
     }
@@ -700,11 +966,11 @@ export default function CreateSavingsPage() {
     try {
       if (chain === 'celo') {
         if (currency === 'USDGLO') {
-          await handleCeloTokenSavings('USDGLO');
+          await handleUSDGLOSavings();
         } else if (currency === 'cUSD') {
-          await handleCeloTokenSavings('cUSD');
+          await handleCUSDSavings();
         } else if (currency === 'Gooddollar') {
-          await handleCeloTokenSavings('Gooddollar');
+          await handleGooddollarSavings();
         } else {
           throw new Error('Unsupported currency for Celo network.');
         }
@@ -714,15 +980,7 @@ export default function CreateSavingsPage() {
       setSuccess(true);
     } catch (err) {
       console.error('Error creating savings plan:', err);
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      if (errorMessage.includes('user rejected') ||
-        errorMessage.includes('User denied') ||
-        errorMessage.includes('user cancelled') ||
-        errorMessage.includes('ACTION_REJECTED')) {
-        setError('Transaction was rejected by user');
-      } else {
-        setError(errorMessage);
-      }
+      // Individual functions handle their own error messages
       setSuccess(false);
     } finally {
       setSubmitting(false);
@@ -811,7 +1069,7 @@ export default function CreateSavingsPage() {
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 </div>
-              ) : error === 'Transaction was rejected by user' ? (
+              ) : error === 'Error creating savings user rejected' ? (
                 <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-yellow-200 flex items-center justify-center mb-4 sm:mb-6">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -833,7 +1091,7 @@ export default function CreateSavingsPage() {
                     Your Transaction to create your savings plan has been processed and is successful.
                   </p>
                 </>
-              ) : error === 'Transaction was rejected by user' ? (
+              ) : error === 'Error creating savings user rejected' ? (
                 <>
                   <h2 className="text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2 text-yellow-700">Transaction Cancelled</h2>
                   <p className="text-sm sm:text-base text-gray-500 text-center mb-5 sm:mb-8 max-w-xs sm:max-w-none mx-auto">
@@ -851,7 +1109,7 @@ export default function CreateSavingsPage() {
               )}
 
               {/* Transaction ID Button (only on success or error, not on cancel) */}
-              {txHash && (success || (error && error !== 'Transaction was rejected by user')) && (
+              {txHash && (success || (error && error !== 'Error creating savings user rejected')) && (
                 <button
                   className="w-full py-2.5 sm:py-3 border border-gray-300 rounded-full text-gray-700 text-sm sm:text-base font-medium mb-3 sm:mb-4 hover:bg-gray-50 transition-colors"
                   onClick={() => window.open(
@@ -867,7 +1125,7 @@ export default function CreateSavingsPage() {
 
               {/* Tweet Button (only on success) */}
               {success && (() => {
-                const referralLink = 'https://bitsave.com/ref/123xyz'; // Placeholder
+                const referralLink = 'https://bitsave.io/ref/123xyz'; // Placeholder
                 const tweetText = `Just locked up some ${currency} for my future self on @bitsaveprotocol, no degen plays today, web3 savings never looked this good 💰\n\nYou should be doing #SaveFi → ${referralLink}`;
                 const encodedTweetText = encodeURIComponent(tweetText);
                 return (
@@ -875,6 +1133,12 @@ export default function CreateSavingsPage() {
                     href={`https://twitter.com/intent/tweet?text=${encodedTweetText}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => {
+                      // Redirect to dashboard after a short delay
+                      setTimeout(() => {
+                        window.location.href = '/dashboard';
+                      }, 2000);
+                    }}
                     className="w-full py-2.5 sm:py-3 bg-black text-white rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 mb-3 sm:mb-4 hover:bg-gray-900 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.209c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
@@ -886,10 +1150,10 @@ export default function CreateSavingsPage() {
               {/* Action Buttons */}
               <div className="flex w-full gap-3 sm:gap-4 flex-col sm:flex-row">
                 <button
-                  className={`w-full py-2.5 sm:py-3 ${success ? 'bg-[#81D7B4] hover:bg-[#6bc4a1]' : error === 'Transaction was rejected by user' ? 'bg-yellow-400 hover:bg-yellow-500 text-gray-900' : 'bg-gray-700 hover:bg-gray-800'} rounded-full text-white text-sm sm:text-base font-medium transition-colors`}
+                  className={`w-full py-2.5 sm:py-3 ${success ? 'bg-[#81D7B4] hover:bg-[#6bc4a1]' : error === 'Error creating savings user rejected' ? 'bg-yellow-400 hover:bg-yellow-500 text-gray-900' : 'bg-gray-700 hover:bg-gray-800'} rounded-full text-white text-sm sm:text-base font-medium transition-colors`}
                   onClick={handleCloseTransactionModal}
                 >
-                  {success ? 'Go to Dashboard' : error === 'Transaction was rejected by user' ? 'Close' : 'Close'}
+                  {success ? 'Go to Dashboard' : error === 'Error creating savings user rejected' ? 'Close' : 'Close'}
                 </button>
               </div>
             </div>

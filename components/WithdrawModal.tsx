@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import Image from 'next/image';
 import childContractABI from '../app/abi/childContractABI.js';
 import CONTRACT_ABI from '@/app/abi/contractABI.js';
 
@@ -62,7 +63,7 @@ export default function WithdrawModal({
     if (isOpen) {
       detectNetwork();
     }
-  }, [isOpen, isEth]);
+  }, [isOpen, isEth, tokenName]);
 
   const getContractAddress = () => {
     return isBaseNetwork ? BASE_CONTRACT_ADDRESS : CELO_CONTRACT_ADDRESS;
@@ -355,10 +356,12 @@ export default function WithdrawModal({
               You are about to withdraw from <span className="font-medium text-gray-800">{planName}</span>
             </p>
             <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/40 shadow-sm mb-4">
-              <img 
+              <Image 
                 src={isEth ? '/eth.png' : isBaseNetwork ? '/base.svg' : '/celo.png'} 
                 alt={isEth ? 'ETH' : getNetworkName()} 
-                className="w-4 h-4 mr-2" 
+                width={16}
+                height={16}
+                className="mr-2" 
               />
               <span className="text-xs font-medium text-gray-700">{isEth ? 'ETH' : currentTokenName} on {getNetworkName()}</span>
             </div>

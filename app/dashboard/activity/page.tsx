@@ -35,7 +35,7 @@ const MOCK_USER_DATA = {
   hasConnectedFarcaster: true,
   hasEmail: true,
   userPoints: 0,
-  referralLink: 'https://bitsave.com/ref/123xyz',
+  referralLink: 'https://bitsave.io/ref/123xyz',
 };
 
 export default function ActivityPage() {
