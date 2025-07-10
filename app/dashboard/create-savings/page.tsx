@@ -1025,8 +1025,9 @@ export default function CreateSavingsPage() {
     }
   }
 
-  // Add state for GoodDollar price
+  // Add state for GoodDollar price and equivalent amount
   const [goodDollarPrice, setGoodDollarPrice] = useState(0.0001);
+  const [goodDollarEquivalent, setGoodDollarEquivalent] = useState(0);
 
   // Fetch GoodDollar price from Coingecko
   const fetchGoodDollarPrice = async () => {
@@ -1039,6 +1040,20 @@ export default function CreateSavingsPage() {
       return 0.0001; // fallback
     }
   };
+
+  // Calculate GoodDollar equivalent when amount or price changes
+  useEffect(() => {
+    if (currency === 'Gooddollar' && amount && goodDollarPrice) {
+      const cleanAmount = amount.replace(/[^0-9.]/g, '');
+      const usdAmount = parseFloat(cleanAmount);
+      if (!isNaN(usdAmount) && usdAmount > 0) {
+        const gAmount = usdAmount / goodDollarPrice;
+        setGoodDollarEquivalent(gAmount);
+      } else {
+        setGoodDollarEquivalent(0);
+      }
+    }
+  }, [amount, goodDollarPrice, currency]);
 
   useEffect(() => {
     fetchGoodDollarPrice().then(setGoodDollarPrice);
@@ -1302,6 +1317,37 @@ export default function CreateSavingsPage() {
                           </div>
                         </div>
                         {errors.amount && <p className="mt-1 text-sm text-red-500">{errors.amount}</p>}
+                        
+                        {/* GoodDollar Equivalent Display */}
+                        {currency === 'Gooddollar' && amount && goodDollarEquivalent > 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-3 p-3 bg-gradient-to-r from-[#81D7B4]/10 to-[#81D7B4]/5 rounded-lg border border-[#81D7B4]/20"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <img src="/$g.png" alt="GoodDollar" className="w-5 h-5 mr-2" />
+                                <span className="text-sm font-medium text-gray-700">Equivalent in GoodDollar:</span>
+                              </div>
+                              <div className="flex items-center">
+                                <span className="text-lg font-bold text-[#81D7B4]">
+                                  {goodDollarEquivalent.toLocaleString('en-US', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                  })}
+                                </span>
+                                <span className="ml-1 text-sm text-gray-600">$G</span>
+                              </div>
+                            </div>
+                            <div className="mt-2 text-xs text-gray-500">
+                              This amount will be deducted from your wallet
+                              <span className="ml-1 text-[#81D7B4] font-medium">
+                                (1 $G ≈ ${goodDollarPrice.toFixed(6)})
+                              </span>
+                            </div>
+                          </motion.div>
+                        )}
 
                       </motion.div>
 
