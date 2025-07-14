@@ -8,9 +8,11 @@ import { format } from 'date-fns'
 import { Space_Grotesk } from 'next/font/google'
 import { ethers } from 'ethers'
 import { useRouter } from 'next/navigation'
+import { useAccount } from 'wagmi'
 import axios from 'axios'
 import CONTRACT_ABI from '@/app/abi/contractABI.js'
 import erc20ABI from '@/app/abi/erc20ABI.json'
+import { trackSavingsCreated, trackError, trackPageVisit } from '@/lib/interactionTracker'
 
 const CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
 const BASE_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
@@ -26,6 +28,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export default function CreateSavingsPage() {
   const router = useRouter()
+  const { address } = useAccount()
   const [step, setStep] = useState(1)
   const [mounted, setMounted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -761,6 +764,19 @@ export default function CreateSavingsPage() {
       // Send to API
       await sendTransactionToAPI(parsedAmount, receipt.hash, 'USDGLO');
       
+      // Track successful savings creation
+      if (address) {
+        trackSavingsCreated(address, {
+          planName: name,
+          amount: amount,
+          currency: currency,
+          chain: chain,
+          penalty: penalty,
+          endDate: endDate?.toISOString(),
+          txHash: txHash
+        });
+      }
+      
       setSuccess(true);
     } catch (error) {
       console.error("Error creating USDGLO savings plan:", error);
@@ -977,9 +993,38 @@ export default function CreateSavingsPage() {
       } else {
         await handleBaseSavingsCreate();
       }
+      
+      // Track successful savings creation
+      if (address) {
+        trackSavingsCreated(address, {
+          planName: name,
+          amount: amount,
+          currency: currency,
+          chain: chain,
+          penalty: penalty,
+          endDate: endDate?.toISOString(),
+          txHash: txHash
+        });
+      }
+      
       setSuccess(true);
     } catch (err) {
       console.error('Error creating savings plan:', err);
+      
+      // Track error
+      if (address) {
+        trackError(address, {
+          action: 'create_savings',
+          error: err instanceof Error ? err.message : 'Unknown error',
+          context: {
+            planName: name,
+            amount: amount,
+            currency: currency,
+            chain: chain
+          }
+        });
+      }
+      
       // Individual functions handle their own error messages
       setSuccess(false);
     } finally {
@@ -1002,7 +1047,12 @@ export default function CreateSavingsPage() {
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    
+    // Track page visit
+    if (address) {
+      trackPageVisit('/dashboard/create-savings', { walletAddress: address });
+    }
+  }, [address])
 
   // Animation variants
   const containerVariants = {

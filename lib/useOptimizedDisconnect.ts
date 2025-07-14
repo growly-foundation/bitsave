@@ -1,6 +1,8 @@
 import { useDisconnect } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
+import { useAccount } from 'wagmi';
+import { trackWalletDisconnect } from './interactionTracker';
 
 /**
  * Optimized disconnect hook that provides immediate UI feedback
@@ -8,6 +10,7 @@ import { useCallback } from 'react';
  */
 export function useOptimizedDisconnect() {
   const router = useRouter();
+  const { address } = useAccount();
   
   const { disconnect: wagmiDisconnect, isPending } = useDisconnect({
     mutation: {
@@ -24,9 +27,14 @@ export function useOptimizedDisconnect() {
   });
 
   const optimizedDisconnect = useCallback(() => {
+    // Track wallet disconnection before disconnecting
+    if (address) {
+      trackWalletDisconnect(address);
+    }
+    
     // Immediate UI feedback - start disconnect process
     wagmiDisconnect();
-  }, [wagmiDisconnect]);
+  }, [wagmiDisconnect, address]);
 
   return {
     disconnect: optimizedDisconnect,

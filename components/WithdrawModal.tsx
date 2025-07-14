@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { useAccount } from 'wagmi';
 import Image from 'next/image';
 import childContractABI from '../app/abi/childContractABI.js';
 import CONTRACT_ABI from '@/app/abi/contractABI.js';
+import { trackTransaction, trackError } from '@/lib/interactionTracker';
 
 const BASE_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13";
 const CELO_CONTRACT_ADDRESS = "0x7d839923Eb2DAc3A0d1cABb270102E481A208F33";
@@ -35,6 +37,7 @@ export default function WithdrawModal({
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [isBaseNetwork, setIsBaseNetwork] = useState(true);
   const [currentTokenName, setCurrentTokenName] = useState(isEth ? 'ETH' : 'USDC');
+  const { address } = useAccount();
 
   useEffect(() => {
     const detectNetwork = async () => {
@@ -154,10 +157,47 @@ export default function WithdrawModal({
         console.error("Error sending transaction data to API:", apiError);
       }
 
+      // Track successful ETH withdrawal
+      if (address) {
+        trackTransaction(address, {
+          type: 'withdrawal',
+          amount: amount,
+          currency: 'ETH',
+          chain: getNetworkName().toLowerCase(),
+          planName: nameOfSavings,
+          txHash: receipt.hash
+        });
+      }
+      
+      // Track successful token withdrawal
+      if (address) {
+        trackTransaction(address, {
+          type: 'withdrawal',
+          amount: amount,
+          currency: currentTokenName,
+          chain: getNetworkName().toLowerCase(),
+          planName: nameOfSavings,
+          txHash: receipt.hash
+        });
+      }
+      
       setSuccess(true);
       setShowTransactionModal(true);
     } catch (error: unknown) {
       console.error("Error during ETH withdrawal:", error);
+      
+      // Track ETH withdrawal error
+      if (address) {
+        trackError(address, {
+          action: 'withdrawal_eth',
+          error: error instanceof Error ? error.message : String(error),
+          context: {
+            planName: nameOfSavings,
+            currency: 'ETH'
+          }
+        });
+      }
+      
       setError(`Failed to withdraw: ${error instanceof Error ? error.message : String(error)}`);
       setShowTransactionModal(true);
     } finally {
@@ -226,6 +266,19 @@ export default function WithdrawModal({
       setShowTransactionModal(true);
     } catch (error: unknown) {
       console.error(`Error during ${currentTokenName} withdrawal:`, error);
+      
+      // Track token withdrawal error
+      if (address) {
+        trackError(address, {
+          action: 'withdrawal_token',
+          error: error instanceof Error ? error.message : String(error),
+          context: {
+            planName: nameOfSavings,
+            currency: currentTokenName
+          }
+        });
+      }
+      
       setError(`Failed to withdraw: ${error instanceof Error ? error.message : String(error)}`);
       setShowTransactionModal(true);
     } finally {

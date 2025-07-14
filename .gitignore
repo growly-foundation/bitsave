@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Add this line to your existing .gitignore
 .env.local
+
+# User interaction data (now stored in MongoDB)
+# /data/user-interactions.json

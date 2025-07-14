@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useOptimizedDisconnect } from '../../lib/useOptimizedDisconnect';
+import { trackWalletConnect, trackPageVisit } from '../../lib/interactionTracker';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { disconnect, isDisconnecting } = useOptimizedDisconnect();
   const { openConnectModal } = useConnectModal();
 
@@ -71,14 +72,27 @@ export default function Header() {
 
   // Add effect to redirect when wallet is connected and switch to Base network
   useEffect(() => {
-    if (mounted && isConnected) {
+    if (mounted && isConnected && address) {
+      // Track wallet connection
+      trackWalletConnect(address, {
+        networkSwitched: true,
+        redirectedToDashboard: true,
+      });
+      
       // Switch to Base network first
       switchToBaseNetwork().then(() => {
         // Then redirect to dashboard
         router.push('/dashboard');
       });
     }
-  }, [isConnected, mounted, router]);
+  }, [isConnected, mounted, router, address]);
+
+  // Track page visits
+  useEffect(() => {
+    if (mounted) {
+      trackPageVisit(window.location.pathname, address ? { walletAddress: address } : undefined);
+    }
+  }, [mounted, address]);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);

@@ -8,6 +8,7 @@ import axios from 'axios'
 import { useAccount } from 'wagmi'
 import { toast } from 'react-hot-toast'
 import Image from 'next/image'
+import { trackTransaction, trackError } from '@/lib/interactionTracker'
 
 // Contract addresses and ABIs
 const BASE_CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
@@ -187,11 +188,49 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
         console.error("Error sending transaction data to API:", apiError);
       }
       
+      // Track successful transaction
+      if (address) {
+        trackTransaction(address, {
+          type: 'top_up',
+          amount: userEnteredAmount.toString(),
+          currency: tokenNameToUse,
+          chain: isBase ? 'base' : 'celo',
+          planName: savingsPlanName,
+          txHash: receipt.hash
+        });
+      }
+      
+      // Track successful ETH transaction
+      if (address) {
+        trackTransaction(address, {
+          type: 'top_up',
+          amount: userEnteredAmount.toString(),
+          currency: 'ETH',
+          chain: isBase ? 'base' : 'celo',
+          planName: savingsPlanName,
+          txHash: receipt.hash
+        });
+      }
+      
       setSuccess(true);
       setShowTransactionModal(true);
       
     } catch (error: unknown) {
       console.error("Error topping up stablecoin savings plan:", error);
+      
+      // Track error
+      if (address) {
+        trackError(address, {
+          action: 'top_up',
+          error: error instanceof Error ? error.message : String(error),
+          context: {
+            planName: savingsPlanName,
+            amount: amount,
+            tokenName: tokenName || 'unknown'
+          }
+        });
+      }
+      
       setError(`Failed to top up savings plan: ${error instanceof Error ? error.message : String(error)}`);
       setShowTransactionModal(true);
     } finally {
@@ -283,6 +322,20 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
       
     } catch (error: unknown) {
       console.error("Error topping up ETH savings plan:", error);
+      
+      // Track ETH top-up error
+      if (address) {
+        trackError(address, {
+          action: 'top_up_eth',
+          error: error instanceof Error ? error.message : String(error),
+          context: {
+            planName: savingsPlanName,
+            amount: amount,
+            currency: 'ETH'
+          }
+        });
+      }
+      
       setError(`Failed to top up ETH savings plan: ${error instanceof Error ? error.message : String(error)}`);
       setShowTransactionModal(true);
     } finally {
