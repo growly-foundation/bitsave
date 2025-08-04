@@ -1,5 +1,4 @@
 'use client'
-import { motion } from 'framer-motion';
 
 export default function Features() {
   const featureItems = [
@@ -51,13 +50,7 @@ export default function Features() {
       <div className="absolute bottom-20 left-20 w-16 h-16 border border-secondary/20 rounded-lg -rotate-12 opacity-30 hidden lg:block"></div>
       
       <div className="container mx-auto">
-        <motion.div 
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7 }}
-        >
+        <div className="text-center mb-20 animate-fade-in-up">
           {/* Enhanced title with decorative elements - Centered and more stunning */}
           <div className="flex justify-center mb-12">
             <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
@@ -79,17 +72,14 @@ export default function Features() {
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Designed for growth, ease, and peace of mind - everything you need for successful crypto savings
           </p>
-        </motion.div>
+        </div>
         
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
           {featureItems.map((feature, index) => (
-            <motion.div 
+            <div 
               key={index}
-              className="backdrop-blur-xl bg-white/90 p-8 rounded-xl border border-[#81D7B4]/10 relative overflow-hidden group hover:bg-white transition-all duration-500 hover:shadow-[0_0_30px_rgba(129,215,180,0.15)] shadow-sm"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.7, delay: index * 0.2 }}
+              className="backdrop-blur-xl bg-white/90 p-8 rounded-xl border border-[#81D7B4]/10 relative overflow-hidden group hover:bg-white transition-all duration-500 hover:shadow-[0_0_30px_rgba(129,215,180,0.15)] shadow-sm animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.2}s` }}
             >
               <div className="absolute -right-20 -top-20 w-40 h-40 bg-[#81D7B4]/5 rounded-full blur-3xl group-hover:bg-[#81D7B4]/10 transition-colors"></div>
               
@@ -121,7 +111,7 @@ export default function Features() {
                 {/* Decorative corner accent */}
                 <div className="absolute bottom-2 right-2 w-8 h-8 border-b-2 border-r-2 border-[#81D7B4]/30 rounded-br-lg opacity-70"></div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

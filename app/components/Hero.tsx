@@ -23,19 +23,6 @@ export default function Hero() {
         duration: 3 + Math.random() * 4,
         delay: Math.random() * 2
       }));
-
-      // Force a re-render to apply the client-side generated values
-      const shimmerElements = document.querySelectorAll('.shimmer-line');
-      shimmerElements.forEach((element, i) => {
-        const htmlElement = element as HTMLElement;
-        const data = shimmerElementsRef.current[i];
-        if (data) {
-          htmlElement.style.width = `${data.width}px`;
-          htmlElement.style.top = `${data.top}%`;
-          htmlElement.style.transform = `rotate(${data.rotation}deg)`;
-          htmlElement.style.animation = `shimmer ${data.duration}s infinite linear ${data.delay}s`;
-        }
-      });
     }
   }, []);
 
@@ -87,201 +74,346 @@ export default function Hero() {
       <div className="hero-glow w-[600px] h-[600px] opacity-30 top-0 right-0 transform translate-x-1/3 -translate-y-1/3 bg-[#81D7B4]/20 blur-3xl rounded-full"></div>
       <div className="hero-glow w-[500px] h-[500px] opacity-20 bottom-0 left-0 transform -translate-x-1/3 translate-y-1/3 bg-[#81D7B4]/20 blur-3xl rounded-full"></div>
       
-      {/* Animated grid pattern with enhanced random light effect */}
-      <div className="absolute inset-0 -z-5 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'linear-gradient(to right, #81D7B4 1px, transparent 1px), linear-gradient(to bottom, #81D7B4 1px, transparent 1px)',
-          backgroundSize: '30px 30px'
+      {/* Animated grid pattern */}
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+        <div className="w-full h-full" style={{
+          backgroundImage: `
+            linear-gradient(rgba(129, 215, 180, 0.3) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(129, 215, 180, 0.3) 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px',
+          animation: 'gridMove 20s linear infinite'
         }}></div>
-        <div className="absolute inset-0 grid-shimmer"></div>
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(10)].map((_, i) => (
-            <div key={i} 
-              className="absolute bg-[#81D7B4] opacity-30 blur-sm shimmer-line" 
-              style={{
-                width: '100px', // Default width, will be updated by useEffect
-                height: '1px',
-                top: '50%', // Default position, will be updated by useEffect
-                left: '-100px',
-                transform: 'rotate(0deg)', // Default rotation, will be updated by useEffect
-                animation: 'shimmer 4s infinite linear' // Default animation, will be updated by useEffect
-              }}
-            ></div>
-          ))}
-        </div>
       </div>
-      
-      <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
-        <div className="space-y-8">
-          <div className="space-y-2">
-            <h2 className="text-xl md:text-2xl font-medium text-[#81D7B4]">
-              <span className="inline-flex items-center gap-2">
-                <span className="inline-block w-2 h-2 rounded-full bg-[#81D7B4] animate-pulse"></span>
-                Secured, Easier and Faster
-              </span>
-            </h2>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-800">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#81D7B4] to-[#4a9e8a]">The savings Protocol</span> of <span className="text-[#81D7B4]">#web3</span> Finance
-            </h1>
-          </div>
-          
-          <p className="text-lg md:text-xl text-gray-600 max-w-xl">
-            Bitsave Protocol helps you save and earn in Crypto without losing your savings to Crypto Market volatility.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button 
-              onClick={handleOpenApp}
-              className="bg-[#81D7B4] hover:bg-[#6bc4a3] text-white font-medium px-8 py-3 rounded-lg flex items-center justify-center gap-2 group shadow-md hover:shadow-lg transition-all"
-            >
-              <span>Open App</span>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 group-hover:translate-x-1 transition-transform">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </button>
-            <a 
-              href="https://youtube.com/shorts/CWRQ7rgtHzU?si=xd8ia_IQyonxOXFM" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-white border border-gray-200 text-gray-700 font-medium px-8 py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm hover:shadow-md transition-all"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 text-[#81D7B4]">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Watch Demo
-            </a>
-          </div>
-          
-          {/* Supported Chains */}
-          <div className="flex flex-wrap gap-4 pt-6">
-            <div className="bg-white border border-gray-200 rounded-xl p-4 px-6 relative overflow-hidden group hover:scale-105 transition-all duration-300 w-full md:w-auto shadow-md">
-              <div className="absolute -right-4 -top-4 w-16 h-16 bg-[#81D7B4]/10 rounded-full blur-xl"></div>
-              <p className="text-xs font-semibold text-[#81D7B4] mb-2">SUPPORTED CHAINS</p>
-              <div className="flex items-center gap-5">
-                <div className="flex -space-x-3">
-                  {/* Lisk Logo */}
-                  <div className="w-10 h-10 rounded-full border-2 border-white z-30 overflow-hidden shadow-sm">
-                    <Image src="/lisk-logo.svg" alt="Lisk" width={40} height={40} />
-                  </div>
-                  {/* Base Logo */}
-                  <div className="w-10 h-10 rounded-full border-2 border-white z-20 overflow-hidden shadow-sm">
-                    <Image src="/base-logo.svg" alt="Base" width={40} height={40} />
-                  </div>
-                  {/* ETH Logo */}
-                  <div className="w-10 h-10 rounded-full border-2 border-white z-10 overflow-hidden shadow-sm">
-                    <Image src="/eth-logo.svg" alt="Ethereum" width={40} height={40} />
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-[#81D7B4]">Multi-chain Support</span>
-                  <span className="text-xs text-gray-600">Seamless cross-chain savings</span>
-                </div>
-              </div>
-              <div className="h-1 w-full bg-gradient-to-r from-[#e0f5f0] to-[#81D7B4] mt-3 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="relative">
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 relative z-10 overflow-hidden group hover:scale-[1.02] transition-all duration-500 shadow-lg">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#f0f9f7] to-[#e0f5f0] z-0"></div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden relative z-10 shadow-sm">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#e0f5f0] to-[#81D7B4]"></div>
+
+      <div className="max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          {/* Left side - Hero text */}
+          <div className="space-y-8">
+            <div className="space-y-6">
               <div className="relative">
-                <Image 
-                  src="/bitsavedashboard.png" 
-                  alt="BitSave Dashboard Preview" 
-                  width={600} 
-                  height={400}
-                  className="w-full h-auto transform group-hover:scale-[1.03] transition-all duration-700"
-                />
+                {/* Decorative doodles */}
+                <div className="absolute -top-8 -left-4 w-16 h-16 opacity-20">
+                   <svg viewBox="0 0 64 64" className="w-full h-full text-[#81D7B4] animate-spin" style={{animationDuration: '20s'}}>
+                     <polygon points="32,8 40,24 56,24 44,36 48,52 32,44 16,52 20,36 8,24 24,24" fill="currentColor"/>
+                   </svg>
+                 </div>
+                 <div className="absolute -top-4 -right-8 w-12 h-12 opacity-30">
+                   <svg viewBox="0 0 48 48" className="w-full h-full text-blue-400 animate-bounce" style={{animationDelay: '1s'}}>
+                     <rect x="12" y="12" width="24" height="24" rx="4" fill="none" stroke="currentColor" strokeWidth="2"/>
+                     <rect x="18" y="18" width="12" height="12" rx="2" fill="currentColor"/>
+                   </svg>
+                 </div>
+                 <div className="absolute top-16 -left-8 w-8 h-8 opacity-25">
+                   <svg viewBox="0 0 32 32" className="w-full h-full text-blue-500 animate-pulse">
+                     <path d="M16 4l4 8h8l-6 6 2 8-8-4-8 4 2-8-6-6h8z" fill="currentColor"/>
+                   </svg>
+                 </div>
                 
-                {/* Overlapping Cards */}
-                <div className="absolute -right-16 top-10 transform rotate-6 z-20 animate-float-delayed-2 shadow-xl">
-                  <Image 
-                    src="/savings-form-card.svg" 
-                    alt="Create Savings Plan" 
-                    width={240} 
-                    height={300}
-                    className="h-auto"
-                  />
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight relative z-10">
+                   <span className="relative inline-block bg-gradient-to-r from-[#81D7B4] via-blue-500 to-[#81D7B4] bg-clip-text text-transparent">
+                     Save Smarter with
+                     {/* Web3 blockchain nodes */}
+                     <div className="absolute -top-2 left-1/4 w-3 h-3 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                     <div className="absolute -top-1 right-1/4 w-2 h-2 bg-[#81D7B4] rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
+                   </span>
+                   <span className="block text-[#81D7B4] relative">
+                     BitSave
+                     <div className="absolute -inset-1 bg-[#81D7B4]/10 blur-xl rounded-lg -z-10"></div>
+                     {/* Web3 symbols */}
+                     <div className="absolute -right-8 top-2 text-2xl opacity-30 animate-bounce" style={{animationDelay: '2s'}}>⛓️</div>
+                     <div className="absolute -left-6 -top-2 text-xl opacity-40 animate-pulse" style={{animationDelay: '1s'}}>🔗</div>
+                   </span>
+                 </h1>
+              </div>
+              <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-lg">
+               Bitsave Protocol helps you save and earn in Crypto without losing your savings to Crypto Market volatility.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button 
+                onClick={handleOpenApp}
+                className="group relative px-8 py-4 bg-[#81D7B4] text-white font-semibold rounded-xl hover:bg-[#6bc49f] transition-all duration-300 transform hover:scale-105 hover:shadow-xl overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4] to-[#6bc49f] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative z-10 flex items-center gap-2">
+                  {isConnected ? 'Open Dashboard' : 'Connect Wallet'}
+                  <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              </button>
+              
+              <button 
+                onClick={() => window.open('https://youtube.com/shorts/CWRQ7rgtHzU?si=xd8ia_IQyonxOXFM', '_blank')}
+                className="px-8 py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:border-[#81D7B4] hover:text-[#81D7B4] transition-all duration-300 transform hover:scale-105"
+              >
+                Watch Demo
+              </button>
+            </div>
+
+            {/* Stats */}
+            <div className="flex flex-wrap gap-8 pt-8">
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">24/7</div>
+                <div className="text-sm text-gray-600">Support</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">Secure</div>
+                <div className="text-sm text-gray-600">& Fast</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">Low</div>
+                <div className="text-sm text-gray-600">Fees</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right side - Bitsave Dashboard */}
+           <div className="relative">
+             {/* Bitsave Dashboard Container */}
+             <div className="relative bg-gradient-to-br from-white via-gray-50 to-white rounded-3xl p-8 shadow-2xl border border-gray-200/50 overflow-hidden">
+               {/* Animated background grid */}
+               <div className="absolute inset-0 opacity-[0.03]">
+                 <div className="w-full h-full" style={{
+                   backgroundImage: `
+                     linear-gradient(rgba(129, 215, 180, 0.3) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(129, 215, 180, 0.3) 1px, transparent 1px)
+                   `,
+                   backgroundSize: '20px 20px',
+                   animation: 'gridPulse 4s ease-in-out infinite'
+                 }}></div>
+               </div>
+
+               {/* Floating particles */}
+               <div className="absolute inset-0 overflow-hidden">
+                 {[...Array(6)].map((_, i) => (
+                   <div
+                     key={i}
+                     className="absolute w-2 h-2 bg-[#81D7B4] rounded-full opacity-20"
+                     style={{
+                       left: `${20 + i * 15}%`,
+                       top: `${10 + i * 12}%`,
+                       animation: `float ${3 + i * 0.5}s ease-in-out infinite ${i * 0.5}s`
+                     }}
+                   />
+                 ))}
+               </div>
+
+               {/* Dashboard Header */}
+               <div className="relative z-10 mb-6">
+                 <div className="flex items-center justify-between mb-4">
+                   <h3 className="text-gray-900 font-bold text-xl">Bitsave Dashboard</h3>
+                   <div className="flex items-center gap-2">
+                     <div className="w-2 h-2 bg-[#81D7B4] rounded-full animate-pulse"></div>
+                     <span className="text-[#81D7B4] text-sm font-medium">Multi-chain</span>
+                   </div>
+                 </div>
+                 <div className="text-gray-600 text-sm">Smart savings across multiple blockchains</div>
+               </div>
+
+               {/* Savings Categories */}
+               <div className="relative z-10 grid grid-cols-2 gap-4 mb-6">
+                 {/* Rent Savings */}
+                 <div className="bg-gradient-to-br from-[#81D7B4]/10 to-green-100/50 border border-[#81D7B4]/20 rounded-xl p-4 hover:scale-105 transition-all duration-300">
+                   <div className="flex items-center gap-3 mb-3">
+                     <div className="w-8 h-8 bg-[#81D7B4] rounded-full flex items-center justify-center">
+                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                         <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                       </svg>
+                     </div>
+                     <div>
+                       <div className="text-gray-900 font-semibold text-sm">Rent Savings</div>
+                       <div className="text-[#81D7B4] text-xs">Active</div>
+                     </div>
+                   </div>
+                   <div className="text-gray-900 text-lg font-bold">$1,250</div>
+                   <div className="text-gray-600 text-xs">Monthly target: $1,500</div>
+                 </div>
+
+                 {/* Car Savings */}
+                 <div className="bg-gradient-to-br from-blue-50 to-indigo-100/50 border border-blue-200/50 rounded-xl p-4 hover:scale-105 transition-all duration-300">
+                   <div className="flex items-center gap-3 mb-3">
+                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                         <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                         <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z"/>
+                       </svg>
+                     </div>
+                     <div>
+                       <div className="text-gray-900 font-semibold text-sm">Car Savings</div>
+                       <div className="text-blue-500 text-xs">Active</div>
+                     </div>
+                   </div>
+                   <div className="text-gray-900 text-lg font-bold">$2,100</div>
+                   <div className="text-gray-600 text-xs">Target: $25,000</div>
+                 </div>
+               </div>
+
+               {/* Total Savings */}
+               <div className="relative z-10 bg-gray-50/50 rounded-xl p-4 mb-4 border border-gray-200/30">
+                 <div className="flex items-center justify-between mb-3">
+                   <span className="text-gray-900 font-medium text-sm">Total Savings</span>
+                   <span className="text-[#81D7B4] font-bold">$3,350</span>
+                 </div>
+                 <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                   <div className="bg-gradient-to-r from-[#81D7B4] to-blue-500 h-2 rounded-full" style={{width: '75%', animation: 'fillProgress 2s ease-out'}}></div>
+                 </div>
+                 <div className="text-gray-600 text-xs">Progress towards goals</div>
+               </div>
+
+               {/* Recent Activity */}
+               <div className="relative z-10 space-y-2">
+                 <div className="text-gray-900 font-medium text-sm mb-2">Recent Activity</div>
+                 {[
+                   { action: 'Top Up', amount: '+$200', time: '2m ago', color: 'text-[#81D7B4]' },
+                   { action: 'Save', amount: '+$150', time: '1h ago', color: 'text-blue-500' },
+                   { action: 'Withdraw', amount: '-$50', time: '3h ago', color: 'text-orange-500' }
+                 ].map((activity, i) => (
+                   <div key={i} className="flex items-center justify-between py-2 px-3 bg-white/50 rounded-lg border border-gray-200/30">
+                     <div className="flex items-center gap-2">
+                       <div className="w-2 h-2 bg-[#81D7B4] rounded-full animate-pulse"></div>
+                       <span className="text-gray-700 text-xs">{activity.action}</span>
+                     </div>
+                     <div className="text-right">
+                       <div className={`${activity.color} text-xs font-medium`}>{activity.amount}</div>
+                       <div className="text-gray-500 text-xs">{activity.time}</div>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             </div>
+
+            {/* Floating Savings Elements */}
+             <div className="absolute -top-4 -right-4 bg-gradient-to-br from-[#81D7B4] to-green-500 rounded-xl p-3 shadow-lg border border-[#81D7B4]/30 animate-bounce">
+               <div className="text-white text-xs font-bold">Smart Save</div>
+               <div className="text-white/80 text-xs">Funds Locked</div>
+             </div>
+
+             <div className="absolute -bottom-4 -left-4 bg-gradient-to-br from-[#81D7B4] to-green-500 rounded-xl p-3 shadow-lg border border-[#81D7B4]/30" style={{animation: 'float 3s ease-in-out infinite 1s'}}>
+               <div className="text-white text-xs font-bold">Goal Reached</div>
+               <div className="text-white/80 text-xs">Rent Fund</div>
+             </div>
+          </div>
+        </div>
+
+        {/* Supported Chains Section */}
+        <div className="mt-20 text-center">
+          <div className="relative">
+            {/* Enhanced background with geometric patterns */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#81D7B4]/5 to-transparent rounded-3xl"></div>
+            <div className="absolute inset-0 opacity-30">
+              <div className="w-full h-full" style={{
+                backgroundImage: `
+                  radial-gradient(circle at 25% 25%, rgba(129, 215, 180, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 75% 75%, rgba(129, 215, 180, 0.1) 0%, transparent 50%)
+                `,
+                backgroundSize: '100px 100px'
+              }}></div>
+            </div>
+            
+            <div className="relative z-10 py-16 px-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Supported Ecosystems
+              </h2>
+              <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
+                Seamlessly save and earn across multiple blockchain networks with our unified platform
+              </p>
+              
+              {/* Enhanced ecosystem cards */}
+              <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                {/* Celo Card */}
+                <div className="group relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-200/50 hover:shadow-2xl transition-all duration-500 hover:scale-105 overflow-hidden">
+                  {/* Enhanced background effects */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-50/50 to-green-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-yellow-200/20 to-green-200/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                  
+                  <div className="relative z-10">
+                    {/* Larger logo container */}
+                    <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-yellow-100 to-green-100 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                      <Image 
+                        src="/celo.png" 
+                        alt="Celo" 
+                        width={40} 
+                        height={40}
+                        className="group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Celo Network</h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed">
+                      Mobile-first blockchain platform focused on financial inclusion and accessibility
+                    </p>
+                    
+                    {/* Modern status indicator */}
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="flex items-center gap-2 bg-green-100 px-4 py-2 rounded-full">
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-green-700 font-semibold text-sm">Active</span>
+                      </div>
+                      <div className="text-gray-500 text-sm">Secure & Fast</div>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="absolute -right-8 bottom-10 transform -rotate-3 z-30 animate-float shadow-xl">
-                  <Image 
-                    src="/transaction-success.svg" 
-                    alt="Transaction Successful" 
-                    width={220} 
-                    height={180}
-                    className="h-auto"
-                  />
+
+                {/* Base Card */}
+                <div className="group relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-200/50 hover:shadow-2xl transition-all duration-500 hover:scale-105 overflow-hidden">
+                  {/* Enhanced background effects */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-200/20 to-indigo-200/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                  
+                  <div className="relative z-10">
+                    {/* Larger logo container */}
+                    <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                      <Image 
+                        src="/base.svg" 
+                        alt="Base" 
+                        width={40} 
+                        height={40}
+                        className="group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Base Network</h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed">
+                      Ethereum L2 solution built by Coinbase for secure, low-cost transactions
+                    </p>
+                    
+                    {/* Modern status indicator */}
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span className="text-blue-700 font-semibold text-sm">Live</span>
+                      </div>
+                      <div className="text-gray-500 text-sm">Low Fees</div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Floating Savings Plan Cards - Column Layout */}
-            {/* Right side cards */}
-            <div className="absolute top-6 right-6 w-36 h-20 bg-white border border-gray-200 rounded-lg p-3 animate-float shadow-md">
-              <p className="text-xs font-semibold text-[#81D7B4] mb-1">Bitcoin Plan</p>
-              <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#81D7B4] h-full rounded-full" style={{width: '65%'}}></div>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">$4,800 saved</p>
-            </div>
-            
-            <div className="absolute top-28 right-6 w-36 h-20 bg-white border border-gray-200 rounded-lg p-3 animate-float-delayed shadow-md">
-              <p className="text-xs font-semibold text-[#81D7B4] mb-1">Stablecoin</p>
-              <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#81D7B4] h-full rounded-full" style={{width: '90%'}}></div>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">$7,200 saved</p>
-            </div>
-            
-            <div className="absolute top-50 right-6 w-36 h-20 bg-white border border-gray-200 rounded-lg p-3 animate-float-delayed-2 shadow-md">
-              <p className="text-xs font-semibold text-[#81D7B4] mb-1">Crypto Index</p>
-              <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#81D7B4] h-full rounded-full" style={{width: '45%'}}></div>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">$3,600 saved</p>
-            </div>
-            
-            {/* Left side cards */}
-            <div className="absolute top-10 left-6 w-36 h-20 bg-white border border-gray-200 rounded-lg p-3 animate-float-delayed shadow-md">
-              <p className="text-xs font-semibold text-[#81D7B4] mb-1">Gold & Crypto</p>
-              <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#81D7B4] h-full rounded-full" style={{width: '30%'}}></div>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">$2,400 saved</p>
-            </div>
-            
-            <div className="absolute top-32 left-6 w-36 h-20 bg-white border border-gray-200 rounded-lg p-3 animate-pulse-slow shadow-md">
-              <p className="text-xs font-semibold text-[#81D7B4] mb-1">ETH Savings</p>
-              <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#81D7B4] h-full rounded-full" style={{width: '55%'}}></div>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">$5,500 saved</p>
-            </div>
-            
-            <div className="absolute top-54 left-6 w-36 h-20 bg-white border border-gray-200 rounded-lg p-3 animate-float shadow-md">
-              <p className="text-xs font-semibold text-[#81D7B4] mb-1">Lisk Savings</p>
-              <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#81D7B4] h-full rounded-full" style={{width: '40%'}}></div>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">$3,200 saved</p>
-            </div>
-            
-            {/* Additional floating cards */}
-            <div className="absolute bottom-20 right-20 w-36 h-20 bg-white border border-gray-200 rounded-lg p-3 animate-float-delayed-2 shadow-md">
-              <p className="text-xs font-semibold text-[#81D7B4] mb-1">Base Savings</p>
-              <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#81D7B4] h-full rounded-full" style={{width: '70%'}}></div>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">$6,800 saved</p>
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes gridMove {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(50px, 50px); }
+        }
+        @keyframes gridPulse {
+          0%, 100% { opacity: 0.1; }
+          50% { opacity: 0.3; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(5deg); }
+        }
+        @keyframes fillProgress {
+          0% { width: 0%; }
+          100% { width: 75%; }
+        }
+      `}</style>
     </section>
   );
 }

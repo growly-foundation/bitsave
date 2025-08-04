@@ -1,5 +1,4 @@
 'use client'
-import { motion } from 'framer-motion';
 
 const teamMembers = [
   {
@@ -62,13 +61,7 @@ export default function Team() {
 
       <div className="container mx-auto">
         {/* Section Header */}
-        <motion.div 
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-        >
+        <div className="text-center mb-20 animate-fade-in-up">
           <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/0 via-[#81D7B4]/20 to-[#81D7B4]/0 animate-shimmer"></div>
             <div className="absolute inset-0 bg-gradient-to-t from-[#81D7B4]/0 via-[#81D7B4]/10 to-[#81D7B4]/0 animate-shimmer-slow"></div>
@@ -86,18 +79,15 @@ export default function Team() {
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             A team of DeFi experts and builders dedicated to revolutionizing crypto savings.
           </p>
-        </motion.div>
+        </div>
 
         {/* Team Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {teamMembers.map((member, index) => (
-            <motion.div
+            <div
               key={member.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group relative"
+              className="group relative animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               {/* Card Container */}
               <div className="relative p-8 rounded-2xl bg-gradient-to-br from-[#f8fafa] to-white/80 shadow-[20px_20px_60px_rgba(0,0,0,0.05),-20px_-20px_60px_rgba(255,255,255,0.8)] border border-white/50 transition-all duration-500 group-hover:shadow-[25px_25px_75px_rgba(0,0,0,0.1),-25px_-25px_75px_rgba(255,255,255,0.9)] backdrop-blur-xl">
@@ -281,7 +271,7 @@ export default function Team() {
                      }}
                 ></div>
               </div>
-            </motion.div>
+            </div>
           ))}
 
          
@@ -289,4 +279,4 @@ export default function Team() {
       </div>
     </section>
   );
-} 
+}

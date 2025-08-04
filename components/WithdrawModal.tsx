@@ -19,6 +19,7 @@ interface WithdrawModalProps {
   isEth: boolean;
   penaltyPercentage?: number;
   tokenName?: string;
+  isCompleted?: boolean;
 }
 
 export default function WithdrawModal({ 
@@ -28,7 +29,8 @@ export default function WithdrawModal({
   planId, 
   isEth,
   penaltyPercentage,
-  tokenName 
+  tokenName,
+  isCompleted = false
 }: WithdrawModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -323,29 +325,65 @@ export default function WithdrawModal({
             
             {/* Title */}
             <h2 className="text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2">
-              {success ? 'Successful' : 'Failed'}
+              {success ? (isCompleted ? '🎉 Congratulations!' : 'Withdrawal Successful') : 'Withdrawal Failed'}
             </h2>
             
             {/* Message */}
             <p className="text-sm sm:text-base text-gray-500 text-center mb-5 sm:mb-8 max-w-xs sm:max-w-none mx-auto">
               {success 
-                ? 'Your withdrawal has been processed and is successful.'
-                : `Your withdrawal failed, please contact customer care for support.`}
+                ? (isCompleted 
+                    ? `Congratulations! You've successfully completed your savings plan "${planName}" and withdrawn your funds. Well done on reaching your savings goal! 🎯`
+                    : 'Your withdrawal has been processed successfully.')
+                : 'Your withdrawal failed. Please try again or contact our support team for assistance.'}
               {!success && error && (
-                <span className="block mt-2 text-xs text-red-500">
-                  {(() => {
-                    // Better error extraction
-                    if (error.includes("INVALID_ARGUMENT")) {
-                      return "Invalid argument: The plan name may be incorrect or contain special characters";
-                    } else if (error.includes("code=")) {
-                      const codeMatch = error.match(/code=([A-Z_]+)/);
-                      return codeMatch ? `Error: ${codeMatch[1]}` : error;
-                    } else if (error.includes(":")) {
-                      return error.split(":").pop()?.trim();
-                    } else {
-                      return error;
-                    }
-                  })()}
+                <span className="block mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="text-sm font-medium text-red-800 mb-2">Error Details:</div>
+                  <div className="text-xs text-red-600 mb-3">
+                    {(() => {
+                      // Enhanced error extraction and user-friendly messages
+                      const lowerError = error.toLowerCase();
+                      if (error.includes("missing revert data") || lowerError.includes("call_exception")) {
+                        return "💸 Transaction failed - This usually means insufficient funds for gas fees or the contract couldn't process your request. Please check your wallet balance and ensure you have enough ETH/native tokens for gas fees, then try again.";
+                      } else if (error.includes("INVALID_ARGUMENT") || lowerError.includes("invalid argument")) {
+                        return "❌ Invalid transaction parameters. Please check your plan details and try again.";
+                      } else if (lowerError.includes("insufficient funds") || lowerError.includes("insufficient balance")) {
+                        return "💰 Insufficient funds for gas fees. Please add some ETH to your wallet for transaction fees.";
+                      } else if (lowerError.includes("user rejected") || lowerError.includes("user denied")) {
+                        return "🚫 Transaction was cancelled by user. No funds were withdrawn.";
+                      } else if (lowerError.includes("network") || lowerError.includes("connection")) {
+                        return "🌐 Network connection issue. Please check your internet connection and try again.";
+                      } else if (lowerError.includes("gas")) {
+                        return "⛽ Gas estimation failed. Try increasing gas limit or check network congestion.";
+                      } else if (lowerError.includes("nonce")) {
+                        return "🔄 Transaction nonce error. Please reset your wallet or try again.";
+                      } else if (lowerError.includes("allowance") || lowerError.includes("approval")) {
+                        return "🔐 Token allowance issue. Please approve the token spending and try again.";
+                      } else if (lowerError.includes("maturity") || lowerError.includes("not yet matured")) {
+                        return "⏰ Savings plan hasn't matured yet. Early withdrawal will incur penalties.";
+                      } else if (error.includes("code=")) {
+                        const codeMatch = error.match(/code=([A-Z_]+)/);
+                        return codeMatch ? `⚠️ Error Code: ${codeMatch[1]}` : error;
+                      } else if (error.includes(":")) {
+                        return `⚠️ ${error.split(":").pop()?.trim()}`;
+                      } else {
+                        return `⚠️ ${error}`;
+                      }
+                    })()}
+                  </div>
+                  <div className="text-xs text-gray-600 mb-3 p-2 bg-gray-50 rounded border">
+                    <strong>Original Error:</strong> {error}
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-red-200">
+                    <button 
+                      onClick={() => window.open('https://t.me/+YimKRR7wAkVmZGRk', '_blank')}
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0C5.374 0 0 5.373 0 12s5.374 12 12 12 12-5.373 12-12S18.626 0 12 0zm5.568 8.16c-.169 1.858-.896 6.728-.896 6.728-.377 2.617-1.407 3.08-2.896 1.596l-2.123-1.596-1.018.96c-.11.11-.202.202-.418.202-.286 0-.237-.107-.335-.38L9.9 13.74l-3.566-1.199c-.778-.244-.79-.778.173-1.16L18.947 6.84c.636-.295 1.295.173.621 1.32z"/>
+                      </svg>
+                      Get Help on Telegram
+                    </button>
+                  </div>
                 </span>
               )}
             </p>

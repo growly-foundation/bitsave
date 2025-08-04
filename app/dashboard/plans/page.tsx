@@ -690,6 +690,7 @@ export default function PlansPage() {
         isEth={selectedPlan.isEth}
         penaltyPercentage={selectedPlan.penaltyPercentage}
         tokenName={selectedPlan.tokenName}
+        isCompleted={new Date().getTime() >= selectedPlan.maturityTime * 1000}
         />
       )}
 

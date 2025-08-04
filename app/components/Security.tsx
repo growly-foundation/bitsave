@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import OptimizedSection from './OptimizedSection';
 
 export default function Security() {
@@ -141,12 +140,8 @@ export default function Security() {
       
       <div className="container mx-auto font-space-grotesk">
         {/* Problems Section */}
-        <motion.div 
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+        <div 
+          className="text-center mb-20 animate-fade-in-up"
         >
           {/* Enhanced badge with glow effect */}
           <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
@@ -203,13 +198,10 @@ export default function Security() {
                   {/* Problems Grid */}
                   <div className="space-y-4 sm:space-y-6">
                     {[1, 2, 3].map((num) => (
-                      <motion.div 
+                      <div 
                         key={num}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: num * 0.1 }}
-                        className="group/card relative transform hover:-translate-y-1 transition-all duration-300"
+                        className="group/card relative transform hover:-translate-y-1 transition-all duration-300 animate-fade-in-up"
+                        style={{ animationDelay: `${num * 0.1}s` }}
                       >
                         {/* Card Container */}
                         <div className="relative p-6 rounded-xl overflow-hidden">
@@ -247,7 +239,7 @@ export default function Security() {
                             </p>
               </div>
                 </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -275,13 +267,10 @@ export default function Security() {
                   {/* Problems Grid */}
                   <div className="space-y-4 sm:space-y-6">
                     {[1, 2, 3].map((num) => (
-                      <motion.div 
+                      <div 
                         key={num}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: num * 0.1 }}
-                        className="group/card relative transform hover:-translate-y-1 transition-all duration-300"
+                        className="animate-fade-in-up group/card relative transform hover:-translate-y-1 transition-all duration-300"
+                        style={{ animationDelay: `${num * 0.1}s` }}
                       >
                         {/* Card Container */}
                         <div className="relative p-6 rounded-xl overflow-hidden">
@@ -319,22 +308,18 @@ export default function Security() {
                             </p>
                   </div>
                 </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Solutions Section */}
-        <motion.div 
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+        <div 
+          className="text-center mb-20 animate-fade-in-up"
         >
           {/* Enhanced badge with glow effect */}
           <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
@@ -350,18 +335,15 @@ export default function Security() {
               The Bitsave Solution
             </span>
           </h2>
-        </motion.div>
+        </div>
 
         {/* Features Strip - Auto-scrolling Carousel */}
         <div className="hidden lg:grid grid-cols-4 gap-6 mb-12">
           {securityFeatures.map((feature, index) => (
-            <motion.div
+            <div
               key={`desktop-${index}`}
-              className="group relative"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="group relative animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               {/* Card Container */}
               <div className="relative h-full p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#81D7B4]/20 transition-all duration-500 group-hover:translate-y-[-2px] overflow-hidden">
@@ -433,7 +415,7 @@ export default function Security() {
                 <div className="absolute inset-0 bg-gradient-to-br from-[#81D7B4]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700 rounded-2xl pointer-events-none"></div>
                 <div className="absolute inset-0 bg-[url('/grain-texture.png')] opacity-[0.03] mix-blend-overlay rounded-2xl pointer-events-none"></div>
               </div>
-            </motion.div>
+            </div>
           ))}
             </div>
             
@@ -452,13 +434,10 @@ export default function Security() {
           >
             {/* Duplicate features for seamless loop */}
             {duplicatedFeatures.map((feature, index) => (
-              <motion.div
+              <div
                 key={`mobile-${index}`}
-                className="relative w-[300px] flex-shrink-0"
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="relative w-[300px] flex-shrink-0 animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {/* Use the same card content as desktop */}
                 <div className="relative h-full p-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#81D7B4]/20 transition-all duration-500 group-hover:translate-y-[-2px]">
@@ -526,18 +505,14 @@ export default function Security() {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
 
         {/* Market Opportunity Section */}
-        <motion.div 
-          className="mt-32 mb-24"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+        <div 
+          className="mt-32 mb-24 animate-fade-in-up"
         >
           {/* Enhanced badge with glow effect */}
           <div className="text-center">
@@ -648,7 +623,7 @@ export default function Security() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
       </div>
   </OptimizedSection>
   )

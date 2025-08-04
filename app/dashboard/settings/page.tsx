@@ -20,6 +20,11 @@ export default function Settings() {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isVerifying, setIsVerifying] = useState(false);
+  
+  // X/Twitter authentication state
+  const [isXConnected, setIsXConnected] = useState(false);
+  const [xUsername, setXUsername] = useState('');
+  const [isConnectingX, setIsConnectingX] = useState(false);
 
   // Component mount effect
   useEffect(() => {
@@ -78,6 +83,130 @@ export default function Settings() {
       // Show success message or update UI
       console.log('Email verified successfully!');
     }, 2000);
+  };
+
+  // X/Twitter authentication function
+  const handleConnectX = async () => {
+    setIsConnectingX(true);
+    
+    try {
+      // Generate PKCE code verifier and challenge for security
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+      
+      // Store code verifier for later use
+      sessionStorage.setItem('twitter_code_verifier', codeVerifier);
+      sessionStorage.setItem('twitter_state', generateRandomString(32));
+      
+      // Twitter OAuth 2.0 authorization URL
+      const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
+      authUrl.searchParams.append('response_type', 'code');
+      authUrl.searchParams.append('client_id', process.env.NEXT_PUBLIC_TWITTER_CLIENT_ID || '');
+      authUrl.searchParams.append('redirect_uri', `${window.location.origin}/auth/twitter/callback`);
+      authUrl.searchParams.append('scope', 'tweet.read users.read');
+      authUrl.searchParams.append('state', sessionStorage.getItem('twitter_state') || '');
+      authUrl.searchParams.append('code_challenge', codeChallenge);
+      authUrl.searchParams.append('code_challenge_method', 'S256');
+      
+      // Open popup window for OAuth
+      const popup = window.open(
+        authUrl.toString(),
+        'twitter-oauth',
+        'width=500,height=600,scrollbars=yes,resizable=yes'
+      );
+      
+      // Listen for the OAuth callback
+      const checkClosed = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(checkClosed);
+          setIsConnectingX(false);
+        }
+      }, 1000);
+      
+      // Listen for messages from the popup
+      const messageListener = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        
+        if (event.data.type === 'TWITTER_AUTH_SUCCESS') {
+          clearInterval(checkClosed);
+          popup?.close();
+          
+          // Handle successful authentication
+          setXUsername(event.data.username);
+          setIsXConnected(true);
+          
+          // Store in localStorage for persistence
+          localStorage.setItem('xUsername', event.data.username);
+          localStorage.setItem('isXConnected', 'true');
+          localStorage.setItem('xAccessToken', event.data.accessToken);
+          
+          setIsConnectingX(false);
+          window.removeEventListener('message', messageListener);
+        } else if (event.data.type === 'TWITTER_AUTH_ERROR') {
+          clearInterval(checkClosed);
+          popup?.close();
+          console.error('Twitter authentication failed:', event.data.error);
+          setIsConnectingX(false);
+          window.removeEventListener('message', messageListener);
+        }
+      };
+      
+      window.addEventListener('message', messageListener);
+      
+    } catch (error) {
+      console.error('X/Twitter authentication failed:', error);
+      setIsConnectingX(false);
+    }
+  };
+
+  // Load X/Twitter connection status from localStorage
+  useEffect(() => {
+    const savedXUsername = localStorage.getItem('xUsername');
+    const savedXConnected = localStorage.getItem('isXConnected');
+    
+    if (savedXUsername && savedXConnected === 'true') {
+      setXUsername(savedXUsername);
+      setIsXConnected(true);
+    }
+  }, []);
+
+  // Function to disconnect X/Twitter
+  const handleDisconnectX = () => {
+    setIsXConnected(false);
+    setXUsername('');
+    localStorage.removeItem('xUsername');
+    localStorage.removeItem('isXConnected');
+    localStorage.removeItem('xAccessToken');
+  };
+  
+  // Helper functions for PKCE
+  const generateCodeVerifier = () => {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode(...array))
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+  };
+  
+  const generateCodeChallenge = async (verifier: string) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode(...new Uint8Array(digest)))
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+  };
+  
+  const generateRandomString = (length: number) => {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode(...array))
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .substring(0, length);
   };
 
   if (!mounted) {
@@ -286,11 +415,25 @@ export default function Settings() {
                       </div>
                       <div>
                         <span className="font-semibold text-gray-800 text-base sm:text-lg">X (Twitter)</span>
-                        <p className="text-gray-500 text-xs sm:text-sm">Social platform</p>
+                        <p className="text-gray-500 text-xs sm:text-sm">
+                          {isXConnected && xUsername ? `@${xUsername}` : 'Social platform'}
+                        </p>
                       </div>
                     </div>
-                    <div className="flex flex-col items-start sm:items-end">
-                      <span className="text-xs sm:text-sm text-red-600 bg-red-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-medium border border-red-200">Not Connected</span>
+                    <div className="flex flex-col items-start sm:items-end gap-2">
+                      {isXConnected && xUsername ? (
+                        <>
+                          <span className="text-xs sm:text-sm text-green-600 bg-green-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-medium border border-green-200">Connected</span>
+                          <button 
+                            onClick={handleDisconnectX}
+                            className="text-xs text-red-600 hover:text-red-800 underline"
+                          >
+                            Disconnect
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-xs sm:text-sm text-red-600 bg-red-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-medium border border-red-200">Not Connected</span>
+                      )}
                     </div>
                   </motion.div>
                   
@@ -422,14 +565,22 @@ export default function Settings() {
                     <div className="flex flex-col gap-2 sm:gap-3">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                         <p className="font-mono text-base sm:text-lg lg:text-xl font-bold text-gray-800 break-all sm:break-normal">
-                          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not connected'}
+                          {isXConnected && xUsername ? `@${xUsername}` : (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not connected')}
                         </p>
                         <div className="flex items-center bg-[#81D7B4]/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#81D7B4]/20 w-fit">
                           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#81D7B4] rounded-full mr-1.5 sm:mr-2 animate-pulse"></div>
                           <span className="text-xs sm:text-sm font-semibold text-[#81D7B4]">Connected</span>
                         </div>
+                        {isXConnected && xUsername && (
+                          <div className="flex items-center bg-blue-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-blue-200 w-fit">
+                            <span className="text-black font-bold text-sm sm:text-lg mr-1.5 sm:mr-2">𝕏</span>
+                            <span className="text-xs sm:text-sm font-semibold text-blue-600">X Connected</span>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-gray-600 text-sm sm:text-base lg:text-lg">Your primary wallet address</p>
+                      <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
+                        {isXConnected && xUsername ? 'Your X/Twitter display name' : 'Your primary wallet address'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -552,16 +703,41 @@ export default function Settings() {
                   Connect Farcaster
                 </motion.button>
                 
-                <motion.button 
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
-                >
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-lg flex items-center justify-center">
-                    <span className="text-black font-bold text-sm sm:text-lg">𝕏</span>
-                  </div>
-                  Connect X/Twitter
-                </motion.button>
+                {isXConnected && xUsername ? (
+                  <motion.button 
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleDisconnectX}
+                    className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
+                  >
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-lg flex items-center justify-center">
+                      <span className="text-red-600 font-bold text-sm sm:text-lg">𝕏</span>
+                    </div>
+                    Disconnect @{xUsername}
+                  </motion.button>
+                ) : (
+                  <motion.button 
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleConnectX}
+                    disabled={isConnectingX}
+                    className="w-full bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base disabled:cursor-not-allowed"
+                  >
+                    {isConnectingX ? (
+                      <>
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-lg flex items-center justify-center">
+                          <span className="text-black font-bold text-sm sm:text-lg">𝕏</span>
+                        </div>
+                        Connect X/Twitter
+                      </>
+                    )}
+                  </motion.button>
+                )}
               </div>
             </div>
           </motion.div>

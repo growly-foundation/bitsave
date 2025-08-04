@@ -1,6 +1,5 @@
 'use client'
 import { useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 
 // Combine all cards into one array
 const allCards = [
@@ -78,13 +77,7 @@ export default function FAQ() {
 
       <div className="container mx-auto max-w-7xl">
         {/* Section Header */}
-        <motion.div 
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-        >
+        <div className="text-center mb-20">
           <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 mb-6 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-r from-[#81D7B4]/0 via-[#81D7B4]/20 to-[#81D7B4]/0 animate-shimmer"></div>
               <div className="absolute inset-0 bg-gradient-to-t from-[#81D7B4]/0 via-[#81D7B4]/10 to-[#81D7B4]/0 animate-shimmer-slow"></div>
@@ -102,17 +95,13 @@ export default function FAQ() {
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Everything you need to know about savings with BitSave&#39;s innovative crypto platform
           </p>
-        </motion.div>
+        </div>
         
         {/* FAQ Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          {allCards.map((card, index) => (
-        <motion.div 
+          {allCards.map((card) => (
+            <div 
               key={card.id}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
               className="group relative"
             >
               <div className={`relative p-8 rounded-2xl ${card.color} shadow-lg backdrop-blur-xl border border-[#81D7B4]/20 transition-all duration-500 ${card.hoverColor} group-hover:shadow-xl h-full`}>
@@ -182,7 +171,7 @@ export default function FAQ() {
                     </svg>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
           </div>
       </div>

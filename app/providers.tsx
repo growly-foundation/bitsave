@@ -11,13 +11,7 @@ import {
   coinbaseWallet,
   trustWallet,
   rabbyWallet,
-  imTokenWallet,
-  oktoWallet,
-  bitgetWallet,
-  bybitWallet,
-  phantomWallet,
-  walletConnectWallet,
-  injectedWallet
+  zerionWallet
 } from '@rainbow-me/rainbowkit/wallets';
 import { useTheme } from 'next-themes';
 
@@ -30,27 +24,16 @@ const projectId = 'dfffb9bb51c39516580c01f134de2345';
 // Define the supported chains - needs to be a tuple type with at least one chain
 const chains = [mainnet, sepolia, base] as const;
 
-// Create wallet groups with connectorsForWallets
+// Create wallet groups with connectorsForWallets - Only supported wallets
 const connectors = connectorsForWallets([
     {
-      groupName: 'Popular',
+      groupName: 'Wallets Supported On Bitsave',
       wallets: [
         metaMaskWallet,
         coinbaseWallet,
-        trustWallet,
         rabbyWallet,
-        imTokenWallet,
-        oktoWallet,
-        bitgetWallet,
-        bybitWallet,
-        phantomWallet,
-      ],
-    },
-    {
-      groupName: 'Other',
-      wallets: [
-        walletConnectWallet,
-        injectedWallet,
+        trustWallet,
+        zerionWallet,
       ],
     },
 ], {

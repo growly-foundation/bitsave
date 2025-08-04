@@ -732,22 +732,24 @@ export default function Dashboard() {
     planName: '',
     isEth: false,
     penaltyPercentage: 0,
-    tokenName: ''
+    tokenName: '',
+    isCompleted: false
   });
 
-  const openWithdrawModal = (planId: string, planName: string, isEth: boolean, penaltyPercentage: number = 5, tokenName: string = '') => {
+  const openWithdrawModal = (planId: string, planName: string, isEth: boolean, penaltyPercentage: number = 5, tokenName: string = '', isCompleted: boolean = false) => {
     setWithdrawModal({
       isOpen: true,
       planId,
       planName,
       isEth,
       penaltyPercentage,
-      tokenName
+      tokenName,
+      isCompleted
     });
   };
 
   const closeWithdrawModal = () => {
-    setWithdrawModal({ isOpen: false, planId: '', planName: '', isEth: false, penaltyPercentage: 0, tokenName: '' });
+    setWithdrawModal({ isOpen: false, planId: '', planName: '', isEth: false, penaltyPercentage: 0, tokenName: '', isCompleted: false });
   };
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
@@ -949,6 +951,7 @@ export default function Dashboard() {
         isEth={withdrawModal.isEth}
         penaltyPercentage={withdrawModal.penaltyPercentage}
         tokenName={withdrawModal.tokenName}
+        isCompleted={withdrawModal.isCompleted}
       />
 
       {/* Update Modal */}
@@ -1365,7 +1368,13 @@ export default function Dashboard() {
 
                     {/* Withdraw Button */}
                     <button
-                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage, plan.tokenName)}
+                      onClick={() => {
+                        const currentDate = new Date();
+                        const maturityTimestamp = Number(plan.maturityTime || 0);
+                        const maturityDate = new Date(maturityTimestamp * 1000);
+                        const isCompleted = currentDate >= maturityDate;
+                        openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage, plan.tokenName, isCompleted);
+                      }}
                       className="w-full py-3 text-center text-sm font-bold text-white bg-[#81D7B4] rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.15)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.18)] transition-all duration-300 transform hover:scale-[1.02] relative overflow-hidden group mt-2"
                     >
                       <span className="flex items-center justify-center gap-2">
@@ -1510,7 +1519,13 @@ export default function Dashboard() {
 
                     {/* Withdraw Button */}
                     <button
-                      onClick={() => openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage, plan.tokenName)}
+                      onClick={() => {
+                        const currentDate = new Date();
+                        const maturityTimestamp = Number(plan.maturityTime || 0);
+                        const maturityDate = new Date(maturityTimestamp * 1000);
+                        const isCompleted = currentDate >= maturityDate;
+                        openWithdrawModal(plan.id, plan.name, plan.isEth, plan.penaltyPercentage, plan.tokenName, isCompleted);
+                      }}
                       className="w-full py-3 text-center text-sm font-bold text-white bg-[#81D7B4] rounded-xl shadow-[0_4px_12px_rgba(129,215,180,0.15)] hover:shadow-[0_8px_20px_rgba(129,215,180,0.18)] transition-all duration-300 transform hover:scale-[1.02] relative overflow-hidden group mt-2"
                     >
                       <span className="flex items-center justify-center gap-2">

@@ -1,7 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion';
-import {  useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function HowItWorks() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -40,8 +39,6 @@ export default function HowItWorks() {
       )
     }
   ];
-  
-
 
   return (
     <section id="how-it-works" ref={sectionRef} className="py-24 px-4 md:px-8 lg:px-16 relative overflow-hidden bg-gradient-to-b from-white to-[#f8fafa]">
@@ -79,20 +76,8 @@ export default function HowItWorks() {
       
       <div className="container mx-auto">
         {/* Enhanced title section */}
-        <motion.div 
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <motion.div 
-            className="flex items-center justify-center mb-6"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          >
+        <div className="text-center mb-20 animate-fade-in-up">
+          <div className="flex items-center justify-center mb-6 animate-fade-in-scale" style={{ animationDelay: '0.2s' }}>
             {/* Enhanced badge */}
             <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#81D7B4]/10 border border-[#81D7B4]/30 backdrop-blur-sm shadow-[0_0_15px_rgba(129,215,180,0.2)] mx-auto relative overflow-hidden group">
               {/* Holographic shimmer effect */}
@@ -102,35 +87,17 @@ export default function HowItWorks() {
               <div className="w-3 h-3 rounded-full bg-[#81D7B4] animate-pulse relative z-10"></div>
               <span className="text-sm font-semibold text-[#81D7B4] uppercase tracking-wider relative z-10">Simple Process</span>
             </div>
-          </motion.div>
+          </div>
           
-          <motion.h2 
-            className="text-4xl md:text-5xl font-bold mb-6 relative inline-block text-gray-800"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 relative inline-block animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">How It Works</span>
-            <motion.div 
-              className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary rounded-full opacity-80"
-              initial={{ width: "0%", left: "50%" }}
-              whileInView={{ width: "100%", left: "0%" }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            ></motion.div>
-          </motion.h2>
+            <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary rounded-full opacity-80 animate-expand-width" style={{ animationDelay: '0.5s' }}></div>
+          </h2>
           
-          <motion.p 
-            className="text-gray-600 text-lg max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
             Start your crypto savings journey in three simple steps
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
         
         {/* Enhanced steps with modern cards */}
         <div className="relative mb-20">
@@ -142,13 +109,10 @@ export default function HowItWorks() {
           {/* Steps in a responsive row/column layout */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
             {steps.map((step, index) => (
-              <motion.div 
+              <div 
                 key={index} 
-                className="relative"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
+                className="relative animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.2}s` }}
                 onMouseEnter={() => setActiveStep(index)}
               >
                 {/* Step number with enhanced visibility */}
@@ -183,10 +147,8 @@ export default function HowItWorks() {
                     
                     {/* Enhanced animated indicator for active step */}
                     {activeStep === index && (
-                      <motion.div 
-                        className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#81D7B4]/70 via-[#81D7B4] to-[#81D7B4]/80"
-                        layoutId="activeStepIndicator"
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      <div 
+                        className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#81D7B4]/70 via-[#81D7B4] to-[#81D7B4]/80 animate-expand-width"
                       />
                     )}
                   </div>
@@ -204,7 +166,7 @@ export default function HowItWorks() {
                     </svg>
                   </div>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

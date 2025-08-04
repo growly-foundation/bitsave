@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useOptimizedDisconnect } from '../../lib/useOptimizedDisconnect';
 import { trackWalletConnect, trackPageVisit } from '../../lib/interactionTracker';
+import CustomConnectButton from '../../components/CustomConnectButton';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,7 +14,6 @@ export default function Header() {
   
   const { isConnected, address } = useAccount();
   const { disconnect, isDisconnecting } = useOptimizedDisconnect();
-  const { openConnectModal } = useConnectModal();
 
   // Set mounted state after component mounts to prevent hydration mismatch
   useEffect(() => {
@@ -103,10 +102,8 @@ export default function Header() {
       // If already connected, switch to Base and redirect to dashboard
       await switchToBaseNetwork();
       router.push('/dashboard');
-    } else if (mounted) {
-      // If not connected but component is mounted, open Rainbow Kit connect modal
-      openConnectModal?.();
     }
+    // Connect wallet functionality is now handled by CustomConnectButton
   };
 
   // Render consistent UI during server-side rendering
@@ -157,12 +154,18 @@ export default function Header() {
         </nav>
         
         <div className="flex items-center space-x-4">
-          <button 
-            onClick={handleWalletAction}
-            className="bg-[#81D7B4] text-white hidden md:flex items-center justify-center rounded-lg px-6 py-2.5 font-medium transition-all duration-300 hover:shadow-lg"
-          >
-            {renderWalletButton()}
-          </button>
+          {mounted && isConnected ? (
+            <button 
+              onClick={handleWalletAction}
+              className="bg-[#81D7B4] text-white hidden md:flex items-center justify-center rounded-lg px-6 py-2.5 font-medium transition-all duration-300 hover:shadow-lg"
+            >
+              {renderWalletButton()}
+            </button>
+          ) : (
+            <div className="hidden md:block">
+              <CustomConnectButton />
+            </div>
+          )}
           <button className="md:hidden text-gray-700" onClick={toggleMobileMenu}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
               {mobileMenuOpen ? (
@@ -223,7 +226,7 @@ export default function Header() {
                     router.push('/dashboard');
                     setMobileMenuOpen(false);
                   }}
-                  className="web3-button flex items-center justify-center rounded-lg px-6 py-2.5 font-medium transition-all duration-300 hover:shadow-lg"
+                  className="bg-gradient-to-r from-[#81D7B4] to-[#66C4A3] text-white flex items-center justify-center rounded-lg px-6 py-2.5 font-medium transition-all duration-300 hover:shadow-lg"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 mr-2">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -233,11 +236,10 @@ export default function Header() {
                 <button 
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    // Immediate UI feedback
                     disconnect();
                   }}
                   disabled={isDisconnecting}
-                  className="flex items-center justify-center rounded-lg px-6 py-2.5 font-medium transition-all duration-300 hover:bg-white/10 border border-white/10 disabled:opacity-50"
+                  className="flex items-center justify-center rounded-lg px-6 py-2.5 font-medium transition-all duration-300 hover:bg-gray-100 border border-gray-300 text-gray-700 disabled:opacity-50"
                 >
                   {isDisconnecting ? (
                     <svg className="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
@@ -253,15 +255,9 @@ export default function Header() {
                 </button>
               </div>
             ) : (
-              <button 
-                onClick={() => {
-                  handleWalletAction();
-                  setMobileMenuOpen(false);
-                }}
-                className="web3-button flex items-center justify-center rounded-lg px-6 py-2.5 font-medium transition-all duration-300 hover:shadow-lg mx-4"
-              >
-                {renderWalletButton()}
-              </button>
+              <div className="mx-4">
+                <CustomConnectButton />
+              </div>
             )}
           </nav>
         </div>

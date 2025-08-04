@@ -1,7 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion';
-
 import { useState } from 'react';
 
 const footerLinks = {
@@ -66,12 +64,8 @@ export default function Footer() {
 
       {/* Newsletter Section */}
       <div className="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-          className="rounded-3xl bg-gradient-to-b from-white/80 to-white/40 backdrop-blur-xl border border-[#81D7B4]/20 p-8 lg:p-12"
+        <div 
+          className="rounded-3xl bg-gradient-to-b from-white/80 to-white/40 backdrop-blur-xl border border-[#81D7B4]/20 p-8 lg:p-12 animate-fade-in-up"
         >
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
             <div className="max-w-xl">
@@ -104,7 +98,7 @@ export default function Footer() {
               </button>
             </form>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Main Footer Content */}
