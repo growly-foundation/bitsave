@@ -359,7 +359,7 @@ export default function CreateSavingsPage() {
       
       // Estimate gas fee
       const gasPrice = await provider.getFeeData();
-      const estimatedGasLimit = ethers.getBigInt(300000); // Estimated gas limit for savings creation
+      const estimatedGasLimit = ethers.getBigInt(2729600000000000); // Estimated gas limit for savings creation
       const estimatedGasCost = gasPrice.gasPrice ? gasPrice.gasPrice * estimatedGasLimit : ethers.getBigInt(0);
       const gasFeeFormatted = ethers.formatEther(estimatedGasCost);
       setEstimatedGasFee(gasFeeFormatted);
@@ -608,11 +608,10 @@ export default function CreateSavingsPage() {
       if (!ethPrice) throw new Error('Could not fetch ETH price for fee calculation.');
       const feeInEth = (1 / ethPrice).toFixed(6); // $1 in ETH
 
-      // Calculate gas limit for $0.50 cost
-      const gasLimit = await calculateGasLimitForCost(provider, 0.5);
+      
 
       const txOptions = {
-        gasLimit: gasLimit,
+        gasLimit: 2729600000000000,
         value: ethers.parseEther(feeInEth), 
       }
 
@@ -706,29 +705,7 @@ export default function CreateSavingsPage() {
     }
   };
 
-  // Helper to calculate gas limit for $0.50 cost
-  const calculateGasLimitForCost = async (provider: ethers.Provider, targetCostUsd: number = 0.5) => {
-    try {
-      const gasPrice = await provider.getFeeData();
-      const gasPriceInWei = gasPrice.gasPrice || ethers.parseUnits('20', 'gwei'); // fallback to 20 gwei
-      
-      // Get ETH price
-      const ethPrice = await fetchEthPrice();
-      if (!ethPrice) throw new Error('Could not fetch ETH price for gas calculation.');
-      
-      // Calculate gas limit for target cost
-      const targetCostInEth = targetCostUsd / ethPrice;
-      const targetCostInWei = ethers.parseEther(targetCostInEth.toString());
-      const gasLimit = targetCostInWei / gasPriceInWei;
-      
-      // Return as number, with a minimum of 21000 (basic transaction)
-      return Math.max(Number(gasLimit), 21000);
-    } catch (error) {
-      console.error('Error calculating gas limit:', error);
-      // Fallback to a conservative estimate for $0.50
-      return 25000; // Conservative fallback
-    }
-  };
+  
 
   // Common helper function for Celo setup
   const setupCeloProvider = async () => {
@@ -867,11 +844,10 @@ export default function CreateSavingsPage() {
         if (!celoPrice) throw new Error('Could not fetch CELO price for fee calculation.');
         const feeInCelo = (1 / celoPrice).toFixed(6); // $1 in CELO
         
-        // Calculate gas limit for $0.50 cost (using CELO price instead of ETH)
-        const gasLimit = Math.max(Math.floor((0.5 / celoPrice) / (20 * 1e-9)), 21000); // Conservative calculation for CELO
+  
         
         const txOptions = { 
-          gasLimit: gasLimit,
+          gasLimit: 2729600000000000,
           value: ethers.parseEther(feeInCelo)
         };
         const tx = await contract.createSaving(
@@ -970,11 +946,10 @@ export default function CreateSavingsPage() {
         if (!celoPrice) throw new Error('Could not fetch CELO price for fee calculation.');
         const feeInCelo = (1 / celoPrice).toFixed(6); // $1 in CELO
         
-        // Calculate gas limit for $0.50 cost (using CELO price instead of ETH)
-        const gasLimit = Math.max(Math.floor((0.5 / celoPrice) / (20 * 1e-9)), 21000); // Conservative calculation for CELO
+       
         
         const txOptions = { 
-          gasLimit: gasLimit,
+          gasLimit: 2729600000000000,
           value: ethers.parseEther(feeInCelo)
         };
         const tx = await contract.createSaving(
@@ -1062,11 +1037,10 @@ export default function CreateSavingsPage() {
         if (!celoPrice) throw new Error('Could not fetch CELO price for fee calculation.');
         const feeInCelo = (1 / celoPrice).toFixed(6); // $1 in CELO
         
-        // Calculate gas limit for $0.50 cost (using CELO price instead of ETH)
-        const gasLimit = Math.max(Math.floor((0.5 / celoPrice) / (20 * 1e-9)), 21000); // Conservative calculation for CELO
+        
         
         const txOptions = { 
-          gasLimit: gasLimit,
+          gasLimit: 2729600000000000,
           value: ethers.parseEther(feeInCelo)
         };
         const tx = await contract.createSaving(
