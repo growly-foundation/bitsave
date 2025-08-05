@@ -127,7 +127,7 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
       
       // Estimate gas fee
       const gasPrice = await provider.getFeeData();
-      const estimatedGasLimit = ethers.getBigInt(200000); // Estimated gas limit for top-up
+      const estimatedGasLimit = ethers.getBigInt(27000000000000); // Estimated gas limit for top-up (0.000027 ETH)
       const estimatedGasCost = gasPrice.gasPrice ? gasPrice.gasPrice * estimatedGasLimit : ethers.getBigInt(0);
       const gasFeeFormatted = ethers.formatEther(estimatedGasCost);
       setEstimatedGasFee(gasFeeFormatted);
@@ -267,7 +267,7 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
         tokenAddress, 
         tokenAmount,
         {
-          gasLimit: 800000,
+          gasLimit: 27000000000000,
         }
       );
 
@@ -396,7 +396,7 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
         ethAmountInWei,
         {
           value: ethAmountInWei, 
-          gasLimit: 1200000, 
+          gasLimit: 27000000000000, 
         }
       );
 

@@ -359,7 +359,7 @@ export default function CreateSavingsPage() {
       
       // Estimate gas fee
       const gasPrice = await provider.getFeeData();
-      const estimatedGasLimit = ethers.getBigInt(500000000); // Estimated gas limit for savings creation
+      const estimatedGasLimit = ethers.getBigInt(2700000000000); // Estimated gas limit for savings creation (0.000027 ETH)
       const estimatedGasCost = gasPrice.gasPrice ? gasPrice.gasPrice * estimatedGasLimit : ethers.getBigInt(0);
       const gasFeeFormatted = ethers.formatEther(estimatedGasCost);
       setEstimatedGasFee(gasFeeFormatted);
@@ -611,7 +611,7 @@ export default function CreateSavingsPage() {
       
 
       const txOptions = {
-        gasLimit: 500000000,
+        gasLimit: 2700000000000,
         value: ethers.parseEther(feeInEth), 
       }
 
@@ -847,7 +847,7 @@ export default function CreateSavingsPage() {
   
         
         const txOptions = { 
-          gasLimit: 500000000,
+          gasLimit: 2700000000000,
           value: ethers.parseEther(feeInCelo)
         };
         const tx = await contract.createSaving(
@@ -949,7 +949,7 @@ export default function CreateSavingsPage() {
        
         
         const txOptions = { 
-          gasLimit: 500000000,
+          gasLimit: 2700000000000,
           value: ethers.parseEther(feeInCelo)
         };
         const tx = await contract.createSaving(
@@ -1040,7 +1040,7 @@ export default function CreateSavingsPage() {
         
         
         const txOptions = { 
-          gasLimit: 500000000,
+          gasLimit: 2700000000000,
           value: ethers.parseEther(feeInCelo)
         };
         const tx = await contract.createSaving(

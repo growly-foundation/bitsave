@@ -231,7 +231,7 @@ export default function WithdrawModal({
       const amount = ethers.formatUnits(savingData.amount, 6); 
 
       const tx = await contract.withdrawSaving(nameOfSavings, {
-        gasLimit: 800000,
+        gasLimit: 27000000000000,
       });
 
       const receipt = await tx.wait();
