@@ -13,6 +13,7 @@ import axios from 'axios'
 import CONTRACT_ABI from '@/app/abi/contractABI.js'
 import erc20ABI from '@/app/abi/erc20ABI.json'
 import { trackSavingsCreated, trackError, trackPageVisit } from '@/lib/interactionTracker'
+import { useReferrals } from '@/lib/useReferrals'
 
 const CONTRACT_ADDRESS = "0x3593546078eecd0ffd1c19317f53ee565be6ca13"
 const BASE_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
@@ -29,6 +30,7 @@ const spaceGrotesk = Space_Grotesk({
 export default function CreateSavingsPage() {
   const router = useRouter()
   const { address } = useAccount()
+  const { referralData, generateReferralCode, markReferralConversion } = useReferrals()
   const [step, setStep] = useState(1)
   const [mounted, setMounted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -110,6 +112,13 @@ export default function CreateSavingsPage() {
   useEffect(() => {
     setSelectedPenalty(parseInt(penalty))
   }, [penalty])
+
+  // Generate referral code when component mounts
+  useEffect(() => {
+    if (address && !referralData) {
+      generateReferralCode()
+    }
+  }, [address, referralData, generateReferralCode])
 
   // Check wallet balances when relevant values change
   useEffect(() => {
@@ -877,6 +886,13 @@ export default function CreateSavingsPage() {
           endDate: endDate?.toISOString(),
           txHash: txHash
         });
+        
+        // Track referral conversion if user came from a referral link
+        const referralCode = localStorage.getItem('referralCode') || new URLSearchParams(window.location.search).get('ref');
+        if (referralCode) {
+          markReferralConversion(referralCode);
+          localStorage.removeItem('referralCode'); // Remove after conversion
+        }
       }
       
       setSuccess(true);
@@ -1111,6 +1127,13 @@ export default function CreateSavingsPage() {
           endDate: endDate?.toISOString(),
           txHash: txHash
         });
+        
+        // Track referral conversion if user came from a referral link
+        const referralCode = localStorage.getItem('referralCode') || new URLSearchParams(window.location.search).get('ref');
+        if (referralCode) {
+          markReferralConversion(referralCode);
+          localStorage.removeItem('referralCode'); // Remove after conversion
+        }
       }
       
       setSuccess(true);
@@ -1347,7 +1370,7 @@ export default function CreateSavingsPage() {
 
               {/* Tweet Button (only on success) */}
               {success && (() => {
-                const referralLink = 'https://bitsave.io/ref/123xyz'; // Placeholder
+                const referralLink = referralData?.referralLink || 'https://bitsave.io';
                 const tweetText = `Just locked up some ${currency} for my future self on @bitsaveprotocol, no degen plays today, web3 savings never looked this good 💰\n\nYou should be doing #SaveFi → ${referralLink}`;
                 const encodedTweetText = encodeURIComponent(tweetText);
                 return (

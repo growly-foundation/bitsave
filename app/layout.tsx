@@ -11,6 +11,7 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 import { Providers } from './providers';
+import ReferralTracker from '@/components/ReferralTracker';
 
 // Add this import to your layout file
 // import "../styles/date-picker.css";
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="en" className={`${spaceGrotesk.variable}`}>
       <body className={`${spaceGrotesk.className}`}>
         <Providers>
+          <ReferralTracker />
           {children}
         </Providers>
       </body>

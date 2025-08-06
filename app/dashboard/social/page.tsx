@@ -1,8 +1,9 @@
 "use client"
-import { useState, ReactNode, lazy, Suspense, memo, useMemo } from 'react'
+import { useState, ReactNode, lazy, Suspense, memo, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Space_Grotesk } from 'next/font/google'
 import Link from 'next/link'
+import { useReferrals } from '@/lib/useReferrals'
 
 // Lazy load heavy components
 const TwitterFeed = lazy(() => import('./components/TwitterFeed'))
@@ -32,8 +33,7 @@ const MOCK_USER_DATA = {
   hasConnectedX: true,
   hasConnectedFarcaster: true,
   hasEmail: true,
-  userPoints: 0,
-  referralLink: 'https://bitsave.io/ref/123xyz',
+  userPoints: 0, // Start with 0 points, will be updated based on actual activity
 }
 
 const twitterLinks = [
@@ -50,28 +50,32 @@ const twitterLinks = [
 const savvyFinanceVideos = [
   {
     id: 'PdwOltnBznE',
-    title: 'Savvy Finance Video 1',
+    title: 'Video Title',
+    thumbnail: 'https://img.youtube.com/vi/PdwOltnBznE/maxresdefault.jpg',
     creator: 'Savvy Finance',
     embedUrl: 'https://www.youtube.com/embed/PdwOltnBznE',
     url: 'https://youtu.be/PdwOltnBznE?si=UK15zqZUVEid9qt4',
   },
   {
     id: 'z1zvOmhfA0k',
-    title: 'Savvy Finance Video 2',
+    title: 'Video Title',
+    thumbnail: 'https://img.youtube.com/vi/z1zvOmhfA0k/maxresdefault.jpg',
     creator: 'Savvy Finance',
     embedUrl: 'https://www.youtube.com/embed/z1zvOmhfA0k',
     url: 'https://youtube.com/shorts/z1zvOmhfA0k?feature=share',
   },
   {
     id: 'CWRQ7rgtHzU',
-    title: 'Savvy Finance Video 3',
+    title: 'Video Title',
+    thumbnail: 'https://img.youtube.com/vi/CWRQ7rgtHzU/maxresdefault.jpg',
     creator: 'Savvy Finance',
     embedUrl: 'https://www.youtube.com/embed/CWRQ7rgtHzU',
     url: 'https://youtube.com/shorts/CWRQ7rgtHzU?feature=share',
   },
   {
     id: '2QzgDb-27BQ',
-    title: 'Savvy Finance Video 4',
+    title: 'Video Title',
+    thumbnail: 'https://img.youtube.com/vi/2QzgDb-27BQ/maxresdefault.jpg',
     creator: 'Savvy Finance',
     embedUrl: 'https://www.youtube.com/embed/2QzgDb-27BQ',
     url: 'https://youtube.com/shorts/2QzgDb-27BQ?si=zcTRpALVASP_WcSl',
@@ -90,6 +94,28 @@ interface Task {
 
 export default function SavvySpacePage() {
   const [userData] = useState(MOCK_USER_DATA)
+  const [showModal, setShowModal] = useState(false)
+  const { referralData, loading: referralLoading, generateReferralCode } = useReferrals()
+  
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setShowModal(true)
+      // Auto-hide modal after 2 seconds
+      setTimeout(() => setShowModal(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy text: ', err)
+    }
+  }
+  
+  // Generate referral code on component mount if user doesn't have one
+  useEffect(() => {
+    if (!referralData && !referralLoading) {
+      generateReferralCode()
+    }
+  }, [referralData, referralLoading, generateReferralCode])
+  
+  const referralLink = referralData?.referralLink || 'https://bitsave.io'
 
   const tasks: Task[] = useMemo(() => [
     {
@@ -134,7 +160,7 @@ export default function SavvySpacePage() {
       description: 'Share your experience with BitSave on X.',
       points: 5,
       isCompleted: false, // This would be tracked via backend
-      href: `https://twitter.com/intent/tweet?text=Exploring%20the%20world%20of%20DeFi%20savings%20with%20@bitsaveprotocol!%20%23SaveFi%20%23Web3&url=${userData.referralLink}`,
+      href: `https://twitter.com/intent/tweet?text=Just%20started%20my%20crypto%20savings%20journey%20with%20@BitSaveApp!%20%F0%9F%9A%80%20Secure,%20transparent,%20and%20rewarding.%20Join%20me%20in%20building%20better%20financial%20habits!%20%23SaveFi%20%23Web3&url=${encodeURIComponent(referralLink)}`,
       icon: 'tweet',
     },
     {
@@ -143,7 +169,7 @@ export default function SavvySpacePage() {
       description: 'Post about BitSave on Farcaster.',
       points: 5,
       isCompleted: false, // This would be tracked via backend
-      href: `https://warpcast.com/~/compose?text=Exploring%20the%20world%20of%20DeFi%20savings%20with%20@bitsave!%20&embeds[]=${userData.referralLink}`,
+      href: `https://warpcast.com/~/compose?text=Just%20started%20my%20crypto%20savings%20journey%20with%20BitSave!%20%F0%9F%9A%80%20Secure,%20transparent,%20and%20rewarding.%20Join%20me%20in%20building%20better%20financial%20habits!%20%23SaveFi%20%23Web3&embeds[]=${encodeURIComponent(referralLink)}`,
       icon: 'cast',
     },
     {
@@ -173,7 +199,7 @@ export default function SavvySpacePage() {
       href: '/dashboard/plans',
       icon: 'calendar',
     },
-  ], [userData.referralLink])
+  ], [referralLink])
 
   const TaskIcon = memo(({ icon }: { icon: string }) => {
     const icons: { [key: string]: ReactNode } = {
@@ -218,11 +244,11 @@ export default function SavvySpacePage() {
               <input
                 type="text"
                 readOnly
-                value={userData.referralLink}
+                value={referralLink}
                 className="w-full bg-gray-100/50 rounded-l-lg px-3 py-2 border-y border-l border-gray-200/50 text-sm focus:outline-none"
               />
               <button
-                onClick={() => navigator.clipboard.writeText(userData.referralLink)}
+                onClick={() => copyToClipboard(referralLink)}
                 className="bg-[#81D7B4] text-white px-3 py-2 rounded-r-lg hover:bg-[#6bc4a1] transition-colors"
               >
                 Copy
@@ -367,6 +393,34 @@ export default function SavvySpacePage() {
 
         <SavvySpace />
       </div>
+      
+      {/* Success Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-sm flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="bg-white rounded-lg p-6 max-w-sm mx-4 transform transition-all duration-300 shadow-xl"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Link Copied!</h3>
+              <p className="text-gray-600 mb-4">Your referral link has been copied to clipboard</p>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-[#81D7B4] text-white rounded-lg hover:bg-[#6BC49F] transition-colors"
+              >
+                Got it
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }

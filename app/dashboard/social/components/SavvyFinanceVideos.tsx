@@ -2,11 +2,29 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
+// Utility function to generate YouTube thumbnail URL with fallback
+const getYouTubeThumbnail = (videoId: string, quality: 'maxresdefault' | 'hqdefault' | 'mqdefault' | 'sddefault' = 'maxresdefault') => {
+  return `https://img.youtube.com/vi/${videoId}/${quality}.jpg`;
+};
+
+// Function to fetch video title from YouTube oEmbed API
+const fetchVideoTitle = async (videoId: string): Promise<string> => {
+  try {
+    const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+    if (response.ok) {
+      const data = await response.json();
+      return data.title || 'Video Title';
+    }
+  } catch (error) {
+    console.error('Error fetching video title:', error);
+  }
+  return 'Video Title'; // Fallback title
+};
+
 // Video data will be passed as props
 type Video = {
   id: string;
   title: string;
-  description?: string;
   thumbnail?: string;
   url?: string;
   creator?: string;
@@ -17,7 +35,30 @@ const VideoCard = ({ video, index }: { video: Video; index: number }) => {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showPlayer, setShowPlayer] = useState(false)
   const [isInView, setIsInView] = useState(false)
+  const [thumbnailError, setThumbnailError] = useState(false)
+  const [actualTitle, setActualTitle] = useState(video.title)
+  const [titleLoading, setTitleLoading] = useState(true)
   const cardRef = useRef<HTMLDivElement>(null)
+  
+  // Generate thumbnail URL with fallback
+  const thumbnailUrl = video.thumbnail || getYouTubeThumbnail(video.id)
+  const fallbackThumbnailUrl = getYouTubeThumbnail(video.id, 'hqdefault')
+
+  // Fetch actual video title
+  useEffect(() => {
+    const getTitle = async () => {
+      try {
+        const title = await fetchVideoTitle(video.id);
+        setActualTitle(title);
+      } catch (error) {
+        console.error('Failed to fetch video title:', error);
+      } finally {
+        setTitleLoading(false);
+      }
+    };
+    
+    getTitle();
+  }, [video.id]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -27,14 +68,16 @@ const VideoCard = ({ video, index }: { video: Video; index: number }) => {
       { threshold: 0.1 }
     )
 
-    if (cardRef.current) {
-      observer.observe(cardRef.current)
+    const currentElement = cardRef.current
+    if (currentElement) {
+      observer.observe(currentElement)
     }
 
     return () => {
-      if (cardRef.current) {
-        observer.unobserve(cardRef.current)
+      if (currentElement) {
+        observer.unobserve(currentElement)
       }
+      observer.disconnect()
     }
   }, [])
 
@@ -55,7 +98,7 @@ const VideoCard = ({ video, index }: { video: Video; index: number }) => {
           <div className="aspect-video">
             <iframe
               src={`https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0&modestbranding=1`}
-              title={video.title}
+              title={actualTitle}
               className="w-full h-full"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -67,11 +110,16 @@ const VideoCard = ({ video, index }: { video: Video; index: number }) => {
           <div className="relative aspect-video cursor-pointer" onClick={handlePlayClick}>
             {isInView && (
               <img
-                src={video.thumbnail}
-                alt={video.title}
+                src={thumbnailError ? fallbackThumbnailUrl : thumbnailUrl}
+                alt={actualTitle}
                 className="w-full h-full object-cover"
                 loading="lazy"
                 onLoad={() => setIsLoaded(true)}
+                onError={() => {
+                  if (!thumbnailError) {
+                    setThumbnailError(true);
+                  }
+                }}
               />
             )}
             {!isLoaded && isInView && (
@@ -91,12 +139,16 @@ const VideoCard = ({ video, index }: { video: Video; index: number }) => {
       </div>
       
       <div className="p-6">
-        <h3 className="font-semibold text-lg text-gray-800 mb-2 line-clamp-2">
-          {video.title}
+        <h3 className="font-semibold text-lg text-gray-800 mb-4 line-clamp-2">
+          {titleLoading ? (
+            <div className="animate-pulse">
+              <div className="h-5 bg-gray-300 rounded w-3/4 mb-1"></div>
+              <div className="h-5 bg-gray-300 rounded w-1/2"></div>
+            </div>
+          ) : (
+            actualTitle
+          )}
         </h3>
-        <p className="text-gray-600 text-sm line-clamp-3">
-          {video.description}
-        </p>
         <div className="mt-4 flex items-center justify-between">
           <span className="text-xs text-gray-500">Savvy Finance</span>
           <button
@@ -148,7 +200,7 @@ const SavvyFinanceVideos = ({ videos }: { videos: Video[] }) => {
     >
       <div className="flex w-max gap-6 pb-4">
         {duplicatedVideos.map((video, index) => (
-          <VideoCard key={index} video={video} index={index} />
+          <VideoCard key={`${video.id}-${Math.floor(index / videos.length)}`} video={video} index={index} />
         ))}
       </div>
     </div>
