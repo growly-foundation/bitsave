@@ -538,10 +538,10 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
   if (!isOpen) return null
   
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-0">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-0 overflow-y-auto">
       {showTransactionModal ? (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-0">
-          <div className={`${spaceGrotesk.className} bg-white rounded-3xl shadow-xl w-full max-w-md mx-auto overflow-hidden`}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-0 overflow-y-auto">
+          <div className={`${spaceGrotesk.className} bg-white rounded-3xl shadow-xl w-full max-w-md mx-auto overflow-hidden my-4 sm:my-0 max-h-[90vh] sm:max-h-none overflow-y-auto`}>
             <div className="p-5 sm:p-8 flex flex-col items-center">
               {/* Success or Error Icon */}
               <div className={`w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mb-4 sm:mb-6 ${success ? 'bg-green-100' : 'bg-red-100'}`}>
@@ -657,7 +657,11 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
         <motion.div 
           ref={modalRef}
           onClick={handleModalClick}
-          className={`${spaceGrotesk.className} bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(31,38,135,0.1)] w-full max-w-md mx-auto overflow-hidden relative`}
+          className={`${spaceGrotesk.className} bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(31,38,135,0.1)] w-full max-w-md mx-auto overflow-hidden relative my-4 sm:my-0 max-h-[90vh] sm:max-h-none overflow-y-auto scrollbar-hide`}
+          style={{
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
@@ -669,7 +673,7 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
           <div className="absolute -left-10 -top-10 w-60 h-60 bg-[#81D7B4]/10 rounded-full blur-3xl group-hover:bg-[#81D7B4]/20 transition-all duration-500"></div>
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#81D7B4] to-[#81D7B4]/80"></div>
           
-          <div className="p-6 relative z-10">
+          <div className="p-6 relative z-10 flex flex-col max-h-full">
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-xl font-bold text-gray-800">Top Up Savings</h2>
               <button 
@@ -718,32 +722,33 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
               <p className="text-xs text-gray-500 mt-1 text-right">— T.T. Munger</p>
             </div>
             
-            <form onSubmit={handleSubmit}>
-              <div className="mb-5">
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
-                  Top Up Amount (USD)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm font-medium">$</span>
-                  </div>
-                  <input
-                    type="text"
-                    name="amount"
-                    id="amount"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="focus:ring-[#81D7B4] focus:border-[#81D7B4] block w-full pl-8 pr-12 py-3 sm:text-sm border-gray-300 rounded-xl shadow-md bg-white/80 backdrop-blur-sm transition-all duration-200 hover:shadow-lg"
-                    placeholder="0.00"
-                    aria-describedby="amount-currency"
-                  />
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm font-medium" id="amount-currency">
-                      USD
-                    </span>
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="mb-5">
+                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+                    Top Up Amount (USD)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm font-medium">$</span>
+                    </div>
+                    <input
+                      type="text"
+                      name="amount"
+                      id="amount"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="focus:ring-[#81D7B4] focus:border-[#81D7B4] block w-full pl-8 pr-12 py-3 sm:text-sm border-gray-300 rounded-xl shadow-md bg-white/80 backdrop-blur-sm transition-all duration-200 hover:shadow-lg"
+                      placeholder="0.00"
+                      aria-describedby="amount-currency"
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm font-medium" id="amount-currency">
+                        USD
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
               
               {/* Balance Warning */}
               {balanceWarning && (
@@ -823,29 +828,31 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
                 </motion.div>
               )}
 
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quick Amounts
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {presetAmounts.map((presetAmount) => (
-                    <button
-                      key={presetAmount}
-                      type="button"
-                      onClick={() => setAmount(presetAmount)}
-                      className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all duration-300 ${
-                        amount === presetAmount
-                          ? 'bg-[#81D7B4]/10 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_2px_10px_rgba(129,215,180,0.2)]'
-                          : 'bg-white/80 backdrop-blur-sm border-gray-200/60 text-gray-700 hover:bg-gray-50/80'
-                      }`}
-                    >
-                      ${presetAmount}
-                    </button>
-                  ))}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quick Amounts
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {presetAmounts.map((presetAmount) => (
+                      <button
+                        key={presetAmount}
+                        type="button"
+                        onClick={() => setAmount(presetAmount)}
+                        className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all duration-300 ${
+                          amount === presetAmount
+                            ? 'bg-[#81D7B4]/10 border-[#81D7B4]/30 text-[#81D7B4] shadow-[0_2px_10px_rgba(129,215,180,0.2)]'
+                            : 'bg-white/80 backdrop-blur-sm border-gray-200/60 text-gray-700 hover:bg-gray-50/80'
+                        }`}
+                      >
+                        ${presetAmount}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
               
-              <div className="flex justify-end">
+              {/* Sticky button area */}
+              <div className="flex justify-end pt-4 border-t border-gray-100/50">
                 <button
                   type="button"
                   onClick={onClose}
@@ -855,9 +862,9 @@ export default function TopUpModal({ isOpen, onClose, planName, isEth = false, t
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || !amount}
+                  disabled={loading || !amount || parseFloat(amount) <= 0}
                   className={`px-4 py-2 rounded-lg text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#81D7B4]/50 transition-all duration-300 ${
-                    loading || !amount
+                    loading || !amount || parseFloat(amount) <= 0
                       ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-[#81D7B4] to-[#6bc4a1] hover:shadow-[0_4px_12px_rgba(129,215,180,0.4)]'
                   }`}
