@@ -7,11 +7,10 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Space_Grotesk } from 'next/font/google';
 
-// Initialize Space Grotesk font
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-space-grotesk',
+  variable: '--font-space-grotesk', 
 });
 
 export default function DashboardLayout({
