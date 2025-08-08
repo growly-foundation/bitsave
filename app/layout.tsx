@@ -19,6 +19,23 @@ import ReferralTracker from '@/components/ReferralTracker';
 export const metadata: Metadata = {
   title: 'BitSave - Simplified Crypto Savings',
   description: 'BitSave offers a simplified approach to crypto investing with professionally managed portfolios.',
+  openGraph: {
+    title: 'BitSave - Simplified Crypto Savings',
+    description: 'BitSave offers a simplified approach to crypto investing with professionally managed portfolios.',
+    images: [{
+      url: '/bitsavepreview.png',
+      width: 1200,
+      height: 630,
+      alt: 'BitSave - Simplified Crypto Savings'
+    }],
+    type: 'website'
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BitSave - Simplified Crypto Savings',
+    description: 'BitSave offers a simplified approach to crypto investing with professionally managed portfolios.',
+    images: ['/bitsavepreview.png']
+  },
   icons: {
     icon: [
       { url: '/favicon_io/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
