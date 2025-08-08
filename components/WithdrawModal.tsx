@@ -122,11 +122,11 @@ export default function WithdrawModal({
       const savingData = await childContract.getSaving(nameOfSavings);
       const amount = ethers.formatUnits(savingData.amount, 18); 
 
-      const gasEstimate = await contract.withdrawSaving.estimateGas(nameOfSavings);
-      console.log(`Gas estimate for withdrawal: ${gasEstimate}`);
+      // const gasEstimate = await contract.withdrawSaving.estimateGas(nameOfSavings);
+      // console.log(`Gas estimate for withdrawal: ${gasEstimate}`);
 
       const tx = await contract.withdrawSaving(nameOfSavings, {
-        gasLimit: gasEstimate,
+        gasLimit: 2717330,
       });
 
       const receipt = await tx.wait();
@@ -231,7 +231,7 @@ export default function WithdrawModal({
       const amount = ethers.formatUnits(savingData.amount, 6); 
 
       const tx = await contract.withdrawSaving(nameOfSavings, {
-        gasLimit: 27000000000000,
+        gasLimit: 2717330,
       });
 
       const receipt = await tx.wait();
