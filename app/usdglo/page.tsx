@@ -39,7 +39,7 @@ export default function USDGLOPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [rawResponse, setRawResponse] = useState<any>(null);
+  const [rawResponse, setRawResponse] = useState<ApiResponse | null>(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -305,9 +305,9 @@ export default function USDGLOPage() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {data.results
-                         .filter(tx => !filterType || (tx.transaction_type || tx.type)?.toLowerCase().includes(filterType.toLowerCase()))
-                         .filter(tx => !filterStatus || 'completed'.includes(filterStatus.toLowerCase()))
-                         .map((transaction: any, index) => (
+                         .filter(transaction => !filterType || (transaction.transaction_type || transaction.type)?.toLowerCase().includes(filterType.toLowerCase()))
+                         .filter(() => !filterStatus || 'completed'.includes(filterStatus.toLowerCase()))
+                         .map((transaction: Transaction, index) => (
                          <tr key={transaction.id || index} className="hover:bg-gray-50">
                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                              {transaction.id || `tx-${index}`}
