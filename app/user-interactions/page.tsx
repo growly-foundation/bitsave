@@ -691,7 +691,7 @@ const ActivityChart = ({ interactions }: { interactions: UserInteraction[] }) =>
   );
 };
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'bitsave2024admin'; // In production, use environment variables
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 // Error analysis helper functions
 const categorizeError = (errorMessage: string): string => {
