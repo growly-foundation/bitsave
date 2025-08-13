@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
+import axios from 'axios';
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,6 +40,29 @@ export async function POST(request: NextRequest) {
         { error: 'Self-referral not allowed' },
         { status: 400 }
       );
+    }
+    
+    // Check if this user has created savings before (only new users should count as referrals)
+    try {
+      const apiResponse = await axios.get(
+        `https://bitsaveapi.vercel.app/transactions/?useraddress=${newUserWalletAddress}`,
+        {
+          headers: {
+            "X-API-Key": process.env.NEXT_PUBLIC_API_KEY
+          }
+        }
+      );
+      
+      // If user has any existing savings transactions, they're not a new user
+      if (apiResponse.data && apiResponse.data.results && apiResponse.data.results.length > 0) {
+        return NextResponse.json(
+          { message: 'User already has existing savings - referral only valid for new users' },
+          { status: 200 }
+        );
+      }
+    } catch (apiError) {
+      console.warn('Could not check user savings history:', apiError);
+      // Continue with referral conversion if API check fails
     }
     
     // Check if this user was already converted through this referral

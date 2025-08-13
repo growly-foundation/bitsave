@@ -67,9 +67,21 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (mounted && address) {
-      const savedName = localStorage.getItem(`bitsave_displayname_${address}`);
-      if (savedName) {
-        setDisplayName(savedName);
+      // Check for Twitter username first
+      const xUsername = localStorage.getItem('xUsername');
+      const isXConnected = localStorage.getItem('isXConnected');
+      
+      if (xUsername && isXConnected === 'true') {
+        setDisplayName(`@${xUsername}`);
+      } else {
+        // Fall back to saved display name
+        const savedName = localStorage.getItem(`bitsave_displayname_${address}`);
+        if (savedName) {
+          setDisplayName(savedName);
+        } else {
+          // Default to truncated wallet address
+          setDisplayName(`${address.slice(0, 6)}...${address.slice(-4)}`);
+        }
       }
     }
   }, [mounted, address]);

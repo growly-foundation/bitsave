@@ -65,7 +65,7 @@ export default function ReferralPage() {
               You&apos;ve been invited to join the future of crypto savings!
             </p>
             <p className="text-lg text-gray-500">
-              Start your DeFi savings journey with BitSave&apos;s innovative stablecoin protocol.
+              Start your SaveFi savings journey with BitSave&apos;s innovative stablecoin protocol.
             </p>
           </div>
 
@@ -155,6 +155,71 @@ export default function ReferralPage() {
               </p>
             </motion.div>
           )}
+
+          {/* Social Media Links */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="mt-12 p-8 bg-gradient-to-br from-white/90 via-white/80 to-[#81D7B4]/10 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_0_rgba(129,215,180,0.2)] border border-white/30 relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 50%, rgba(129,215,180,0.1) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)'
+            }}
+          >
+            {/* Glassmorphism overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-3xl"></div>
+            
+            {/* Neomorphism inner shadow */}
+            <div className="absolute inset-2 rounded-2xl shadow-[inset_0_2px_4px_rgba(129,215,180,0.1),inset_0_-2px_4px_rgba(0,0,0,0.05)]"></div>
+            
+            <div className="relative z-10">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-[#81D7B4] bg-clip-text text-transparent mb-8 text-center">Join Our Community</h3>
+              <div className="flex justify-center space-x-10">
+              {/* Telegram Link */}
+                <a
+                  href="https://t.me/+YimKRR7wAkVmZGRk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 text-white rounded-full transition-all duration-500 shadow-[0_8px_25px_rgba(59,130,246,0.3)] hover:shadow-[0_15px_35px_rgba(59,130,246,0.4)] transform hover:-translate-y-2 hover:scale-110 backdrop-blur-sm border border-white/20 relative overflow-hidden group"
+                  aria-label="Join our Telegram"
+                  style={{
+                    background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%)',
+                    boxShadow: '0 8px 25px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  }}
+                >
+                  {/* Glassmorphism shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <svg className="w-9 h-9 relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                  </svg>
+                </a>
+
+              {/* X (Twitter) Link */}
+              <a
+                href="https://x.com/bitsaveprotocol"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-700 to-black text-white rounded-full transition-all duration-500 shadow-[0_8px_25px_rgba(0,0,0,0.4)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.5)] transform hover:-translate-y-2 hover:scale-110 backdrop-blur-sm border border-white/20 relative overflow-hidden group"
+                aria-label="Follow us on X"
+                style={{
+                  background: 'linear-gradient(135deg, #374151 0%, #1f2937 50%, #000000 100%)',
+                  boxShadow: '0 8px 25px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                }}
+              >
+                {/* Glassmorphism shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <svg className="w-8 h-8 relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </a>
+              </div>
+              <p className="text-base text-gray-600 mt-8 text-center font-medium bg-gradient-to-r from-gray-600 to-[#81D7B4] bg-clip-text text-transparent">
+                Stay updated with the latest news and connect with our community!
+              </p>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </div>
