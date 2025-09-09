@@ -15,33 +15,30 @@ const ChatWidget = dynamic(() => import('@getgrowly/suite').then(suite => suite.
 /// Agent Id and Organization Id can be retrieved on `app.getsuite.io` (Agents > Integration Guide).
 export const SuiteProviderWrapper = ({ children }: { children: React.ReactNode }) => {
   const { isConnected, address } = useAccount();
-  const walletAddress = isConnected ? address : null;
+  const walletAddress = isConnected ? address : undefined;
 
   if (!process.env.NEXT_PUBLIC_SUITE_AGENT_ID || !process.env.NEXT_PUBLIC_SUITE_API_KEY) {
     console.error('Suite agent ID or API key is not set');
-    return null;
+    return <>{children}</>;
   }
 
   return (
-    <>
-      {walletAddress && (
-        <SuiteProvider
-          context={{
-            agentId: process.env.NEXT_PUBLIC_SUITE_AGENT_ID || "",
-            organizationApiKey: process.env.NEXT_PUBLIC_SUITE_API_KEY || "",
-            config: {
-              display: 'fullView',
-              brandName: 'Bitsave',
-            },
-            session: {
-              walletAddress
-            },
-          }}
-        >
-          {children}
-          <ChatWidget />
-        </SuiteProvider>
-      )}
-    </>
+
+    <SuiteProvider
+      context={{
+        agentId: process.env.NEXT_PUBLIC_SUITE_AGENT_ID || "",
+        organizationApiKey: process.env.NEXT_PUBLIC_SUITE_API_KEY || "",
+        config: {
+          display: 'fullView',
+          brandName: 'Bitsave',
+        },
+        session: {
+          walletAddress
+        },
+      }}
+    >
+      {children}
+      <ChatWidget />
+    </SuiteProvider>
   );
 };
